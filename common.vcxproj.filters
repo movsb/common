@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="sources\about.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\asctable.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\comm.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\common.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\deal.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\debug.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\expr.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\load_driver\load_driver.c">
+      <Filter>drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\monitor.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\msg.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\pinctrl.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\stack.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\str2hex.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\timeouts.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\utils.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\struct\list.c">
+      <Filter>struct</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\struct\memory.c">
+      <Filter>struct</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\struct\parse_cmd.c">
+      <Filter>struct</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\cmd_dlg.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\draw.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\send_cmd.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\struct\Thunk.cpp">
+      <Filter>struct</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\dummy_main.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\GetBaudRate.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="sources\about.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\asctable.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\load_driver\com_drv.h">
+      <Filter>drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\comm.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\common.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\deal.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\debug.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\draw.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\expr.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\load_driver\load_driver.h">
+      <Filter>drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\monitor.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\msg.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\pinctrl.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\stack.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\str2hex.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\timeouts.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\utils.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="res\resource.h" />
+    <ClInclude Include="sources\struct\list.h">
+      <Filter>struct</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\struct\memory.h">
+      <Filter>struct</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\struct\parse_cmd.h">
+      <Filter>struct</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\cmd_dlg.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\send_cmd.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\struct\Thunk.h">
+      <Filter>struct</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\GetBaudRate.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="headers">
+      <UniqueIdentifier>{80c5a30f-468f-434d-bb86-a359878c3bf4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{950386c5-54bc-49b0-9916-d268fa20788d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="drivers">
+      <UniqueIdentifier>{490aca65-269c-46ca-9d11-db39cc678f39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources">
+      <UniqueIdentifier>{819d1f8e-de3f-417c-a3fe-2d0b3d42bbdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="struct">
+      <UniqueIdentifier>{d9a76f60-29ba-406f-878d-5cb33039f150}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\100.ico">
+      <Filter>resources</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res\common.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="res\xps.manifest">
+      <Filter>resources</Filter>
+    </Manifest>
+  </ItemGroup>
+</Project>
