@@ -43,7 +43,6 @@ struct msg_s{
 	int (*on_setting_change)(void);
 	int (*on_timer)(int id);
 	int (*on_size)(int width,int height);
-	int (*on_sizing)(WPARAM edge,RECT* pRect);
 	int (*on_app)(UINT uMsg,WPARAM wParam,LPARAM lParam);
 };
 #pragma warning(pop)

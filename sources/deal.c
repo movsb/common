@@ -262,7 +262,31 @@ _exit_dbs:
 说  明:
 	2013-03-10:作了大量修改, 貌似现在不再丢包?找到这个
 BUG可花了我不少时间!!!
+	2014-07-06:增加控制字符处理
 **************************************************/
+
+static void add_text_helper(char* str)
+{
+	int len;
+	unsigned int cntb = utils.eliminate_control_char(str);
+	char* p = str;
+	do{
+		if(*p != '\b'){ // --- 追加
+			len = Edit_GetTextLength(msg.hEditRecv2);
+			Edit_SetSel(msg.hEditRecv2,len,len);
+			Edit_ReplaceSel(msg.hEditRecv2,p);
+		}
+		else{ // --- 向前删除
+			len = Edit_GetTextLength(msg.hEditRecv2);
+			if(len){
+				Edit_SetSel(msg.hEditRecv2, len-1,len);
+				Edit_ReplaceSel(msg.hEditRecv2,"");
+			}
+			p++;
+		}
+	}while(cntb--);
+}
+
 void add_text(unsigned char* ba, int cb)
 {
 	//2012-03-19:增加到10KB空间
@@ -278,6 +302,7 @@ void add_text(unsigned char* ba, int cb)
 			cur_pos = cur_pos/3;
 			str = utils.hex2str(ba,&cb,COMMON_LINE_CCH_RECV,cur_pos,inner_str,__ARRAY_SIZE(inner_str));
 			__try{
+				// 不应该在非主线程里面操作UI, 可能会出错
 				Edit_SetSel(msg.hEditRecv, len, len);
 				Edit_ReplaceSel(msg.hEditRecv, str);
 				if(str!=inner_str) memory.free_mem((void**)&str,NULL);
@@ -304,7 +329,7 @@ void add_text(unsigned char* ba, int cb)
 						uch = '\0';
 					}
 					
-					if(uch>0&&uch<32&&uch!='\n' || uch>0x7F){
+					if(uch>0 && uch<32 && (uch!='\n' && (uch=='\b' && !comm.fEnableControlChar)) || uch>0x7F){ //看得懂不? ^_^
 						ba[it] = (unsigned char)'?';
 					}
 					
@@ -332,13 +357,17 @@ void add_text(unsigned char* ba, int cb)
 				if(p-str-2>=cb){//末尾为两个0+1个x--->数据处理完毕
 					break;
 				}
-				len = Edit_GetTextLength(msg.hEditRecv2);
-				Edit_SetSel(msg.hEditRecv2,len,len);
-				Edit_ReplaceSel(msg.hEditRecv2,p);
+// 				len = Edit_GetTextLength(msg.hEditRecv2);
+// 				Edit_SetSel(msg.hEditRecv2,len,len);
+// 				Edit_ReplaceSel(msg.hEditRecv2,p);
 				//SetDlgItemText(msg.hWndMain,IDC_EDIT_SEND,p);
 				//MessageBox(NULL,p,NULL,0);
-				while(*p++)//定位到第2个'\0',所有hex2chs转换后的结尾必包含两个'\0'+一个'x'
-					;
+				//while(*p++)//定位到第2个'\0',所有hex2chs转换后的结尾必包含两个'\0'+一个'x'
+				//	;
+				//	由于helper函数会修改p指向的数据(但不会超出'\0'),所以先计算下一个偏移
+				len = strlen(p);
+				add_text_helper(p);
+				p += len+1;
 			}
 			if(str!=inner_str) memory.free_mem((void**)&str,NULL);
 		}
@@ -428,7 +457,7 @@ unsigned int __stdcall thread_read(void* pv)
 					if(sta.cbInQue == 1){
 						nBytesToRead += 1;
 						flag = 1;
-						continue;
+						goto _continue_read;
 					}else{
 						Sleep(50);
 					}
@@ -440,6 +469,8 @@ unsigned int __stdcall thread_read(void* pv)
 				debug_out(("读取中文检测正确!\n"));
 				break;
 			}
+_continue_read:
+			;
 		}//中文字符do
 		//已读完要求的字节数+中文
 		// 

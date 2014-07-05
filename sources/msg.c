@@ -16,6 +16,9 @@
 #include "struct/memory.h"
 #include "struct/list.h"
 #include "../res/resource.h"
+#include "layout/SdkLayout.h"
+
+void* pRoot;
 
 struct msg_s msg;
 
@@ -39,7 +42,6 @@ int init_msg(void)
 	msg.on_device_change  = on_device_change;
 	msg.on_setting_change = on_setting_change;
 	msg.on_size           = on_size;
-	msg.on_sizing		  = on_sizing;
 	msg.on_app			  = on_app;
 	return 1;
 }
@@ -119,6 +121,7 @@ LRESULT CALLBACK Recv2EditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			hEditMenu = GetSubMenu(LoadMenu(msg.hInstance,MAKEINTRESOURCE(IDR_MENU_EDIT_RECV)),0);
 			GetCursorPos(&pt);
 			CheckMenuItem(hEditMenu,MENU_EDIT_CHINESE,MF_BYCOMMAND|(comm.fDisableChinese?MF_UNCHECKED:MF_CHECKED));
+			CheckMenuItem(hEditMenu,MENU_EDIT_CONTROL_CHAR,MF_BYCOMMAND|(comm.fEnableControlChar?MF_CHECKED:MF_UNCHECKED));
 			TrackPopupMenu(hEditMenu,TPM_LEFTALIGN,pt.x,pt.y,0,msg.hWndMain,NULL);
 			return 0;
 		}else{
@@ -142,7 +145,6 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		_SETRESULT(WM_TIMER,msg.on_timer((int)wParam),1);
 		_SETRESULT(WM_SETTINGCHANGE,msg.on_setting_change(),1);
 		_SETRESULT(WM_SIZE,msg.on_size(LOWORD(lParam),HIWORD(lParam)),1);
-		_SETRESULT(WM_SIZING,msg.on_sizing(wParam,(RECT*)lParam),1);
 		_SETRESULT(WM_APP,msg.on_app(uMsg,wParam,lParam),1);
 		//---
 	case WM_LBUTTONDOWN:
@@ -151,6 +153,10 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_INITDIALOG:
 		msg.on_create(hWnd,(HINSTANCE)GetModuleHandle(NULL));
 		return FALSE;
+	case WM_CTLCOLORBTN:
+		{
+			return (LRESULT)GetStockObject(NULL_BRUSH);
+		}
 	default:return 0;
 	}
 }
@@ -238,6 +244,9 @@ int on_create(HWND hWnd, HINSTANCE hInstance)
 	InitializeCriticalSection(&window_critical_section);
 	deal.do_buf_send(SEND_DATA_ACTION_INIT,NULL);
 
+	pRoot = NewLayout(hWnd, hInstance, MAKEINTRESOURCE(IDR_RCDATA1));
+	SendMessage(hWnd, WM_SIZE, 0, 0);
+
 	ShowWindow(hWnd,SW_SHOWNORMAL);
 
 	return 0;
@@ -297,6 +306,7 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 		case MENU_OTHER_STR2HEX:ShowStr2Hex();break;
 		//Menu - EditBox
 		case MENU_EDIT_CHINESE:comm.switch_disp();break;
+		case MENU_EDIT_CONTROL_CHAR:comm.switch_handle_control_char();break;
 		}
 		return 0;
 	}
@@ -626,68 +636,14 @@ int on_setting_change(void)
 
 int on_size(int width,int height)
 {
-	//看起来好复杂, 晕........................................
-	int recv_group_right = (msg.WndSize.rcWindowC.right-msg.WndSize.rcWindowC.left)-msg.WndSize.rcRecvGroup.right;
-	int send_group_right = (msg.WndSize.rcWindowC.right-msg.WndSize.rcWindowC.left)-msg.WndSize.rcSendGroup.right;
-	int recv_edit_right  = (msg.WndSize.rcWindowC.right-msg.WndSize.rcWindowC.left)-msg.WndSize.rcRecv.right;
-	int send_edit_right  = (msg.WndSize.rcWindowC.right-msg.WndSize.rcWindowC.left)-msg.WndSize.rcSend.right;
-
-	SetWindowPos(GetDlgItem(msg.hWndMain,IDC_STATIC_RECV),NULL,0,0,width-(msg.WndSize.rcRecvGroup.left+recv_group_right),msg.WndSize.rcRecvGroup.bottom-msg.WndSize.rcRecvGroup.top,SWP_NOMOVE|SWP_NOZORDER);
-	SetWindowPos(GetDlgItem(msg.hWndMain,IDC_STATIC_SEND),NULL,0,0,width-(msg.WndSize.rcSendGroup.left+send_group_right),msg.WndSize.rcSendGroup.bottom-msg.WndSize.rcSendGroup.top,SWP_NOMOVE|SWP_NOZORDER);
-
-	SetWindowPos(msg.hEditRecv,NULL,0,0,width-(msg.WndSize.rcRecv.left+recv_edit_right),msg.WndSize.rcRecv.bottom-msg.WndSize.rcRecv.top,SWP_NOMOVE|SWP_NOZORDER);
-	SetWindowPos(msg.hEditRecv2,NULL,0,0,width-(msg.WndSize.rcRecv.left+recv_edit_right),msg.WndSize.rcRecv.bottom-msg.WndSize.rcRecv.top,SWP_NOMOVE|SWP_NOZORDER);
-	SetWindowPos(msg.hEditSend,NULL,0,0,width-(msg.WndSize.rcSend.left+send_edit_right),msg.WndSize.rcSend.bottom-msg.WndSize.rcSend.top,SWP_NOMOVE|SWP_NOZORDER);
-
-
-	return 0;
-}
-
-int on_sizing(WPARAM edge,RECT* pRect)
-{
 	RECT rc;
-	int old_window_width;
-	
-	GetWindowRect(msg.hWndMain,&rc);
-	old_window_width = msg.WndSize.rcWindow.right-msg.WndSize.rcWindow.left;
-
-	switch(edge)
-	{
-	case WMSZ_TOPRIGHT:
-		pRect->top = rc.top;
-		//fallthrough
-
-	case WMSZ_BOTTOMRIGHT:
-		pRect->bottom = rc.bottom;
-		//fallthrough
-
-	case WMSZ_RIGHT:
-		if(pRect->right<rc.right){//正在减小
-			//最小不能超过原width
-			if((pRect->right-pRect->left) < old_window_width){
-				pRect->right = pRect->left + old_window_width;
-			}
-		}else if(pRect->right>rc.right){//正在增大
-			//最大不能超过原来的2倍
-			if(pRect->right-pRect->left >= 2 * old_window_width){
-				pRect->right = pRect->left + 2 * old_window_width;
-			}
-		}
-		break;
-
-	case WMSZ_LEFT:
-		pRect->right = pRect->left + (rc.right-rc.left);
-		break;
-	
-
-	default:
-		pRect->top=rc.top;
-		pRect->left=rc.left;
-		pRect->right = rc.right;
-		pRect->bottom = rc.bottom;
-		break;
-	}
-	return TRUE;
+	SIZE sz;
+	GetClientRect(msg.hWndMain, &rc);
+	sz.cx = rc.right-rc.left;
+	sz.cy = rc.bottom-rc.top;
+	SizeLayout(pRoot, &sz);
+	InvalidateRect(msg.hWndMain, &rc, FALSE);
+	return 0;
 }
 
 int on_app(UINT uMsg,WPARAM wParam,LPARAM lParam)

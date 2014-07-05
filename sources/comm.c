@@ -54,15 +54,17 @@ void init_comm(void)
 	comm.show_timeouts   = ShowTimeouts;
 	comm.update_config   = update_config;
 	comm.switch_disp     = switch_disp;
+	comm.switch_handle_control_char = switch_handle_control_char;
 	//数据成员
-	comm.data_fmt_recv            = 1;//16进制
-	comm.data_fmt_send            = 1;//16进制
+	comm.data_fmt_recv            = 1;	//16进制
+	comm.data_fmt_send            = 1;	//16进制
 	comm.data_fmt_ignore_return   = 0;	//默认不开启
 	comm.data_fmt_use_escape_char = 0;	//默认不开启转义字符
-	comm.fAutoSend                = 0;			//非自动发送
+	comm.fAutoSend                = 0;	//非自动发送
 	comm.fShowDataReceived        = 1;	//显示接收到的数据
 	comm.data_count               = 0;;
 	comm.fDisableChinese          = 1;	//默认不允许显示中文
+	comm.fEnableControlChar		  = 1;	//默认允许控制字符
 }
 
 /**************************************************
@@ -805,6 +807,23 @@ int switch_disp(void)
 	}
 	return 0;
 }
+
+/**************************************************
+函  数:switch_handle_control_char
+功  能:切换是否需要处理\b控制字符
+参  数:
+返  回:(未使用)
+说  明:
+**************************************************/
+int switch_handle_control_char(void)
+{
+	if(comm.fEnableControlChar)
+		comm.fEnableControlChar = 0;
+	else
+		comm.fEnableControlChar = 1;
+	return 0;
+}
+
 /**************************************************
 函  数:hardware_config@-
 功  能:提供硬件驱动支持的配置

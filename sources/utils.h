@@ -36,6 +36,7 @@ struct utils_s{
 	unsigned int (*remove_string_return)(char* str);
 	unsigned int (*remove_string_linefeed)(char* str);
 	unsigned int (*parse_string_escape_char)(char* str);
+	unsigned int (*eliminate_control_char)(char* str);
 };
 
 #ifndef __UTILS_C__
@@ -58,6 +59,7 @@ int check_chs(unsigned char* ba, int cb);
 unsigned int remove_string_return(char* str);
 unsigned int remove_string_linefeed(char* str);
 unsigned int parse_string_escape_char(char* str);
+unsigned int eliminate_control_char(char* str);
 #endif
 
 

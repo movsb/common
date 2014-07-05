@@ -31,6 +31,7 @@ void init_utils(void)
 	utils.remove_string_return     = remove_string_return;
 	utils.remove_string_linefeed   = remove_string_linefeed;
 	utils.parse_string_escape_char = parse_string_escape_char;
+	utils.eliminate_control_char   = eliminate_control_char;
 	return;
 }
 
@@ -780,4 +781,73 @@ unsigned int parse_string_escape_char(char* str)
 
 _error:
 	return (unsigned int)p2-(unsigned int)str & 0x7FFFFFFF;
+}
+
+/**************************************************
+函  数: eliminate_control_char
+功  能: 处理字符串str中的控制字符, 当前只处理\b删除字符
+参  数: str - 待处理的字符串
+返  回: 返回需要额外删除的字符的个数
+说  明: 由于可能多个\b连在一起, 所以应该根据返回值来确定需要向前删除
+	多少个字符; \b只可能出现在所有的非\b之前;
+	比如: "\b\bABC\b" 函数返回2
+	可以像下面这样使用此函数:
+	char str[] = "xxx";
+	unsigned int i = eliminate_control_char(str);
+	char* p = str;
+	do{
+		if(*p != '\b'){
+			追加输出;
+			//一定会在这里退出循环,无需修改p
+		}
+		else{
+			向前删除一个已经存在的字符
+			p++;
+		}
+	while(i--);
+**************************************************/
+unsigned int eliminate_control_char(char* str)
+{
+	unsigned int unhandled = 0;
+	char* p = str;
+	char* q = str+1;
+
+	if(!p || !*p)
+		return unhandled;
+
+	while(*p){
+		if(*p=='\b'){
+			unhandled++;
+			break;
+		}
+		p++;
+	}
+	if(!unhandled)
+		return 0;
+
+	unhandled = 0;
+	p = str;
+
+	if(*p=='\b') 
+		unhandled++;
+
+	while(*q){
+		if(*q != '\b'){
+			*++p = *q++;
+		}
+		else{
+			while(*q && *q=='\b'){
+				if(p>=str && *p!='\b'){
+					--p;
+					++q;
+				}
+				else{
+					unhandled++;
+					*++p = *q++;
+				}
+			}
+		}
+	}
+	*++p = '\0';
+	return unhandled;
 }

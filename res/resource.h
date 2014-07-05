@@ -20,6 +20,9 @@
 #define IDR_ACCELERATOR1                130
 #define IDD_DIALOG1                     131
 #define IDD_GETBR                       131
+#define IDR_101                         134
+#define IDR_102                         135
+#define IDR_RCDATA1                     136
 #define IDC_BTN_SEND                    1000
 #define IDC_MSG_OK                      1001
 #define IDC_CBO_CP                      1002
@@ -78,7 +81,6 @@
 #define IDC_CMD_DATA                    1058
 #define IDC_CMD_SEND                    1059
 #define IDC_CHECK_IGNORE_RETURN         1060
-#define IDC_CHECK2                      1061
 #define IDC_CHECK_USE_ESCAPE_CHAR       1061
 #define IDC_CMD_STATIC_TYPE             1062
 #define IDC_CMD_STATIC_SIZE             1064
@@ -88,6 +90,16 @@
 #define IDC_BUTTON1                     1068
 #define IDC_BUTTON2                     1069
 #define IDC_EDIT1                       1070
+#define MAINSTATIC_CP                   1071
+#define MAINSTATIC_BR                   1072
+#define MAINSTATIC_CHK                  1073
+#define MAINSTATIC_DATABIT              1074
+#define MAINSTATIC_STOPBIT              1075
+#define MAINSTATIC_TIMER                1076
+#define MAINSTATIC_RECV_FORMAT          1077
+#define MAINSTATIC_SEND_FORMAT          1078
+#define MAINSTATIC_AUTOSEND             1079
+#define MAINSTATIC_PERIOD               1080
 #define MENU_OTHER_ASCII                40001
 #define MENU_OTHER_HELP                 40002
 #define MENU_OTHER_CALC                 40003
@@ -110,14 +122,16 @@
 #define IDACC_OPEN                      40022
 #define IDACC_STOPDISP                  40023
 #define IDACC_CLRCOUNTER                40024
+#define ID_POPUPMENU_40028              40028
+#define MENU_EDIT_CONTROL_CHAR          40029
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        132
-#define _APS_NEXT_COMMAND_VALUE         40028
-#define _APS_NEXT_CONTROL_VALUE         1071
+#define _APS_NEXT_RESOURCE_VALUE        137
+#define _APS_NEXT_COMMAND_VALUE         40030
+#define _APS_NEXT_CONTROL_VALUE         1081
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
