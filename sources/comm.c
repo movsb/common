@@ -184,8 +184,8 @@ void init(void)
 
 	CheckDlgButton(hWndMain,IDC_CHECK_IGNORE_RETURN,BST_UNCHECKED);
 	CheckDlgButton(hWndMain,IDC_CHECK_USE_ESCAPE_CHAR,BST_UNCHECKED);
-	EnableWindow(GetDlgItem(hWndMain,IDC_CHECK_IGNORE_RETURN),FALSE);
-	EnableWindow(GetDlgItem(hWndMain,IDC_CHECK_USE_ESCAPE_CHAR),FALSE);
+	//EnableWindow(GetDlgItem(hWndMain,IDC_CHECK_IGNORE_RETURN),FALSE);
+	//EnableWindow(GetDlgItem(hWndMain,IDC_CHECK_USE_ESCAPE_CHAR),FALSE);
 }
 
 /**************************************************

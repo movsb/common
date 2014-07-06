@@ -22,7 +22,6 @@ void init_utils(void)
 	utils.str2hex                  = str2hex;
 	utils.hex2str                  = hex2str;
 	utils.center_window            = center_window;
-	utils.bubble_sort              = bubble_sort;
 	utils.show_expr                = ShowExpr;
 	utils.hex2chs                  = hex2chs;
 	utils.assert_expr              = myassert;
@@ -322,71 +321,6 @@ _exit_for:
 	*ppBuffer = hexarray;
 	return count|0x80000000;
 }
-/*
-int str2hex(char* str, unsigned char** ppBuffer)
-{
-	unsigned char hex;
-	unsigned int count = 0;
-	unsigned char* buffer = NULL;
-	unsigned char* pb = NULL;
-	register char* pstr = str;
-
-	buffer=(unsigned char*)GET_MEM(strlen(str)/3+1);
-	pb = buffer;
-	//空间分配失败
-	if(buffer == NULL){
-		return 0;
-	}
-	for(;;){//遍历每个字符进行解析
-		register unsigned char ch1 = pstr[0], ch2 = pstr[1];
-		//保证数据格式为2个16进制值+1个空格(或没有空格,最后一个)
-		if(ch1 && ch2 && (pstr[2]==0x20||!pstr[2]||pstr[2]=='\r')){
-			if(isxdigit(ch1) && isxdigit(ch2)){//为正确的16进制值
-				if(isdigit(ch1)){//第1个字符为数字
-					if(isdigit(ch2)){//第2个字符也为数字
-						hex = (unsigned char)((ch1-48)*16 + (ch2-48));
-					}else{//第2个数字为字母
-						ch2 = (char)toupper(ch2);
-						hex = (unsigned char)((ch1-48)*16 + (ch2-55));
-					}
-				}else{//第1个字符为字母
-					if(isdigit(ch2)){//第二个字符也为数字
-						hex = (unsigned char)((ch1-55)*16 + (ch2-48));
-					}else{//第二个字符为字母
-						ch2 = (unsigned char)toupper(ch2);
-						hex = (unsigned char)((ch1-55)*16 + (ch2-55));
-					}
-				}
-				//正确解析
-				pstr += 2;
-			}else{//2个字符中有一个格式不正确
-				free(buffer);
-				*ppBuffer = NULL;
-				return (unsigned int)(pstr-str)&0x7FFFFFFF;
-			}
-		}else if(ch1){//不完整的16进制格式
-			free(buffer);
-			*ppBuffer = NULL;
-			return (unsigned int)(pstr-str)&0x7FFFFFFF;
-		}else{//解析完成
-			break;
-		}
-		//只有正确解析后才会来到这里,保存起来
-		*pb++ = hex;//保存值
-		count++;//统计计数
-	
-		//Skip 16进制内容后面的第1个空格
-		if(*pstr == 0x20) pstr++;
-		//遇到回车换行
-		//if(*pstr == '\r') pstr += 2;
-		if(*pstr=='\r') pstr++;//可能会是Linux文本(如果可能,just in case)
-		if(*pstr=='\n') pstr++;
-	}
-	//解析已完成
-	*ppBuffer = buffer;
-	return count|0x80000000;
-}
-*/
 
 /**************************************************
 函  数:hex2chs
@@ -399,26 +333,55 @@ int str2hex(char* str, unsigned char** ppBuffer)
 说  明:2013-03-10:作了很多修改,大量减少丢包
 2013-03-23 修正:
 	用C语言的人们都都习惯于使用'\n'作为换行符,我也这样使用,
-但偏偏Windows的编辑框以'\r\n'作为换行符,没有办法,我不得
-不把所有的'\n'换成'\r\n',效率必然会下降,而且我不得不计算出
-\n的个数先 --> 为了计算所需缓冲区的大小
+但偏偏Windows的编辑框以'\r\n'作为换行符,没有办法
+
+2014-07-07 修正:
+	今天又遇到奇葩, 只使用\r换行, 你TM能再标准一点么!!!
+		现在做如下统一换行要求:
+			① \r 后面没有 \n
+			② \n 
+			③ \r\n
+			如果出现上面三种情况, 均作为换行处理
+	突然发现, 其实在这里可以全部处理掉所有(最后一个除外)的'\0'.
 **************************************************/
 char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
 {
 	char* buffer=NULL;
 	int total_length;
-	int line_r;			// \n的个数 -> 全部转换为\r\n
-	//计算\n的个数
+	int line_r=0;
+	int z_cnt=0;
+	//计算以上前两种情况出现的个数(第3种不需要处理)
 	do{
 		int len=0;
 		for(line_r=0; len<length; len++){
-			if(hexarray[len]=='\n'){
+			if(hexarray[len]=='\r'){
+				if(len<length-1){
+					if(hexarray[len+1]!='\n'){
+						line_r++;
+					}
+					else{
+						len ++; // skip next '\n'
+					}
+				}
+				else{
+					line_r++;
+				}
+			}
+			else if(hexarray[len]=='\n'){
 				line_r++;
+			}
+			else if(hexarray[len]==0){
+				z_cnt++;
 			}
 		}
 	}while((0));
 
-	total_length = length*1 + 1 + 1 + 1 + line_r;//以两个\0 + 1个 x结尾    +  每个\n换成\r\n <= line_r * 1
+	total_length = 0
+		+ length*1 - line_r		// 其中 前两种情况 已经在计算转换为'\r\n'时计算过
+		+ line_r * 2			// 每个 前两种情况之一 会被转换成 '\r\n'
+		- z_cnt					// 0 不需要保存下来
+		+ 1						// 以'\0'结尾
+		;
 	if(total_length<=buf_size && buf){
 		buffer = buf;
 		//memset(buffer,0,buf_size);
@@ -427,24 +390,35 @@ char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
 		if(!buffer) return NULL;
 	}
 
-	//memcpy(buffer,hexarray,length);
-	//把所有的\n换成\r\n
+	// 转换前两种情况 + 处理'\0'
 	do{
 		unsigned char* pch=(unsigned char*)buffer;
 		int itx;
 		for(itx=0; itx<length; itx++){
-			if(hexarray[itx]=='\n'){
+			if(hexarray[itx]=='\r'){
 				*pch++ = '\r';
 				*pch++ = '\n';
-			}else{
+				
+				if(itx<length-1){
+					if(hexarray[itx+1]=='\n'){
+						itx++;
+					}
+				}
+			}
+			else if(hexarray[itx]=='\n'){
+				*pch++ = '\r';
+				*pch++ = '\n';
+			}
+			else if(hexarray[itx]==0){
+
+			}
+			else{
 				*pch++ = hexarray[itx];
 			}
 		}
 	}while((0));
 
-	buffer[total_length-1] = 'x';//保证数据不全为0,仅作为结束标志
-	buffer[total_length-2] = '\0';
-	buffer[total_length-3] = '\0';
+	buffer[total_length-1] = '\0';
 	return buffer;
 }
 
@@ -544,36 +518,6 @@ void center_window(HWND hWnd, HWND hWndOwner)
 	y = (rchWndOwner.bottom-rchWndOwner.top-height)/2+rchWndOwner.top;
 
 	MoveWindow(hWnd,x,y,width,height,TRUE);
-}
-
-/*************************************************
-函  数:bubble_sort@12
-功  能:冒泡排序
-参  数:a-指针,size-元素个数,inc_or_dec-0:降序,!0:升序
-返回值:(无)
-说  明:元素大小为4个字节,粗略写的,写得模糊,不知道有问题没 - deprecated
-**************************************************/
-void bubble_sort(int* a, int size, int inc_or_dec)
-{
-	int x,y,tmp;
-	if(size<1) return;
-	for(x=0; x<size-1; x++){
-		for(y=0; y<size-x-1; y++){
-			if(inc_or_dec){
-				if(a[y]>a[y+1]){
-					tmp=a[y+1];
-					a[y+1]=a[y];
-					a[y]=tmp;
-				}
-			}else{
-				if(a[y]<a[y+1]){
-					tmp=a[y+1];
-					a[y+1]=a[y];
-					a[y]=tmp;
-				}
-			}
-		}
-	}
 }
 
 /***********************************************************************

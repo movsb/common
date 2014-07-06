@@ -145,9 +145,10 @@ LRESULT CALLBACK Recv2EditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 					utils.msgbox(msg.hWndMain,MB_ICONERROR,"","发送字符数据失败!");
 				}
 				else if(result == 1){
-					if(ch[0]==' ') str = "<Space>";
-					else if(ch[0]=='\b') str="<Backspace> ";//多一个空格
-					else if(ch[0]=='\t') str="<Tab>";
+					if(0) ;
+					//else if(ch[0]==' ') str = "<Space>";
+					//else if(ch[0]=='\b') str="<Backspace> ";//多一个空格
+					//else if(ch[0]=='\t') str="<Tab>";
 					else if(ch[0]=='\r') str="<Enter>";
 					else str = "";
 					deal.add_text_critical((unsigned char*)str,strlen(str));
@@ -284,6 +285,8 @@ int on_create(HWND hWnd, HINSTANCE hInstance)
 	deal.do_buf_send(SEND_DATA_ACTION_INIT,NULL);
 
 	pRoot = NewLayout(hWnd, hInstance, MAKEINTRESOURCE(IDR_RCDATA1));
+	VisibaleLayout(pRoot,"simple_mode_panel",FALSE);
+	VisibaleLayout(pRoot,"recv_btns",TRUE);
 	SendMessage(hWnd, WM_SIZE, 0, 0);
 
 	ShowWindow(hWnd,SW_SHOWNORMAL);
@@ -347,6 +350,7 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 		case MENU_EDIT_CHINESE:comm.switch_disp();break;
 		case MENU_EDIT_CONTROL_CHAR:comm.switch_handle_control_char();break;
 		case MENU_EDIT_SEND_INPUT_CHAR:comm.switch_send_input_char();break;
+		case MENU_EDIT_EMPTY: SetWindowText(msg.hEditRecv2, "");break; //可能导致与add_text冲突
 		}
 		return 0;
 	}
@@ -537,12 +541,18 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 	case IDC_CHECK_SIMPLE:
 		{
 			int flag = !IsDlgButtonChecked(msg.hWndMain, IDC_CHECK_SIMPLE);
-			VisibaleLayout(pRoot,"recv_btns",flag);
+			if(!flag){ // 简洁模式
+				VisibaleLayout(pRoot,"recv_btns",FALSE);
+				VisibaleLayout(pRoot,"simple_mode_panel",TRUE);
+			}
+			else{
+				VisibaleLayout(pRoot,"simple_mode_panel",FALSE);
+				VisibaleLayout(pRoot,"recv_btns",TRUE);
+			}
 			VisibaleLayout(pRoot,"send_wnd",flag);
 			VisibaleLayout(pRoot,"send_btns",flag);
 			VisibaleLayout(pRoot,"auto_send",flag);
 			VisibaleLayout(pRoot,"send_fmt",flag);
-			//VisibaleLayout(pRoot,"recv_group",flag);
 			SendMessage(msg.hWndMain, WM_SIZE, 0, 0);
 			return 0;
 		}

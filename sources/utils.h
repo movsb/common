@@ -28,7 +28,6 @@ struct utils_s{
 	char* (*hex2str)(unsigned char* hexarray, int* length, int linecch, int start, char* buf, int buf_size);
 	char* (*hex2chs)(unsigned char* hexarray,int length,char* buf,int buf_size);
 	void (*center_window)(HWND hWnd, HWND hWndOwner);
-	void (*bubble_sort)(int* a, int size, int inc_or_dec);
 	int (*show_expr)(void);
 	void (*assert_expr)(void* pv,char* str);
 	int (*wstr2lstr)(char* src);
@@ -52,7 +51,6 @@ unsigned int str2hex(char* str, unsigned char** ppBuffer,unsigned int buf_size);
 char* hex2str(unsigned char* hexarray, int* length, int linecch, int start, char* buf, int buf_size);
 char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size);
 void center_window(HWND hWnd, HWND hWndOwner);
-void bubble_sort(int* a, int size, int inc_or_dec);
 void myassert(void* pv,char* str);
 int wstr2lstr(char* src);
 int check_chs(unsigned char* ba, int cb);

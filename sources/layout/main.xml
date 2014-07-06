@@ -65,6 +65,10 @@
 						<Control id="1013" inset="10,0,10,0"/>
 					</Vertical>
 				</Container>
+				<!--简洁模式下左边加一个常用面板-->
+				<Vertical name="simple_mode_panel" height="40">
+					<Control id="1023" height="35" inset="5,0,5,5"/>
+				</Vertical>
 				<!--留空-->
 				<Control />
 				<!--窗口置顶 & 简洁模式-->

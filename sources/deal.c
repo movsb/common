@@ -317,21 +317,11 @@ void add_text_critical(unsigned char* ba, int cb)
 			InterlockedExchangeAdd((long volatile*)&comm.data_count,cb);
 		}else{//字符
 			char* str=NULL;
-			/*volatile */char* p = NULL;
-			int len;
 			if(comm.fDisableChinese){//不允许显示中文的话,把所有>0x7F的字符改成'?',同样也处理特殊字符
 				int it;
 				unsigned char uch;
 				for(it=0; it<cb; it++){
 					uch = ba[it];
-					//TODO:放在这里合适?
-					//如果下位机发送的是\r\n,该怎么办?
-					//比如蓝牙,,      算了, 放这里能正常工作, 还是放这里吧
-					//真TM纠结.........
-					if(uch == '\r'){
-						ba[it] = 0;
-						uch = '\0';
-					}
 
 					if(uch>0 && uch<32 && (uch!='\n' && (uch=='\b' && !comm.fEnableControlChar)) || uch>0x7F){ //看得懂不? ^_^
 						ba[it] = (unsigned char)'?';
@@ -341,38 +331,7 @@ void add_text_critical(unsigned char* ba, int cb)
 			}
 
 			str=utils.hex2chs(ba,cb,inner_str,__ARRAY_SIZE(inner_str));
-
-			//2013-03-10 修正:str可能是以0开始的, 也可能包含多个字符串(必然的)
-			//字符串之间也不一定是以 "1" 个'\0'间隔的
-			p=str;
-			//多字符串处理
-			for(;;){
-				__try{//略过前面的'\0'
-					while(!*p)
-						p++;
-				}
-				__except(EXCEPTION_EXECUTE_HANDLER){
-					utils.msgbox(msg.hWndMain,MB_ICONERROR,COMMON_NAME,
-						"utils.hex2chs:内存访问异常, 请报告错误!\n\n"
-						"str=0x%08X",p);
-					//如果没有遇到异常的话,p应该位于最后的'x'处
-					p = 2+str+cb;
-				}
-				if(p-str-2>=cb){//末尾为两个0+1个x--->数据处理完毕
-					break;
-				}
-				// 				len = Edit_GetTextLength(msg.hEditRecv2);
-				// 				Edit_SetSel(msg.hEditRecv2,len,len);
-				// 				Edit_ReplaceSel(msg.hEditRecv2,p);
-				//SetDlgItemText(msg.hWndMain,IDC_EDIT_SEND,p);
-				//MessageBox(NULL,p,NULL,0);
-				//while(*p++)//定位到第2个'\0',所有hex2chs转换后的结尾必包含两个'\0'+一个'x'
-				//	;
-				//	由于helper函数会修改p指向的数据(但不会超出'\0'),所以先计算下一个偏移
-				len = strlen(p);
-				add_text_helper(p);
-				p += len+1;
-			}
+			add_text_helper(str);
 			if(str!=inner_str) memory.free_mem((void**)&str,NULL);
 		}
 	}else{

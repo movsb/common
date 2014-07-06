@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Chinese (P.R.C.) resources
+// Chinese (Simplified, PRC) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
-#ifdef _WIN32
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 #pragma code_page(936)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -27,56 +25,37 @@ LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 //
 
 IDD_DLG_MAIN DIALOGEX 0, 0, 365, 289
-STYLE WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
-    WS_THICKFRAME
+STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Com Monitor "
 FONT 8, "Arial", 0, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_CBO_CP,30,8,42,55,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
-    COMBOBOX        IDC_CBO_BR,30,21,42,66,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
-    COMBOBOX        IDC_CBO_CHK,30,34,42,49,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
-    COMBOBOX        IDC_CBO_DATA,30,47,42,47,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
-    COMBOBOX        IDC_CBO_STOP,30,60,42,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
-    PUSHBUTTON      "更多\n设置",IDC_BTN_MORE_SETTINGS,3,89,21,20,
-                    BS_MULTILINE
+    COMBOBOX        IDC_CBO_CP,30,8,42,55,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_CBO_BR,30,21,42,66,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_CBO_CHK,30,34,42,49,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_CBO_DATA,30,47,42,47,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_CBO_STOP,30,60,42,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "更多\n设置",IDC_BTN_MORE_SETTINGS,3,89,21,20,BS_MULTILINE
     PUSHBUTTON      "打开串口(&W)",IDC_BTN_OPEN,26,89,44,20,BS_MULTILINE
-    CONTROL         "十六进制",IDC_RADIO_RECV_HEX,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,12,127,48,10
-    CONTROL         "字符模式",IDC_RADIO_RECV_CHAR,"Button",
-                    BS_AUTORADIOBUTTON,12,136,48,10
-    CONTROL         "十六进制",IDC_RADIO_SEND_HEX,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,12,159,48,10
-    CONTROL         "字符模式",IDC_RADIO_SEND_CHAR,"Button",
-                    BS_AUTORADIOBUTTON,12,170,48,10
-    CONTROL         "自动发送",IDC_CHK_AUTO_SEND,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,217,48,10
+    CONTROL         "十六进制",IDC_RADIO_RECV_HEX,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,127,48,10
+    CONTROL         "字符模式",IDC_RADIO_RECV_CHAR,"Button",BS_AUTORADIOBUTTON,12,136,48,10
+    CONTROL         "十六进制",IDC_RADIO_SEND_HEX,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,159,48,10
+    CONTROL         "字符模式",IDC_RADIO_SEND_CHAR,"Button",BS_AUTORADIOBUTTON,12,170,48,10
+    CONTROL         "自动发送",IDC_CHK_AUTO_SEND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,217,48,10
     EDITTEXT        IDC_EDIT_DELAY,12,237,47,12,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_EDIT_RECV,235,30,84,78,ES_MULTILINE | ES_AUTOVSCROLL | 
-                    ES_AUTOHSCROLL | ES_NOHIDESEL | ES_OEMCONVERT | 
-                    ES_READONLY | ES_WANTRETURN | NOT WS_VISIBLE | NOT 
-                    WS_BORDER | WS_VSCROLL | WS_HSCROLL
+    EDITTEXT        IDC_EDIT_RECV,235,30,84,78,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_OEMCONVERT | ES_READONLY | ES_WANTRETURN | NOT WS_VISIBLE | NOT WS_BORDER | WS_VSCROLL | WS_HSCROLL
     PUSHBUTTON      "复制接收数据",IDC_BTN_COPY_RECV,78,132,61,16
     PUSHBUTTON      "清空接收数据",IDC_BTN_CLR_RECV,140,132,61,16
     PUSHBUTTON      "暂停显示(&D)",IDC_BTN_STOPDISP,202,132,61,16
     PUSHBUTTON      "保存到文件",IDC_BTN_SAVEFILE,264,132,61,16
     PUSHBUTTON      "工具箱",IDC_BTN_HELP,329,132,31,16,BS_MULTILINE
-    EDITTEXT        IDC_EDIT_SEND,82,154,276,78,ES_MULTILINE | 
-                    ES_AUTOVSCROLL | ES_NOHIDESEL | ES_WANTRETURN | 
-                    WS_VSCROLL
+    EDITTEXT        IDC_EDIT_SEND,82,154,276,78,ES_MULTILINE | ES_AUTOVSCROLL | ES_NOHIDESEL | ES_WANTRETURN | WS_VSCROLL
     PUSHBUTTON      "复制发送数据",IDC_BTN_COPY_SEND,78,238,61,16
     PUSHBUTTON      "清空发送数据",IDC_BTN_CLR_SEND,141,238,61,16
     PUSHBUTTON      "清空计数器(&C)",IDC_BTN_CLR_COUNTER,203,238,61,16
     PUSHBUTTON      "从文件加载",IDC_BTN_LOADFILE,264,238,61,16
-    EDITTEXT        IDC_STATIC_STATUS,79,256,245,13,ES_AUTOHSCROLL | 
-                    ES_READONLY
+    EDITTEXT        IDC_STATIC_STATUS,79,256,245,13,ES_AUTOHSCROLL | ES_READONLY
     PUSHBUTTON      "发送(&S)",IDC_BTN_SEND,328,241,31,25
-    CONTROL         "窗口最前",IDC_CHK_TOP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,13,262,48,10
+    CONTROL         "窗口最前",IDC_CHK_TOP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,262,48,10
     LTEXT           "串口号",MAINSTATIC_CP,4,9,25,11
     LTEXT           "波特率",MAINSTATIC_BR,4,22,25,11
     LTEXT           "校验位",MAINSTATIC_CHK,4,36,25,8
@@ -86,76 +65,59 @@ BEGIN
     GROUPBOX        "自动发送",MAINSTATIC_AUTOSEND,5,208,66,44
     GROUPBOX        "发送格式",MAINSTATIC_SEND_FORMAT,5,151,66,55
     GROUPBOX        "接收格式",MAINSTATIC_RECV_FORMAT,5,119,66,29
-    EDITTEXT        IDC_EDIT_RECV2,111,19,96,90,ES_MULTILINE | 
-                    ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | 
-                    ES_READONLY | ES_WANTRETURN | NOT WS_BORDER | WS_VSCROLL | 
-                    WS_HSCROLL
+    EDITTEXT        IDC_EDIT_RECV2,111,19,96,90,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY | ES_WANTRETURN | NOT WS_BORDER | WS_VSCROLL | WS_HSCROLL
     LTEXT           "计时器",MAINSTATIC_TIMER,4,77,25,8
     LTEXT           "00:00:00",IDC_STATIC_TIMER,35,77,29,8
-    CONTROL         "忽略回车",IDC_CHECK_IGNORE_RETURN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,21,191,48,10
-    CONTROL         "转义字符",IDC_CHECK_USE_ESCAPE_CHAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,181,48,10
-    CONTROL         "简洁模式",IDC_CHECK_SIMPLE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,274,48,10
+    CONTROL         "忽略回车",IDC_CHECK_IGNORE_RETURN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,191,48,10
+    CONTROL         "转义字符",IDC_CHECK_USE_ESCAPE_CHAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,181,48,10
+    CONTROL         "简洁模式",IDC_CHECK_SIMPLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,274,48,10
 END
 
 IDD_MSG DIALOGEX 0, 0, 263, 219
-STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "关于..."
 FONT 8, "Arial", 0, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_MSG_EDIT_MSG,9,42,251,157,ES_MULTILINE | ES_READONLY | 
-                    NOT WS_BORDER | WS_VSCROLL
+    EDITTEXT        IDC_MSG_EDIT_MSG,9,42,251,157,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
     PUSHBUTTON      "确定",IDC_MSG_OK,115,203,38,12
     LTEXT           "Com Monitor V1.0.0.5",IDC_STATIC_VERSION,34,5,228,8
-    LTEXT           "女孩不哭(QQ:191035066) 开始于 2012-12-24 平安夜",
-                    IDC_STATIC,33,15,223,8
-    PUSHBUTTON      "为保证您的版本最新, 请点此查看最新版本(会打开网页)",
-                    IDC_MSG_HOTLINK,1,26,259,12
+    LTEXT           "女孩不哭(QQ:191035066) 开始于 2012-12-24 平安夜",IDC_STATIC,33,15,223,8
+    PUSHBUTTON      "为保证您的版本最新, 请点此查看最新版本(会打开网页)",IDC_MSG_HOTLINK,1,26,259,12
 END
 
 IDD_DLG_TEMPLATE DIALOGEX 0, 0, 363, 17
-STYLE DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS
+STYLE DS_SETFONT | DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS
 FONT 8, "Arial", 0, 0, 0x1
 BEGIN
     LTEXT           "读写方式:",IDC_HOOK_STATIC,68,3,35,8
-    COMBOBOX        IDC_HOOK_COMBO,130,0,160,66,CBS_DROPDOWNLIST | 
-                    CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_HOOK_COMBO,130,0,160,66,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_DLG_TIMEOUTS DIALOGEX 0, 0, 169, 191
-STYLE DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "串口超时设置(单位:ms)"
 FONT 8, "Arial", 0, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_CTO_EDIT_READ_INTERVAL,2,50,165,12,ES_CENTER | 
-                    ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_CTO_EDIT_READ_MULTIPLIER,2,76,165,12,ES_CENTER | 
-                    ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_CTO_EDIT_READ_CONSTANT,2,101,165,12,ES_CENTER | 
-                    ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_CTO_EDIT_WRITE_MULTIPLIER,2,129,165,12,ES_CENTER | 
-                    ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_CTO_EDIT_WRITE_CONSTANT,2,154,165,12,ES_CENTER | 
-                    ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_CTO_EDIT_READ_INTERVAL,2,50,165,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_CTO_EDIT_READ_MULTIPLIER,2,76,165,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_CTO_EDIT_READ_CONSTANT,2,101,165,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_CTO_EDIT_WRITE_MULTIPLIER,2,129,165,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_CTO_EDIT_WRITE_CONSTANT,2,154,165,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
     PUSHBUTTON      "确定(&O)",IDC_CTO_BTN_OK,89,172,36,15
     PUSHBUTTON      "取消(&C)",IDC_CTO_BTN_CANCEL,129,172,36,15
-    LTEXT           "    两字节间读间隔; 0表示该值未被使用,读操作始终被Pending:",
-                    IDC_STATIC,2,32,164,18
+    LTEXT           "    两字节间读间隔; 0表示该值未被使用,读操作始终被Pending:",IDC_STATIC,2,32,164,18
     LTEXT           "读取每字节用时倍乘数:",IDC_STATIC,2,66,161,9
     LTEXT           "每次读操作至少等待时间:",IDC_STATIC,2,91,164,9
     LTEXT           "写操作每字节用时倍乘数:",IDC_STATIC,2,119,164,8
     LTEXT           "每次写操作至少等待时间:",IDC_STATIC,2,144,164,9
-    LTEXT           "    用于设置串口通信设备的超时,主要体现在读/写串口的时间上, 请你自己明白这是在做什么,否则请不要随意设置",
-                    IDC_STATIC,5,2,159,26
+    LTEXT           "    用于设置串口通信设备的超时,主要体现在读/写串口的时间上, 请你自己明白这是在做什么,否则请不要随意设置",IDC_STATIC,5,2,159,26
     PUSHBUTTON      "默认值(&D)",IDC_CTO_BTN_DEFAULT,6,172,42,15
 END
 
 IDD_DLG_PINCTRL DIALOGEX 0, 0, 207, 40
-STYLE DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "DTR/RTS引脚电平控制"
 FONT 8, "Arial", 0, 0, 0x1
@@ -163,82 +125,69 @@ BEGIN
     PUSHBUTTON      "设定",IDC_PINCTRL_OK,170,6,33,28
     LTEXT           "DTR控制:",IDC_STATIC,5,9,32,8
     LTEXT           "RTS控制:",IDC_STATIC,5,25,32,8
-    COMBOBOX        IDC_CBO_PINCTRL_DTR,43,7,124,12,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_CBO_PINCTRL_RTS,43,22,124,12,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_CBO_PINCTRL_DTR,43,7,124,12,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_CBO_PINCTRL_RTS,43,22,124,12,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
-IDD_DLG_EXPR DIALOG DISCARDABLE  0, 0, 201, 171
-STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_DLG_EXPR DIALOG 0, 0, 201, 171
+STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "表达式评估(Expression Evaluation)"
 FONT 8, "Arial"
 BEGIN
     LTEXT           "表达式:",IDC_STATIC,7,6,27,8
     EDITTEXT        IDC_EXPR_EDIT_EXPR,7,16,185,30,ES_MULTILINE | WS_VSCROLL
-    EDITTEXT        IDC_EXPR_EDIT_RESULT,8,58,185,105,ES_MULTILINE | 
-                    ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL | WS_HSCROLL
+    EDITTEXT        IDC_EXPR_EDIT_RESULT,8,58,185,105,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL | WS_HSCROLL
     LTEXT           "结果:",IDC_STATIC,9,48,19,8
 END
 
 IDD_DLG_STR2HEX DIALOGEX 0, 0, 253, 149
-STYLE DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU | WS_THICKFRAME
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "字符串转16进制数组(点最小化转换 ->)"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_EDIT_STR2HEX_SRC,2,2,248,52,ES_MULTILINE | 
-                    ES_WANTRETURN | WS_VSCROLL
-    EDITTEXT        IDC_EDIT_STR2HEX_DST,2,57,248,89,ES_MULTILINE | 
-                    ES_READONLY | ES_WANTRETURN | WS_VSCROLL
+    EDITTEXT        IDC_EDIT_STR2HEX_SRC,2,2,248,52,ES_MULTILINE | ES_WANTRETURN | WS_VSCROLL
+    EDITTEXT        IDC_EDIT_STR2HEX_DST,2,57,248,89,ES_MULTILINE | ES_READONLY | ES_WANTRETURN | WS_VSCROLL
 END
 
 IDD_DLG_MONITOR DIALOGEX 0, 0, 299, 289
-STYLE DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU | WS_THICKFRAME
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "串口驱动过滤(测试版本)"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_EDIT_MONITOR_RECV,0,0,298,288,ES_MULTILINE | 
-                    ES_AUTOVSCROLL | ES_AUTOHSCROLL | WS_VSCROLL | 
-                    WS_HSCROLL
+    EDITTEXT        IDC_EDIT_MONITOR_RECV,0,0,298,288,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL
 END
 
 IDD_CMD DIALOGEX 0, 0, 161, 74
-STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "发送命令"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     LTEXT           "命令:",IDC_STATIC,6,5,20,8
-    COMBOBOX        IDC_CMD_CMDLIST,27,3,101,96,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_CMD_DATA,5,20,151,49,ES_MULTILINE | ES_WANTRETURN | 
-                    WS_VSCROLL
+    COMBOBOX        IDC_CMD_CMDLIST,27,3,101,96,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_CMD_DATA,5,20,151,49,ES_MULTILINE | ES_WANTRETURN | WS_VSCROLL
     PUSHBUTTON      "发送",IDC_CMD_SEND,131,3,25,14
 END
 
 IDD_SEND_CMD DIALOGEX 0, 0, 229, 42
-STYLE DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     LTEXT           "数据类型:",IDC_CMD_STATIC_TYPE,9,12,89,8,SS_NOTIFY
     LTEXT           "数据大小:",IDC_CMD_STATIC_SIZE,113,12,71,8
     EDITTEXT        IDC_CMD_EDIT_CMD,6,23,181,14,ES_AUTOHSCROLL
     GROUPBOX        "数据名称:",IDC_CMD_STATIC_NAME,3,3,223,37
-    PUSHBUTTON      "发送\n命令",IDC_CMD_BUTTON_SEND,191,11,31,26,
-                    BS_MULTILINE
+    PUSHBUTTON      "发送\n命令",IDC_CMD_BUTTON_SEND,191,11,31,26,BS_MULTILINE
 END
 
 IDD_CMD_TEMPLATE DIALOGEX 0, 0, 233, 247
-STYLE DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_VSCROLL | 
-    WS_SYSMENU
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_VSCROLL | WS_SYSMENU
 CAPTION "发送命令:"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
 END
 
 IDD_GETBR DIALOGEX 0, 0, 159, 44
-STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "确定",IDOK,102,7,50,14
@@ -254,18 +203,18 @@ END
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE MOVEABLE PURE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE MOVEABLE PURE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE MOVEABLE PURE 
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -274,7 +223,6 @@ END
 #endif    // APSTUDIO_INVOKED
 
 
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
@@ -297,18 +245,14 @@ BEGIN
     BEGIN
         BLOCK "080404b0"
         BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "女孩不哭<Email:anhbk@qq.com>\0"
-            VALUE "FileDescription", "Com Monitor\0"
-            VALUE "FileVersion", "1.17.0.0\0"
-            VALUE "InternalName", "common\0"
-            VALUE "LegalCopyright", "common Copyright (C) 2012-2014 女孩不哭\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "common.exe\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "common\0"
-            VALUE "ProductVersion", "1, 0, 0, 0\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "CompanyName", "女孩不哭<Email:anhbk@qq.com>"
+            VALUE "FileDescription", "Com Monitor"
+            VALUE "FileVersion", "1.17.0.0"
+            VALUE "InternalName", "common"
+            VALUE "LegalCopyright", "common Copyright (C) 2012-2014 女孩不哭"
+            VALUE "OriginalFilename", "common.exe"
+            VALUE "ProductName", "common"
+            VALUE "ProductVersion", "1, 0, 0, 0"
         END
     END
     BLOCK "VarFileInfo"
@@ -316,8 +260,6 @@ BEGIN
         VALUE "Translation", 0x804, 1200
     END
 END
-
-#endif    // !_MAC
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -327,59 +269,58 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "100.ico"
+IDI_ICON1               ICON                    "100.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Menu
 //
 
-IDR_MENU_OTHER MENU DISCARDABLE 
+IDR_MENU_OTHER MENU
 BEGIN
     POPUP "popupmenu"
     BEGIN
-        MENUITEM "ASCII 码表",                  MENU_OTHER_ASCII
-        MENUITEM "图形绘制",                    MENU_OTHER_DRAW
-        MENUITEM "串口驱动过滤",                MENU_OTHER_MONITOR
-        MENUITEM "字符串转16进制",              MENU_OTHER_STR2HEX
-        MENUITEM "表达式求值",                  MENU_OTHER_CALC
-        MENUITEM "记事本",                      MENU_OTHER_NOTEPAD
-        MENUITEM "设备管理器",                  MENU_OTHER_DEVICEMGR
+        MENUITEM "ASCII 码表",                    MENU_OTHER_ASCII
+        MENUITEM "图形绘制",                        MENU_OTHER_DRAW
+        MENUITEM "串口驱动过滤",                      MENU_OTHER_MONITOR
+        MENUITEM "字符串转16进制",                    MENU_OTHER_STR2HEX
+        MENUITEM "表达式求值",                       MENU_OTHER_CALC
+        MENUITEM "记事本",                         MENU_OTHER_NOTEPAD
+        MENUITEM "设备管理器",                       MENU_OTHER_DEVICEMGR
         MENUITEM SEPARATOR
-        MENUITEM "帮助/关于",                   MENU_OTHER_HELP
-        MENUITEM "检查软件新版本",              MENU_OTHER_NEWVERSION
+        MENUITEM "帮助/关于",                       MENU_OTHER_HELP
+        MENUITEM "检查软件新版本",                     MENU_OTHER_NEWVERSION
     END
 END
 
-IDR_MENU_MORE MENU DISCARDABLE 
+IDR_MENU_MORE MENU
 BEGIN
     POPUP "popupmenu"
     BEGIN
-        MENUITEM "超时设置(&T)",                MENU_MORE_TIMEOUTS
-        MENUITEM "驱动提供的设置(&D)",          MENU_MORE_DRIVER
-        MENUITEM "DTR/RTS引脚电平控制(&P)",     MENU_MORE_PINCTRL
+        MENUITEM "超时设置(&T)",                    MENU_MORE_TIMEOUTS
+        MENUITEM "驱动提供的设置(&D)",                 MENU_MORE_DRIVER
+        MENUITEM "DTR/RTS引脚电平控制(&P)",           MENU_MORE_PINCTRL
     END
 END
 
-IDR_MENU_EDIT_RECV MENU DISCARDABLE 
+IDR_MENU_EDIT_RECV MENU
 BEGIN
     POPUP "popupmenu"
     BEGIN
-        MENUITEM "允许中文显示(&C)",            MENU_EDIT_CHINESE, CHECKED
-        MENUITEM "处理 ""删除"" 控制字符",      MENU_EDIT_CONTROL_CHAR
-        , CHECKED
-        MENUITEM "发送输入字符",                MENU_EDIT_SEND_INPUT_CHAR
-        , CHECKED
+        MENUITEM "允许中文显示(&C)",                  MENU_EDIT_CHINESE, CHECKED
+        MENUITEM "处理 ""删除"" 控制字符",              MENU_EDIT_CONTROL_CHAR, CHECKED
+        MENUITEM "发送输入字符",                      MENU_EDIT_SEND_INPUT_CHAR, CHECKED
+        MENUITEM "清空数据",                        MENU_EDIT_EMPTY
     END
 END
 
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// 24
+// RT_MANIFEST
 //
 
-1                       24      MOVEABLE PURE   "xps.manifest"
+1                       RT_MANIFEST             "xps.manifest"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -387,7 +328,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO MOVEABLE PURE 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_DLG_MAIN, DIALOG
     BEGIN
@@ -435,7 +376,7 @@ END
 // Accelerator
 //
 
-IDR_ACCELERATOR1 ACCELERATORS MOVEABLE PURE 
+IDR_ACCELERATOR1 ACCELERATORS
 BEGIN
     "S",            IDACC_SEND,             VIRTKEY, ALT, NOINVERT
     "W",            IDACC_OPEN,             VIRTKEY, ALT, NOINVERT
@@ -446,12 +387,12 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Data
+// RCDATA
 //
 
-IDR_101                 RCDATA  MOVEABLE PURE   "E:\\Program\\Windows\\common\\sources\\layout\\layout.xml"
-IDR_RCDATA1             RCDATA  MOVEABLE PURE   "E:\\Program\\Windows\\common\\sources\\layout\\main.xml"
-#endif    // Chinese (P.R.C.) resources
+IDR_101                 RCDATA                  "E:\\Program\\Windows\\common\\sources\\layout\\layout.xml"
+IDR_RCDATA1             RCDATA                  "E:\\Program\\Windows\\common\\sources\\layout\\main.xml"
+#endif    // Chinese (Simplified, PRC) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
