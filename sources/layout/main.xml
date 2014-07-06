@@ -1,0 +1,114 @@
+<Window>
+	<Vertical inset="5,5,5,5">
+		<Horizontal>
+			<!--最左边的整个竖栏-->
+			<Vertical width="100">
+				<!--上部分-->
+				<Vertical height="190">
+					<Horizontal width="100" height="140">
+						<!-- 左边的STATIC控件组 -->
+						<Vertical width="40">
+							<Control id="1071" />
+							<Control id="1072" />
+							<Control id="1073" />
+							<Control id="1074" />
+							<Control id="1075" />
+							<Control id="1076" />
+						</Vertical>
+						<!-- 左边的Combo控件组 -->
+						<Vertical width="60">
+							<Control id="1002" />
+							<Control id="1005" />
+							<Control id="1006" />
+							<Control id="1007" />
+							<Control id="1008" />
+							<Control id="1050" />
+						</Vertical>
+					</Horizontal>
+					<!--更多设置 与 打开串口-->
+					<Horizontal height="40" width="100">
+						<Control id="1035" width="40"/>
+						<Control id="1009" />
+					</Horizontal>
+				</Vertical>
+				<!--接收格式-->
+				<Container height="60">
+					<!--GroupBox-->
+					<Control id="1077"/>
+					<!--Options-->
+					<Vertical inset="10,15,5,5">
+						<Control id="1016" />
+						<Control id="1017" />
+					</Vertical>
+				</Container>
+				<Control height="5"/>
+				<!--发送格式-->
+				<Container name="send_fmt" height="100">
+					<!--GroupBox-->
+					<Control id="1078"/>
+					<!--Options-->
+					<Vertical inset="10,15,5,5">
+						<Control id="1014"/>
+						<Control id="1015"/>
+						<Control id="1060" inset="10,0,0,0"/>
+						<Control id="1061" inset="10,0,0,0"/>
+					</Vertical>
+				</Container>
+				<!--自动发送-->
+				<Container name="auto_send" height="80">
+					<!--GroupBox-->
+					<Control id="1079"/>
+					<!--Children-->
+					<Vertical inset="10,15,5,5">
+						<Control id="1012" />
+						<Control id="1080" inset="10,0,0,0"/>
+						<Control id="1013" inset="10,0,10,0"/>
+					</Vertical>
+				</Container>
+				<!--留空-->
+				<Control />
+				<!--窗口置顶 & 简洁模式-->
+				<Control id="1018" height="20" inset="10,0,0,5"/>
+				<Control id="1081" height="20" inset="10,0,0,5"/>
+			</Vertical>
+			<!--右边整个部分-->
+			<Vertical>
+				<!--数据接收显示窗口-->
+				<Container name="recv_wnd" inset="10,5,5,5">
+					<!--Control name="recv_group" id="1049" /-->
+					<Control id="1010" />
+					<Control id="1033" />
+				</Container>
+				<!--中间的按钮-->
+				<Horizontal name="recv_btns" height="30" inset="10,0,3,0">
+					<Control id="1024" />
+					<Control id="1020" />
+					<Control id="1029" />
+					<Control id="1027" />
+					<Control id="1023" width="60"/>
+				</Horizontal>
+				<!--发送数据窗口-->
+				<Container name="send_wnd" height="100" inset="10,5,5,5">
+					<Control id="1011" />
+				</Container>
+				<!--下边部分-->
+				<Horizontal name="send_btns" height="60" inset="10,0,0,0">
+					<!--左边-->
+					<Vertical>
+						<!--下边按钮-->
+						<Horizontal height="36" inset="0,3,0,3">
+							<Control id="1026" />
+							<Control id="1021" />
+							<Control id="1022" />
+							<Control id="1030" />	
+						</Horizontal>
+						<!--状态栏-->
+						<Control id="1019" height="24"/>
+					</Vertical>
+					<!--发送按钮-->
+					<Control id="1000" width="60" inset="10,5,0,5"/>
+				</Horizontal>
+			</Vertical>
+		</Horizontal>
+	</Vertical>
+</Window>

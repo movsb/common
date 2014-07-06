@@ -148,6 +148,9 @@
     <ClInclude Include="sources\GetBaudRate.h">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="sources\layout\SdkLayout.h">
+      <Filter>layout</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="todo.txt" />
@@ -168,6 +171,9 @@
     <Filter Include="struct">
       <UniqueIdentifier>{d9a76f60-29ba-406f-878d-5cb33039f150}</UniqueIdentifier>
     </Filter>
+    <Filter Include="layout">
+      <UniqueIdentifier>{597126c4-0724-4e3c-92cf-9727fa65814a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\100.ico">
@@ -183,5 +189,9 @@
     <Manifest Include="res\xps.manifest">
       <Filter>resources</Filter>
     </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="sources\layout\layout.xml" />
+    <Xml Include="sources\layout\main.xml" />
   </ItemGroup>
 </Project>

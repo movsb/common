@@ -55,9 +55,10 @@ void init_comm(void)
 	comm.update_config   = update_config;
 	comm.switch_disp     = switch_disp;
 	comm.switch_handle_control_char = switch_handle_control_char;
+	comm.switch_send_input_char     = switch_send_input_char;
 	//数据成员
-	comm.data_fmt_recv            = 1;	//16进制
-	comm.data_fmt_send            = 1;	//16进制
+	comm.data_fmt_recv            = 0;	//字符
+	comm.data_fmt_send            = 0;	//字符
 	comm.data_fmt_ignore_return   = 0;	//默认不开启
 	comm.data_fmt_use_escape_char = 0;	//默认不开启转义字符
 	comm.fAutoSend                = 0;	//非自动发送
@@ -65,6 +66,7 @@ void init_comm(void)
 	comm.data_count               = 0;;
 	comm.fDisableChinese          = 1;	//默认不允许显示中文
 	comm.fEnableControlChar		  = 1;	//默认允许控制字符
+	comm.fEnableCharInput		  = 1;  //默认允许发送输入字符
 }
 
 /**************************************************
@@ -175,8 +177,8 @@ void init(void)
 	#pragma warning(pop)
 
 	//16进制/字符模式选择,初始化:16进制发送, 16进制接收,需要同时设置init_comm时的初始化数据成员的值
-	CheckRadioButton(hWndMain,IDC_RADIO_SEND_HEX,IDC_RADIO_SEND_CHAR,IDC_RADIO_SEND_HEX);
-	CheckRadioButton(hWndMain,IDC_RADIO_RECV_HEX,IDC_RADIO_RECV_CHAR,IDC_RADIO_RECV_HEX);
+	CheckRadioButton(hWndMain,IDC_RADIO_SEND_HEX,IDC_RADIO_SEND_CHAR,IDC_RADIO_SEND_CHAR);
+	CheckRadioButton(hWndMain,IDC_RADIO_RECV_HEX,IDC_RADIO_RECV_CHAR,IDC_RADIO_RECV_CHAR);
 	//自动发送时间
 	SetDlgItemText(hWndMain, IDC_EDIT_DELAY, "1000");
 
@@ -821,6 +823,22 @@ int switch_handle_control_char(void)
 		comm.fEnableControlChar = 0;
 	else
 		comm.fEnableControlChar = 1;
+	return 0;
+}
+
+/**************************************************
+函  数:switch_send_input_char
+功  能:切换是否允许发送输入的字符
+参  数:
+返  回:(未使用)
+说  明:
+**************************************************/
+int switch_send_input_char(void)
+{
+	if(comm.fEnableCharInput)
+		comm.fEnableCharInput = 0;
+	else
+		comm.fEnableCharInput = 1;
 	return 0;
 }
 

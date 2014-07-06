@@ -41,10 +41,12 @@ struct deal_s{
 	unsigned int (__stdcall* thread_read)(void* pv);
 	unsigned int (__stdcall* thread_write)(void* pv);
 	void* (*do_send)(int action);
+	int (*send_char_data)(char ch);
 	void (*add_send_packet)(SEND_DATA* psd);
 	SEND_DATA* (*make_send_data)(int fmt,void* data,size_t size);
 	void (*start_timer)(int start);
 	void (*add_text)(unsigned char* ba, int cb);
+	void (*add_text_critical)(unsigned char* ba, int cb);
 	//....
 	int last_show;
 	//计时器
@@ -63,6 +65,7 @@ struct deal_s{
 	void* autoptr;//自动发送时使用的数据指针,由do_send返回
 	unsigned int timer_id;	//自动发送时的定时器ID
 	CRITICAL_SECTION critical_section;
+	CRITICAL_SECTION g_add_text_cs;
 	//在提醒用户有未显示的数据时, 必须挂起read线程
 	HANDLE hEventContinueToRead;
 };
@@ -87,12 +90,14 @@ unsigned int __stdcall thread_read(void* pv);
 unsigned int __stdcall thread_write(void* pv);
 
 void* do_send(int action);
+int send_char_data(char ch);
 
 void add_send_packet(SEND_DATA* psd);
 SEND_DATA* make_send_data(int fmt,void* data,size_t size);
 
 //void add_ch(unsigned char ch);
 void add_text(unsigned char* ba, int cb);
+void add_text_critical(unsigned char* ba, int cb);
 
 void start_timer(int start);
 

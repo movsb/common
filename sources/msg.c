@@ -122,10 +122,40 @@ LRESULT CALLBACK Recv2EditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			GetCursorPos(&pt);
 			CheckMenuItem(hEditMenu,MENU_EDIT_CHINESE,MF_BYCOMMAND|(comm.fDisableChinese?MF_UNCHECKED:MF_CHECKED));
 			CheckMenuItem(hEditMenu,MENU_EDIT_CONTROL_CHAR,MF_BYCOMMAND|(comm.fEnableControlChar?MF_CHECKED:MF_UNCHECKED));
+			CheckMenuItem(hEditMenu,MENU_EDIT_SEND_INPUT_CHAR,MF_BYCOMMAND|(comm.fEnableCharInput?MF_CHECKED:MF_UNCHECKED));
 			TrackPopupMenu(hEditMenu,TPM_LEFTALIGN,pt.x,pt.y,0,msg.hWndMain,NULL);
 			return 0;
 		}else{
 			break;
+		}
+	case WM_CHAR:
+		{
+			if(comm.fEnableCharInput && comm.fShowDataReceived && msg.hComPort!=INVALID_HANDLE_VALUE && msg.hComPort){
+				int result;
+				char ch[2] = {(char)wParam,'\0'};
+				char* str;
+				//为了把输入字符等于接收字符显示
+				//如果未能正确进入临界区说明:
+				//    来自其它线程的add_text请求尚未结束,此刻不能再Enter,
+				//    因为Enter如果未成功则会挂起UI线程, 导致UI线程卡死
+				if(!TryEnterCriticalSection(&deal.g_add_text_cs))
+					return 0;
+				result = deal.send_char_data(ch[0]);
+				if(result==0){
+					utils.msgbox(msg.hWndMain,MB_ICONERROR,"","发送字符数据失败!");
+				}
+				else if(result == 1){
+					if(ch[0]==' ') str = "<Space>";
+					else if(ch[0]=='\b') str="<Backspace> ";//多一个空格
+					else if(ch[0]=='\t') str="<Tab>";
+					else if(ch[0]=='\r') str="<Enter>";
+					else str = "";
+					deal.add_text_critical((unsigned char*)str,strlen(str));
+				}
+				LeaveCriticalSection(&deal.g_add_text_cs);
+				return 0;
+			}
+			//fall through
 		}
 	}
 	return CallWindowProc(OldRecv2EditWndProc, hWnd, uMsg, wParam, lParam);
@@ -183,6 +213,7 @@ int on_timer(int id)
 int on_create(HWND hWnd, HINSTANCE hInstance)
 {
 	HICON hIcon = NULL;
+	LOGFONT lf={0};
 
 	//初始化句柄
 	msg.hWndMain = hWnd;
@@ -223,16 +254,24 @@ int on_create(HWND hWnd, HINSTANCE hInstance)
 		ANSI_CHARSET,OUT_DEVICE_PRECIS,CLIP_MASK, /*charset, precision, clipping*/
 		DEFAULT_QUALITY, DEFAULT_PITCH, /*quality, and pitch*/
 		"Courier"); /*font name*/
+	GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
+	strncpy(lf.lfFaceName, "Consolas", LF_FACESIZE);
+	lf.lfCharSet = DEFAULT_CHARSET;
+	lf.lfHeight = -12;
+	msg.hFont2 = CreateFontIndirect(&lf);
+	if(!msg.hFont2)
+		msg.hFont2 = msg.hFont;
+	
 	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_RECV, WM_SETFONT, (WPARAM)msg.hFont, MAKELPARAM(TRUE, 0));
-	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_RECV2, WM_SETFONT, (WPARAM)msg.hFont, MAKELPARAM(TRUE, 0));
-	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_SEND, WM_SETFONT, (WPARAM)msg.hFont, MAKELPARAM(TRUE, 0));
+	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_RECV2, WM_SETFONT, (WPARAM)msg.hFont2, MAKELPARAM(TRUE, 0));
+	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_SEND, WM_SETFONT, (WPARAM)msg.hFont2, MAKELPARAM(TRUE, 0));
 	//文本显示区接收与发送缓冲大小
 	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_RECV, EM_SETLIMITTEXT, (WPARAM)COMMON_RECV_BUF_SIZE, 0);
 	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_SEND, EM_SETLIMITTEXT, (WPARAM)COMMON_SEND_BUF_SIZE, 0);
 	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_RECV2,EM_SETLIMITTEXT, (WPARAM)COMMON_RECV_BUF_SIZE, 0);
 	OldRecvEditWndProc=(WNDPROC)SetWindowLongPtr(GetDlgItem(msg.hWndMain, IDC_EDIT_RECV), GWL_WNDPROC, (LONG)RecvEditWndProc);
 	OldRecv2EditWndProc=(WNDPROC)SetWindowLongPtr(GetDlgItem(msg.hWndMain, IDC_EDIT_RECV2), GWL_WNDPROC, (LONG)Recv2EditWndProc);
-	ShowWindow(msg.hEditRecv2,FALSE);
+	//ShowWindow(msg.hEditRecv2,FALSE);
 	//TODO:
 	comm.init();
 	comm.update((int*)-1);
@@ -307,6 +346,7 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 		//Menu - EditBox
 		case MENU_EDIT_CHINESE:comm.switch_disp();break;
 		case MENU_EDIT_CONTROL_CHAR:comm.switch_handle_control_char();break;
+		case MENU_EDIT_SEND_INPUT_CHAR:comm.switch_send_input_char();break;
 		}
 		return 0;
 	}
@@ -492,6 +532,18 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 			int flag = IsDlgButtonChecked(msg.hWndMain, IDC_CHK_TOP);
 			SetWindowPos(msg.hWndMain,flag?HWND_TOPMOST:HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
 			BringWindowToTop(msg.hWndMain);
+			return 0;
+		}
+	case IDC_CHECK_SIMPLE:
+		{
+			int flag = !IsDlgButtonChecked(msg.hWndMain, IDC_CHECK_SIMPLE);
+			VisibaleLayout(pRoot,"recv_btns",flag);
+			VisibaleLayout(pRoot,"send_wnd",flag);
+			VisibaleLayout(pRoot,"send_btns",flag);
+			VisibaleLayout(pRoot,"auto_send",flag);
+			VisibaleLayout(pRoot,"send_fmt",flag);
+			//VisibaleLayout(pRoot,"recv_group",flag);
+			SendMessage(msg.hWndMain, WM_SIZE, 0, 0);
 			return 0;
 		}
 	case IDC_CHK_AUTO_SEND:

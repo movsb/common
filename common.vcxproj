@@ -80,7 +80,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>setupapi.lib;sources/Layout/SdkLayout.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>res\xps.manifest</AdditionalManifestFiles>
@@ -118,8 +118,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>setupapi.lib;sources/layout/sdklayout.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>res\xps.manifest</AdditionalManifestFiles>
@@ -163,6 +164,7 @@
     <ClInclude Include="sources\draw.h" />
     <ClInclude Include="sources\expr.h" />
     <ClInclude Include="sources\GetBaudRate.h" />
+    <ClInclude Include="sources\layout\SdkLayout.h" />
     <ClInclude Include="sources\load_driver\com_drv.h" />
     <ClInclude Include="sources\load_driver\load_driver.h" />
     <ClInclude Include="sources\monitor.h" />
@@ -191,6 +193,12 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="sources\layout\layout.xml" />
+    <Xml Include="sources\layout\main.xml">
+      <SubType>Designer</SubType>
+    </Xml>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

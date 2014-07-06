@@ -100,6 +100,7 @@
 #define MAINSTATIC_SEND_FORMAT          1078
 #define MAINSTATIC_AUTOSEND             1079
 #define MAINSTATIC_PERIOD               1080
+#define IDC_CHECK_SIMPLE                1081
 #define MENU_OTHER_ASCII                40001
 #define MENU_OTHER_HELP                 40002
 #define MENU_OTHER_CALC                 40003
@@ -124,14 +125,16 @@
 #define IDACC_CLRCOUNTER                40024
 #define ID_POPUPMENU_40028              40028
 #define MENU_EDIT_CONTROL_CHAR          40029
+#define ID_POPUPMENU_40030              40030
+#define MENU_EDIT_SEND_INPUT_CHAR       40031
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        137
-#define _APS_NEXT_COMMAND_VALUE         40030
-#define _APS_NEXT_CONTROL_VALUE         1081
+#define _APS_NEXT_COMMAND_VALUE         40032
+#define _APS_NEXT_CONTROL_VALUE         1082
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

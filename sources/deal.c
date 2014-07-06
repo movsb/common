@@ -28,11 +28,15 @@ void init_deal(void)
 	deal.cancel_auto_send      = cancel_auto_send;
 	deal.check_auto_send       = check_auto_send;
 	deal.do_send               = do_send;
+	deal.send_char_data		   = send_char_data;
 	deal.make_send_data        = make_send_data;
 	deal.add_send_packet       = add_send_packet;
 	deal.start_timer           = start_timer;
 	deal.add_text			   = add_text;
+	deal.add_text_critical     = add_text_critical;
 	deal.last_show             = 1;
+
+	InitializeCriticalSection(&deal.g_add_text_cs);
 }
 
 //更新 保存到文件 按钮的状态
@@ -287,12 +291,12 @@ static void add_text_helper(char* str)
 	}while(cntb--);
 }
 
-void add_text(unsigned char* ba, int cb)
+void add_text_critical(unsigned char* ba, int cb)
 {
 	//2012-03-19:增加到10KB空间
 	static char inner_str[10240];
 	if(cb==0) return;
-//	draw_line(ba,cb);
+	//	draw_line(ba,cb);
 	if(comm.fShowDataReceived){
 		if(comm.data_fmt_recv){//16进制
 			char* str=NULL;
@@ -328,14 +332,14 @@ void add_text(unsigned char* ba, int cb)
 						ba[it] = 0;
 						uch = '\0';
 					}
-					
+
 					if(uch>0 && uch<32 && (uch!='\n' && (uch=='\b' && !comm.fEnableControlChar)) || uch>0x7F){ //看得懂不? ^_^
 						ba[it] = (unsigned char)'?';
 					}
-					
+
 				}
 			}
-			
+
 			str=utils.hex2chs(ba,cb,inner_str,__ARRAY_SIZE(inner_str));
 
 			//2013-03-10 修正:str可能是以0开始的, 也可能包含多个字符串(必然的)
@@ -357,9 +361,9 @@ void add_text(unsigned char* ba, int cb)
 				if(p-str-2>=cb){//末尾为两个0+1个x--->数据处理完毕
 					break;
 				}
-// 				len = Edit_GetTextLength(msg.hEditRecv2);
-// 				Edit_SetSel(msg.hEditRecv2,len,len);
-// 				Edit_ReplaceSel(msg.hEditRecv2,p);
+				// 				len = Edit_GetTextLength(msg.hEditRecv2);
+				// 				Edit_SetSel(msg.hEditRecv2,len,len);
+				// 				Edit_ReplaceSel(msg.hEditRecv2,p);
 				//SetDlgItemText(msg.hWndMain,IDC_EDIT_SEND,p);
 				//MessageBox(NULL,p,NULL,0);
 				//while(*p++)//定位到第2个'\0',所有hex2chs转换后的结尾必包含两个'\0'+一个'x'
@@ -374,6 +378,13 @@ void add_text(unsigned char* ba, int cb)
 	}else{
 		do_buf_recv(ba,cb,0);
 	}
+}
+
+void add_text(unsigned char* ba, int cb)
+{
+	EnterCriticalSection(&deal.g_add_text_cs);
+	add_text_critical(ba, cb);
+	LeaveCriticalSection(&deal.g_add_text_cs);
 }
 
 /***********************************************************************
@@ -466,7 +477,6 @@ unsigned int __stdcall thread_read(void* pv)
 				//nBytesToRead--;
 				break;
 			}else{//不需要中文检测
-				debug_out(("读取中文检测正确!\n"));
 				break;
 			}
 _continue_read:
@@ -484,9 +494,9 @@ _continue_read:
 // 			}
 // 		}
 // 		deal.last_show = comm.fShowDataReceived;
-		debug_out(("进入等待...\n"));
+		//debug_out(("进入等待...\n"));
 		WaitForSingleObject(deal.hEventContinueToRead,INFINITE);
-		debug_out(("结束等待...\n"));
+		//debug_out(("结束等待...\n"));
 		add_text(&block_data[0],nBytesToRead);
 	}
 _exit:
@@ -852,6 +862,25 @@ void* do_send(int action)
 		return NULL;
 	}
 	return NULL;
+}
+
+/**************************************************
+函  数:send_char_data
+功  能:发送一个char数据(来自接收数据框)
+参  数:ch - 字符
+返  回:1-成功,0-失败,-1-由于某些原因取消(比较串口并未打开)(成功)
+说  明:
+**************************************************/
+int send_char_data(char ch)
+{
+	SEND_DATA* psd = NULL;
+	if(msg.hComPort==NULL || msg.hComPort==INVALID_HANDLE_VALUE){
+		return -1;
+	}
+	psd = make_send_data(0, &ch, 1);
+	if(!psd) return 0;
+	add_send_packet(psd);
+	return 1;
 }
 
 /**************************************************

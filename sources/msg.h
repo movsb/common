@@ -22,6 +22,7 @@ struct msg_s{
 		HWND hEditRecv2;
 		HWND hEditSend;
 		HFONT hFont;
+		HFONT hFont2;
 		HACCEL hAccel;
 		//由于用户需要拉伸窗口大小,所以程序将允许左右拉伸窗口,高度变化没啥用处
 		struct{
