@@ -424,7 +424,7 @@ unsigned int __stdcall thread_read(void* pv)
 				debug_out(("因为中文,两次等待ReadFile\n"));
 				for(it=0;it<20;it++){
 					ClearCommError(msg.hComPort,&comerr,&sta);
-					if(sta.cbInQue == 1){
+					if(sta.cbInQue){
 						nBytesToRead += 1;
 						flag = 1;
 						goto _continue_read;
@@ -435,27 +435,29 @@ unsigned int __stdcall thread_read(void* pv)
 				block_data[nBytesToRead-1]='.';
 				//nBytesToRead--;
 				break;
-			}else{//不需要中文检测
+			}
+
+			// 如果一个'\r\n'被分两次读取, 那么她可能被处理成两个回车换行, 所以应该一次性把'\r','\n'读完(指定时间内)
+			if(block_data[nBytesToRead-1]=='\r' || block_data[nBytesToRead-1]=='\n'){
+				int it;
+				for(it=0; it<40; it++){
+					ClearCommError(msg.hComPort, &comerr, &sta);
+					if(sta.cbInQue){
+						nBytesToRead += 1;
+						goto _continue_read;
+					}
+					else{
+						Sleep(50);
+					}
+				}
 				break;
 			}
+
+			break;
 _continue_read:
 			;
-		}//中文字符do
-		//已读完要求的字节数+中文
-		// 
-		// 
-
-		//下面几句代码移动到继续显示按键处理那里
-		//检测缓冲区是否有保存未被显示的数据
-// 		if(comm.fShowDataReceived){
-// 			if(!deal.last_show){
-// 				deal.do_check_recv_buf();
-// 			}
-// 		}
-// 		deal.last_show = comm.fShowDataReceived;
-		//debug_out(("进入等待...\n"));
+		}
 		WaitForSingleObject(deal.hEventContinueToRead,INFINITE);
-		//debug_out(("结束等待...\n"));
 		add_text(&block_data[0],nBytesToRead);
 	}
 _exit:

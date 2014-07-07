@@ -341,7 +341,8 @@ _exit_for:
 			① \r 后面没有 \n
 			② \n 
 			③ \r\n
-			如果出现上面三种情况, 均作为换行处理
+			④ \r\n\r
+			如果出现上面四种情况, 均作为一个换行符处理
 	突然发现, 其实在这里可以全部处理掉所有(最后一个除外)的'\0'.
 **************************************************/
 char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
@@ -349,18 +350,35 @@ char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
 	char* buffer=NULL;
 	int total_length;
 	int line_r=0;
+	int line_rnr=0;
 	int z_cnt=0;
+	int len_addend=0;
 	//计算以上前两种情况出现的个数(第3种不需要处理)
 	do{
 		int len=0;
-		for(line_r=0; len<length; len++){
+		for(line_r=0,line_rnr=0; len<length; len+=len_addend+1){
+			len_addend=0;
 			if(hexarray[len]=='\r'){
 				if(len<length-1){
 					if(hexarray[len+1]!='\n'){
 						line_r++;
 					}
 					else{
-						len ++; // skip next '\n'
+						len_addend++; // skip next '\n'
+						if(len<length-2){
+							if(hexarray[len+2]=='\r'){
+								if(len<length-3){
+									if(hexarray[len+3]!='\n'){
+										line_rnr++;
+										len_addend ++; //skip next '\r'
+									}
+								}
+								else{
+									line_rnr++;
+									len_addend ++;
+								}
+							}
+						}
 					}
 				}
 				else{
@@ -377,10 +395,11 @@ char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
 	}while((0));
 
 	total_length = 0
-		+ length*1 - line_r		// 其中 前两种情况 已经在计算转换为'\r\n'时计算过
-		+ line_r * 2			// 每个 前两种情况之一 会被转换成 '\r\n'
-		- z_cnt					// 0 不需要保存下来
-		+ 1						// 以'\0'结尾
+		+ length*1 - line_r*1 - line_rnr*3	// 其中 前两种情况 已经在计算转换为'\r\n'时计算过
+		+ line_r * 2						// 每个 前两种情况之一 会被转换成 '\r\n'
+		+ line_rnr * 2						// 每个 '\r\n\r' 换成 '\r\n'
+		- z_cnt								// 0 不需要保存下来
+		+ 1									// 以'\0'结尾
 		;
 	if(total_length<=buf_size && buf){
 		buffer = buf;
@@ -393,15 +412,25 @@ char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
 	// 转换前两种情况 + 处理'\0'
 	do{
 		unsigned char* pch=(unsigned char*)buffer;
-		int itx;
-		for(itx=0; itx<length; itx++){
+		int itx,itx_addend;
+		for(itx=0; itx<length; itx+=itx_addend+1){
+			itx_addend=0;
 			if(hexarray[itx]=='\r'){
 				*pch++ = '\r';
 				*pch++ = '\n';
-				
+
 				if(itx<length-1){
 					if(hexarray[itx+1]=='\n'){
-						itx++;
+						itx_addend++;
+						if(itx<length-2){
+							if(hexarray[itx+2]=='\r'){
+								if(itx<length-3){
+									if(hexarray[itx+3]!='\n'){
+										itx_addend++;
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -416,8 +445,11 @@ char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
 				*pch++ = hexarray[itx];
 			}
 		}
+// 		if((((unsigned int)pch-(unsigned int)buffer) != total_length-1))
+// 		{
+// 			utils.assert_expr(NULL,"");
+// 		}
 	}while((0));
-
 	buffer[total_length-1] = '\0';
 	return buffer;
 }
