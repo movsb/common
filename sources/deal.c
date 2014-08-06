@@ -35,6 +35,9 @@ void init_deal(void)
 	deal.add_text			   = add_text;
 	deal.add_text_critical     = add_text_critical;
 	deal.last_show             = 1;
+	deal.cache.cachelen		   = 0;
+	deal.cache.crlflen		   = 0;
+	deal.cache.ptr			   = deal.cache.cache;
 
 	InitializeCriticalSection(&deal.g_add_text_cs);
 }
@@ -82,15 +85,6 @@ void update_status(char* str)
 返回值:
 	int - 参看action动作部分
 */
-
-// #pragma pack(push,1)
-// struct Frame{
-// 	unsigned char h1;
-// 	unsigned char currentFrame;
-// 	unsigned char data[240];
-// 	unsigned char h2[2];
-// };
-// #pragma pack(pop)
 
 int do_buf_recv(unsigned char* chs, int cb, int action)
 {
@@ -269,6 +263,54 @@ BUG可花了我不少时间!!!
 	2014-07-06:增加控制字符处理
 **************************************************/
 
+static void delete_last_char(void)
+{
+	static int bIsEditTextUnicode = -1; // -1:undefined,0-false,1-true
+	int len = Edit_GetTextLength(msg.hEditRecv2);
+	if(len > 0){
+		HLOCAL hContent = (HLOCAL)SendMessage(msg.hEditRecv2, EM_GETHANDLE, 0, 0);
+		char* pContent = (char*)LocalLock(hContent);
+		if(!pContent) return;
+
+		if(len == 1){
+			LocalUnlock(hContent);
+			Edit_SetSel(msg.hEditRecv2,len-1,len);
+			Edit_ReplaceSel(msg.hEditRecv2,"");
+		}
+		else{
+			BOOL bIsLastCharCrLf;
+			// do check if text buffer unicode
+			// since msdn is not trustable for this.
+			if(bIsEditTextUnicode == -1){
+				int i = 0;
+				while(i < len){
+					if(pContent[i] == '\0'){
+						break; // unicode
+					}
+					i++;
+				}
+				if(i != len){
+					bIsEditTextUnicode = 1;
+				}
+				else{
+					bIsEditTextUnicode = pContent[len] != '\0';
+				}
+			}
+
+			bIsLastCharCrLf = 
+				bIsEditTextUnicode
+				? pContent[ (len-1)*2 ] == '\n'
+				: pContent[ len -1    ] == '\n'
+				;
+			LocalUnlock(hContent);
+
+			Edit_SetSel(msg.hEditRecv2,len-( bIsLastCharCrLf ? 2 : 1),len);
+			Edit_ReplaceSel(msg.hEditRecv2,"");
+		}
+		return;
+	}
+}
+
 static void add_text_helper(char* str)
 {
 	int len;
@@ -281,22 +323,108 @@ static void add_text_helper(char* str)
 			Edit_ReplaceSel(msg.hEditRecv2,p);
 		}
 		else{ // --- 向前删除
-			len = Edit_GetTextLength(msg.hEditRecv2);
-			if(len){
-				Edit_SetSel(msg.hEditRecv2, len-1,len);
-				Edit_ReplaceSel(msg.hEditRecv2,"");
-			}
+			delete_last_char();
 			p++;
 		}
-	}while(cntb--);
+	}while(cntb-- && *p);
+}
+
+static int process_leading_crlf(unsigned char* ba, int cb)
+{
+	static char inner_buf[10240];
+
+	char* buf;
+	char* cache_buf;
+	int i=0;
+
+	if(cb == 0) return 0;
+
+	i = deal.cache.cachelen + cb;
+	// BUG: FIX
+	if(i > DEAL_CACHE_SIZE){
+		i = DEAL_CACHE_SIZE;
+	}
+
+	cache_buf = (char*)deal.cache.cache;
+	memcpy(deal.cache.cache+deal.cache.cachelen, ba, i-deal.cache.cachelen);
+
+	buf = utils.hex2chs((unsigned char*)cache_buf, i, inner_buf, sizeof(inner_buf));
+
+	// remove last crlf(s)
+	debug_out(("process_leading_crlf: 向前删除 %d 个回车换行\n", deal.cache.crlflen));
+	while(deal.cache.crlflen--)
+		delete_last_char();
+
+	// append new crlf(s)
+	add_text_helper(buf);
+
+	// append new crlf(s) to cache
+	deal.cache.cachelen = i;
+	deal.cache.crlflen = strlen(buf)/2; // for pair
+	debug_out(("process_leading_crlf: 向后增加 %d 个回车换行\n", deal.cache.crlflen));
+
+	// GC
+	if(buf != inner_buf)
+		memory.free_mem((void**)&buf, "");
+
+	if(cache_buf != (char*)deal.cache.cache)
+		memory.free_mem((void**)&cache_buf,"");
+
+	return 0;
+}
+
+static int process_trailing_crlf(unsigned char* ba, int cb)
+{
+	static char inner_buf[10240];
+
+	char* buf;
+
+	if(cb == 0) return 0;
+
+	// BUG: FIX cb > sizeof(cache)
+	if(cb > DEAL_CACHE_SIZE)
+		cb = DEAL_CACHE_SIZE;
+
+	// save last crlf(s)
+	memcpy(deal.cache.cache, ba, cb);
+	deal.cache.cachelen = cb;
+
+	// calc real crlf(s) len
+	buf = utils.hex2chs((unsigned char*)ba, cb, inner_buf, sizeof(inner_buf));
+	add_text_helper(buf);
+
+	deal.cache.crlflen = strlen(buf)/2; //for pair
+	debug_out(("process_trailing_crlf: 向后增加 %d 个回车换行\n", deal.cache.crlflen));
+
+	//GC
+	if(buf != inner_buf)
+		memory.free_mem((void**)&buf, "");
+
+	return 0;
+}
+
+static int process_none_crlf(unsigned char* ba, int cb)
+{
+	static char inner_str[10240];
+	char* str;
+
+	if(cb <= 0) return 0;
+
+	deal.cache.cachelen = 0;
+	deal.cache.crlflen = 0;
+	debug_out(("process_none_crlf: 清空回车换行缓冲\n"));
+
+	str=utils.hex2chs(ba,cb,inner_str,__ARRAY_SIZE(inner_str));
+	add_text_helper(str);
+	if(str!=inner_str) memory.free_mem((void**)&str,NULL);
+
+	return 0;
 }
 
 void add_text_critical(unsigned char* ba, int cb)
 {
-	//2012-03-19:增加到10KB空间
 	static char inner_str[10240];
 	if(cb==0) return;
-	//	draw_line(ba,cb);
 	if(comm.fShowDataReceived){
 		if(comm.data_fmt_recv){//16进制
 			char* str=NULL;
@@ -315,8 +443,11 @@ void add_text_critical(unsigned char* ba, int cb)
 				utils.msgbox(msg.hWndMain,MB_ICONERROR,COMMON_NAME,"add_text:Access Violation!");
 			}
 			InterlockedExchangeAdd((long volatile*)&comm.data_count,cb);
-		}else{//字符
-			char* str=NULL;
+		}
+		else{//字符
+			int crlflen1,crlflen2;
+			int i;
+
 			if(comm.fDisableChinese){//不允许显示中文的话,把所有>0x7F的字符改成'?',同样也处理特殊字符
 				int it;
 				unsigned char uch;
@@ -326,13 +457,24 @@ void add_text_critical(unsigned char* ba, int cb)
 					if(uch>0 && uch<32 && (uch!='\n' && (uch=='\b' && !comm.fEnableControlChar)) || uch>0x7F){ //看得懂不? ^_^
 						ba[it] = (unsigned char)'?';
 					}
-
 				}
 			}
 
-			str=utils.hex2chs(ba,cb,inner_str,__ARRAY_SIZE(inner_str));
-			add_text_helper(str);
-			if(str!=inner_str) memory.free_mem((void**)&str,NULL);
+			// 1.leading
+			for(crlflen1=0,i=0; i<cb && (ba[i]=='\r' || ba[i]=='\n'); i++)
+				crlflen1++;
+			process_leading_crlf(ba, crlflen1);
+
+			if(crlflen1 == cb) return;
+
+			for(crlflen2=0,i=cb-1; i>=0 && (ba[i]=='\r' || ba[i]=='\n'); i--)
+				crlflen2++;
+
+			// 2.center non-crlf chars
+			process_none_crlf(ba+crlflen1, cb-crlflen1-crlflen2);
+
+			// 3.trailing
+			process_trailing_crlf(ba+cb-crlflen2, crlflen2);
 		}
 	}else{
 		do_buf_recv(ba,cb,0);
@@ -369,12 +511,8 @@ unsigned int __stdcall thread_read(void* pv)
 	for(;;){
 		COMSTAT sta;
 		DWORD comerr;
-		int flag=0;//中文检测时用到
 
 		if(comm.fCommOpened==FALSE || msg.hComPort==INVALID_HANDLE_VALUE){
-			debug_out(("因为设备句柄无效,读线程退出!\n"));
-			//utils.msgbox(msg.hWndMain,MB_ICONERROR,"设备句柄无效,读线程终止!");
-			//return 0;
 			goto _exit;
 		}
 
@@ -384,79 +522,31 @@ unsigned int __stdcall thread_read(void* pv)
 		}
 			
 		nBytesToRead = sta.cbInQue;
-		//保留最后一个字节用来容纳期望的中文字符
 		if(nBytesToRead>=COMMON_READ_BUFFER_SIZE){
-			nBytesToRead = COMMON_READ_BUFFER_SIZE-1;
+			nBytesToRead = COMMON_READ_BUFFER_SIZE;
 		}
 
-		nTotalRead = 0;
-		for(;;){
-			for(;nTotalRead<nBytesToRead;){
-				//debug_out(("进入ReadFile\n"));
-				retval = ReadFile(msg.hComPort, &block_data[0]+nTotalRead, nBytesToRead-nTotalRead, &nRead, NULL);
-				if(comm.fCommOpened == FALSE || msg.hComPort==INVALID_HANDLE_VALUE){
-					debug_out(("ReadFile因为comm.fCommOpened==FALSE而退出!\n"));
-					goto _exit;
-				}
-				if(retval == FALSE){
-					InterlockedExchange((long volatile*)&comm.cchNotSend,0);
-					//comm.close();
-					//comm.update((int*)-1);
-					if(comm.fAutoSend){
-						deal.cancel_auto_send(0);
-					}
-					utils.msgerr(msg.hWndMain,"读串口时遇到错误!\n"
-						"是否在拔掉串口之前忘记了关闭串口先?\n\n"
-						"错误原因");
-					SetTimer(msg.hWndMain,TIMER_ID_THREAD,100,NULL);
-					goto _exit;
-				}
-				
-				if(nRead == 0) continue;
-				nTotalRead += nRead;
-				InterlockedExchangeAdd((long volatile*)&comm.cchReceived, nRead);
-				update_status(NULL);
-			}//for::读nBytesRead数据
-			//debug_out(("中文检测...\n"));
-			//读完了要求读的字节数,再做中文完整性检测
-			if(!flag && !comm.fDisableChinese && utils.check_chs(&block_data[0],nTotalRead)){
-				int it;
-				debug_out(("因为中文,两次等待ReadFile\n"));
-				for(it=0;it<20;it++){
-					ClearCommError(msg.hComPort,&comerr,&sta);
-					if(sta.cbInQue){
-						nBytesToRead += 1;
-						flag = 1;
-						goto _continue_read;
-					}else{
-						Sleep(50);
-					}
-				}
-				block_data[nBytesToRead-1]='.';
-				//nBytesToRead--;
-				break;
+		for(nTotalRead=0; nTotalRead < nBytesToRead; ){
+			retval = ReadFile(msg.hComPort, &block_data[0]+nTotalRead, nBytesToRead-nTotalRead, &nRead, NULL);
+			if(comm.fCommOpened == FALSE || msg.hComPort==INVALID_HANDLE_VALUE){
+				goto _exit;
 			}
-
-			// 如果一个'\r\n'被分两次读取, 那么她可能被处理成两个回车换行, 所以应该一次性把'\r','\n'读完(指定时间内)
-			if(block_data[nBytesToRead-1]=='\r' || block_data[nBytesToRead-1]=='\n'){
-				int it;
-				for(it=0; it<40; it++){
-					ClearCommError(msg.hComPort, &comerr, &sta);
-					if(sta.cbInQue){
-						nBytesToRead += 1;
-						goto _continue_read;
-					}
-					else{
-						Sleep(50);
-					}
+			if(retval == FALSE){
+				InterlockedExchange((long volatile*)&comm.cchNotSend,0);
+				if(comm.fAutoSend){
+					deal.cancel_auto_send(0);
 				}
-				break;
+				utils.msgerr(msg.hWndMain,"读串口时遇到错误!\n"
+					"是否在拔掉串口之前忘记了关闭串口先?\n\n"
+					"错误原因");
+				SetTimer(msg.hWndMain,TIMER_ID_THREAD,100,NULL);
+				goto _exit;
 			}
-
-			break;
-_continue_read:
-			;
-		}
+			if(nRead == 0) continue;
+			nTotalRead += nRead;
+			InterlockedExchangeAdd((long volatile*)&comm.cchReceived, nRead);
+			update_status(NULL);
+		}//for::读nBytesRead数据
 		WaitForSingleObject(deal.hEventContinueToRead,INFINITE);
 		add_text(&block_data[0],nBytesToRead);
 	}
@@ -464,8 +554,6 @@ _exit:
 	if(block_data){
 		memory.free_mem((void**)&block_data,"读线程");
 	}
-	debug_out(("读线程自然退出!\n"));
-	UNREFERENCED_PARAMETER(pv);
 	return 0;
 }
 

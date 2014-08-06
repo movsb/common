@@ -66,8 +66,20 @@ struct deal_s{
 	unsigned int timer_id;	//自动发送时的定时器ID
 	CRITICAL_SECTION critical_section;
 	CRITICAL_SECTION g_add_text_cs;
+
 	//在提醒用户有未显示的数据时, 必须挂起read线程
 	HANDLE hEventContinueToRead;
+
+	// 就算当前接收数据包开始是\r\n(或其它), 也并不能说明这就是一个回车换行, 因为上一包中可能是以\r/\n结尾呢!!!
+	// 是不是我还不清楚怎么做才能做到所谓的"字符设备"的标准做法呢?
+	// 再加上Windows的记事本"很难"取得当前最后几个字符是什么, 所以在这里保存一下最后接收的几个字符
+#define DEAL_CACHE_SIZE 10240
+	struct{
+		int cachelen;	//转换之前的crlf长度
+		int crlflen;	//转换之后的crlf长度, 按对数计
+		unsigned char cache[DEAL_CACHE_SIZE];
+		unsigned char* ptr; // 目前尚未使用
+	}cache;
 };
 
 #ifndef __DEAL_C__
