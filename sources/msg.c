@@ -16,9 +16,10 @@
 #include "struct/memory.h"
 #include "struct/list.h"
 #include "../res/resource.h"
-#include "layout/SdkLayout.h"
 
-void* pRoot;
+#include <SdkLayout.h>
+
+static sdklayout* layout;
 
 struct msg_s msg;
 
@@ -132,33 +133,16 @@ LRESULT CALLBACK Recv2EditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		{
 			if(comm.fEnableCharInput && comm.fShowDataReceived && msg.hComPort!=INVALID_HANDLE_VALUE && msg.hComPort){
 				int result;
-				char ch[2] = {(char)wParam,'\0'};
-				char* str;
-				//为了把输入字符等于接收字符显示
-				//如果未能正确进入临界区说明:
-				//    来自其它线程的add_text请求尚未结束,此刻不能再Enter,
-				//    因为Enter如果未成功则会挂起UI线程, 导致UI线程卡死
-				if(!TryEnterCriticalSection(&deal.g_add_text_cs))
-					return 0;
-				result = deal.send_char_data(ch[0]);
+				result = deal.send_char_data((char)wParam);
 				if(result==0){
 					utils.msgbox(msg.hWndMain,MB_ICONERROR,"","发送字符数据失败!");
 				}
-				else if(result == 1){
-					if(0) ;
-					//else if(ch[0]==' ') str = "<Space>";
-					//else if(ch[0]=='\b') str="<Backspace> ";//多一个空格
-					//else if(ch[0]=='\t') str="<Tab>";
-					else if(ch[0]=='\r') str="<Enter>";
-					else str = "";
-					deal.add_text_critical((unsigned char*)str,strlen(str));
-				}
-				LeaveCriticalSection(&deal.g_add_text_cs);
 				return 0;
 			}
-			//fall through
+			goto _def_proc;
 		}
 	}
+_def_proc:
 	return CallWindowProc(OldRecv2EditWndProc, hWnd, uMsg, wParam, lParam);
 }
 
@@ -188,6 +172,11 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			return (LRESULT)GetStockObject(NULL_BRUSH);
 		}
+	case WM_VSCROLL:
+	case WM_HSCROLL:
+		layout_scroll(layout, uMsg, wParam, lParam);
+		return 0;
+
 	default:return 0;
 	}
 }
@@ -198,7 +187,7 @@ int run_app(void)
 {
 	HINSTANCE hInstance = GetModuleHandle(NULL);
 	//return DialogBoxParam(hInstance,MAKEINTRESOURCE(IDD_DLG_MAIN),NULL,(DLGPROC)MainWndProc,(LPARAM)hInstance);
-	return (int)CreateDialog(hInstance,MAKEINTRESOURCE(IDD_DLG_MAIN),NULL,(DLGPROC)MainWndProc);
+	return (int)CreateDialogA(hInstance,MAKEINTRESOURCE(IDD_DLG_MAIN),NULL,(DLGPROC)MainWndProc);
 }
 
 int on_timer(int id)
@@ -284,10 +273,11 @@ int on_create(HWND hWnd, HINSTANCE hInstance)
 	InitializeCriticalSection(&window_critical_section);
 	deal.do_buf_send(SEND_DATA_ACTION_INIT,NULL);
 
-	pRoot = NewLayout(hWnd, hInstance, MAKEINTRESOURCE(IDR_RCDATA1));
-	VisibaleLayout(pRoot,"simple_mode_panel",FALSE);
-	VisibaleLayout(pRoot,"recv_btns",TRUE);
-	SendMessage(hWnd, WM_SIZE, 0, 0);
+	do{
+		layout = layout_new(hWnd, MAKEINTRESOURCE(IDR_RCDATA1),hInstance);
+		layout_visible(layout_control(layout, "recv_wnd_recv"), FALSE, FALSE);
+		layout_resize(layout,NULL);
+	}while(0);
 
 	ShowWindow(hWnd,SW_SHOWNORMAL);
 
@@ -541,18 +531,21 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 	case IDC_CHECK_SIMPLE:
 		{
 			int flag = !IsDlgButtonChecked(msg.hWndMain, IDC_CHECK_SIMPLE);
+
 			if(!flag){ // 简洁模式
-				VisibaleLayout(pRoot,"recv_btns",FALSE);
-				VisibaleLayout(pRoot,"simple_mode_panel",TRUE);
+				layout_visible(layout_control(layout, "recv_btns"), FALSE, FALSE);
+				layout_visible(layout_control(layout, "simple_mode_panel"), TRUE, TRUE);
 			}
 			else{
-				VisibaleLayout(pRoot,"simple_mode_panel",FALSE);
-				VisibaleLayout(pRoot,"recv_btns",TRUE);
+				layout_visible(layout_control(layout, "simple_mode_panel"), FALSE, FALSE);
+				layout_visible(layout_control(layout, "recv_btns"), TRUE, TRUE);
 			}
-			VisibaleLayout(pRoot,"send_wnd",flag);
-			VisibaleLayout(pRoot,"send_btns",flag);
-			VisibaleLayout(pRoot,"auto_send",flag);
-			VisibaleLayout(pRoot,"send_fmt",flag);
+
+			layout_visible(layout_control(layout, "send_wnd"), flag, flag);
+			layout_visible(layout_control(layout, "send_btns"), flag, flag);
+			layout_visible(layout_control(layout, "auto_send"), flag, flag);
+			layout_visible(layout_control(layout, "send_fmt"), flag, flag);
+
 			SendMessage(msg.hWndMain, WM_SIZE, 0, 0);
 			return 0;
 		}
@@ -698,13 +691,7 @@ int on_setting_change(void)
 
 int on_size(int width,int height)
 {
-	RECT rc;
-	SIZE sz;
-	GetClientRect(msg.hWndMain, &rc);
-	sz.cx = rc.right-rc.left;
-	sz.cy = rc.bottom-rc.top;
-	SizeLayout(pRoot, &sz);
-	InvalidateRect(msg.hWndMain, &rc, FALSE);
+	layout_resize(layout, NULL);
 	return 0;
 }
 
