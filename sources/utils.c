@@ -707,6 +707,14 @@ unsigned int remove_string_linefeed(char* str)
 	3.'?',''','"', 等print-able字符不需要转义
 	4.源字符串会被修改 - 一直不习惯用const修饰, 该注意下了
 **************************************************/
+static __inline unsigned char val_from_char(char c)
+{
+	if(c>='0' && c<='9') return c-'0';
+	else if(c>='a' && c<='f') return c-'a'+10;
+	else if(c>='A' && c<='F') return c-'A'+10;
+	else return 0;
+}
+
 unsigned int parse_string_escape_char(char* str)
 {
 	char* p1 = str;
@@ -729,8 +737,8 @@ unsigned int parse_string_escape_char(char* str)
 					p2++;
 					if(*p2 && *(p2+1)){
 						if(isxdigit(*p2) && isxdigit(*(p2+1))){
-							unsigned char hex =*p2-'0';
-							hex = (hex<<4) + (*(p2+1)-'0');
+							unsigned char hex = val_from_char(*p2);
+							hex = (hex << 4) + val_from_char(*(p2+1));
 							*(unsigned char*)p1 = hex;
 							p1++;
 							p2 += 2;
