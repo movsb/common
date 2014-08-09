@@ -80,6 +80,14 @@ struct deal_s{
 		unsigned char cache[DEAL_CACHE_SIZE];
 		unsigned char* ptr; // 目前尚未使用
 	}cache;
+
+	// 输入单个的非ansi字符, 很可能导致文本乱码
+	// 如果需要支持中文, 那么就必须缓存一些大于0x7F的数据
+#define DEAL_CHARS_SIZE 3 // 必须为3, 不能改变
+	struct{
+		BOOL has;
+		unsigned char chars[DEAL_CHARS_SIZE];
+	}chars;
 };
 
 #ifndef __DEAL_C__

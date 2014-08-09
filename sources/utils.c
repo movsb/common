@@ -344,6 +344,8 @@ _exit_for:
 			④ \r\n\r
 			如果出现上面四种情况, 均作为一个换行符处理
 	突然发现, 其实在这里可以全部处理掉所有(最后一个除外)的'\0'.
+2014-08-08:
+	为了防止edit乱码, 此处以3个'\0'作为结束
 **************************************************/
 char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
 {
@@ -399,7 +401,7 @@ char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
 		+ line_r * 2						// 每个 前两种情况之一 会被转换成 '\r\n'
 		+ line_rnr * 2						// 每个 '\r\n\r' 换成 '\r\n'
 		- z_cnt								// 0 不需要保存下来
-		+ 1									// 以'\0'结尾
+		+ 3									// 以3个'\0'结尾
 		;
 	if(total_length<=buf_size && buf){
 		buffer = buf;
@@ -451,6 +453,8 @@ char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
 // 		}
 	}while((0));
 	buffer[total_length-1] = '\0';
+	buffer[total_length-2] = '\0';
+	buffer[total_length-3] = '\0';
 	return buffer;
 }
 
@@ -632,7 +636,7 @@ int check_chs(unsigned char* ba, int cb)
 			break;
 		case CHARFMT_OEMCP:
 			if(flag_current == CHARFMT_ASCII){
-				ba[it-1] = '?';
+				//ba[it-1] = '?';
 				flag = CHARFMT_ASCII;
 			}else if(flag_current == CHARFMT_OEMCP){
 				flag = CHARFMT_NULL;

@@ -546,6 +546,10 @@ int close(int reason)
 	deal.update_status(NULL);
 	deal.update_savebtn_status();
 
+	deal.cache.cachelen = 0;
+	deal.cache.crlflen = 0;
+	deal.chars.has = FALSE;
+
 	deal.do_buf_send(SEND_DATA_ACTION_RESET,NULL);
 	deal.do_buf_recv(NULL,0,3);
 	InterlockedExchange((long volatile*)&comm.cchNotSend,0);

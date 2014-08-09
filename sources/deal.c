@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+
 #define __DEAL_C__
 #include "deal.h"
 #include "common.h"
@@ -35,9 +38,10 @@ void init_deal(void)
 	deal.add_text			   = add_text;
 	deal.add_text_critical     = add_text_critical;
 	deal.last_show             = 1;
-	deal.cache.cachelen		   = 0;
-	deal.cache.crlflen		   = 0;
-	deal.cache.ptr			   = deal.cache.cache;
+	deal.cache.cachelen	       = 0;
+	deal.cache.crlflen	       = 0;
+	deal.cache.ptr             = deal.cache.cache;
+	deal.chars.has	           = FALSE;
 
 	InitializeCriticalSection(&deal.g_add_text_cs);
 }
@@ -311,6 +315,14 @@ static void delete_last_char(void)
 	}
 }
 
+static __inline void delete_chars(int n)
+{
+	if(n < 0) return;
+
+	while(n--)
+		delete_last_char();
+}
+
 static void add_text_helper(char* str)
 {
 	int len;
@@ -350,18 +362,31 @@ static int process_leading_crlf(unsigned char* ba, int cb)
 
 	buf = utils.hex2chs((unsigned char*)cache_buf, i, inner_buf, sizeof(inner_buf));
 
-	// remove last crlf(s)
-	debug_out(("process_leading_crlf: 向前删除 %d 个回车换行\n", deal.cache.crlflen));
-	while(deal.cache.crlflen--)
-		delete_last_char();
+	do{
+		// remove last crlf(s)
+		// debug_out(("process_leading_crlf: 向前删除 %d 个回车换行\n", deal.cache.crlflen));
+		//while(deal.cache.crlflen--)
+		//	delete_last_char();
 
-	// append new crlf(s)
-	add_text_helper(buf);
+		// append new crlf(s)
+		//add_text_helper(buf);
+		// 
+
+		int newcrlf = strlen(buf)/2;
+		int diff = newcrlf - deal.cache.crlflen;
+
+		if(diff > 0){
+			add_text_helper(buf + deal.cache.crlflen*2);
+		}
+		else{
+			delete_chars(-diff);
+		}
+	}while(0);
 
 	// append new crlf(s) to cache
 	deal.cache.cachelen = i;
 	deal.cache.crlflen = strlen(buf)/2; // for pair
-	debug_out(("process_leading_crlf: 向后增加 %d 个回车换行\n", deal.cache.crlflen));
+	//debug_out(("process_leading_crlf: 向后增加 %d 个回车换行\n", deal.cache.crlflen));
 
 	// GC
 	if(buf != inner_buf)
@@ -394,7 +419,7 @@ static int process_trailing_crlf(unsigned char* ba, int cb)
 	add_text_helper(buf);
 
 	deal.cache.crlflen = strlen(buf)/2; //for pair
-	debug_out(("process_trailing_crlf: 向后增加 %d 个回车换行\n", deal.cache.crlflen));
+	//debug_out(("process_trailing_crlf: 向后增加 %d 个回车换行\n", deal.cache.crlflen));
 
 	//GC
 	if(buf != inner_buf)
@@ -412,7 +437,7 @@ static int process_none_crlf(unsigned char* ba, int cb)
 
 	deal.cache.cachelen = 0;
 	deal.cache.crlflen = 0;
-	debug_out(("process_none_crlf: 清空回车换行缓冲\n"));
+	//debug_out(("process_none_crlf: 清空回车换行缓冲\n"));
 
 	str=utils.hex2chs(ba,cb,inner_str,__ARRAY_SIZE(inner_str));
 	add_text_helper(str);
@@ -421,18 +446,56 @@ static int process_none_crlf(unsigned char* ba, int cb)
 	return 0;
 }
 
+// returns true if c is used
+static int process_leading_char(int c)
+{
+	if(deal.chars.has){
+		if(c>0x7F){
+			deal.chars.chars[1] = c;
+			deal.chars.chars[2] = '\0';
+			add_text_helper((char*)deal.chars.chars);
+
+			debug_out(("process_leading_char: 原来有, 结合并处理了\n"));
+
+			deal.chars.has = FALSE;
+			return TRUE;
+		}else{
+			char buf[5];
+			sprintf(buf, "<%02X>", (unsigned char)deal.chars.chars[0]);
+			add_text_helper(buf);
+			debug_out(("process_leading_char: 原来有, 单独处理了\n"));
+
+			deal.chars.has = FALSE;
+			return FALSE;
+		}
+	}
+	else{
+		debug_out(("process_leading_char: 原来没有, 不作处理了\n"));
+		return FALSE;
+	}
+}
+
+static int process_trailing_char(int c)
+{
+	deal.chars.has = TRUE;
+	deal.chars.chars[0] = c;
+	debug_out(("process_trailing_char: 增加了未处理字符\n"));
+	return 1;
+}
+
 void add_text_critical(unsigned char* ba, int cb)
 {
 	static char inner_str[10240];
-	if(cb==0) return;
+	if(cb<=0) return;
 	if(comm.fShowDataReceived){
-		if(comm.data_fmt_recv){//16进制
+		if(1/*comm.data_fmt_recv*/){//16进制
 			char* str=NULL;
 			DWORD len,cur_pos;
+			int cbnew = cb;
 			len = comm.data_count;//Edit_GetTextLength(msg.hEditRecv);
 			cur_pos = len % (COMMON_LINE_CCH_RECV*3+2);
 			cur_pos = cur_pos/3;
-			str = utils.hex2str(ba,&cb,COMMON_LINE_CCH_RECV,cur_pos,inner_str,__ARRAY_SIZE(inner_str));
+			str = utils.hex2str(ba,&cbnew,COMMON_LINE_CCH_RECV,cur_pos,inner_str,__ARRAY_SIZE(inner_str));
 			__try{
 				// 不应该在非主线程里面操作UI, 可能会出错
 				Edit_SetSel(msg.hEditRecv, len, len);
@@ -442,39 +505,44 @@ void add_text_critical(unsigned char* ba, int cb)
 			__except(EXCEPTION_EXECUTE_HANDLER){
 				utils.msgbox(msg.hWndMain,MB_ICONERROR,COMMON_NAME,"add_text:Access Violation!");
 			}
-			InterlockedExchangeAdd((long volatile*)&comm.data_count,cb);
+			InterlockedExchangeAdd((long volatile*)&comm.data_count,cbnew);
 		}
-		else{//字符
+		if(1){//字符
 			int crlflen1,crlflen2;
+			BOOL bNoFirst=FALSE, bNoLast=FALSE;
 			int i;
 
-			if(comm.fDisableChinese){//不允许显示中文的话,把所有>0x7F的字符改成'?',同样也处理特殊字符
-				int it;
-				unsigned char uch;
-				for(it=0; it<cb; it++){
-					uch = ba[it];
-
-					if(uch>0 && uch<32 && (uch!='\n' && (uch=='\b' && !comm.fEnableControlChar)) || uch>0x7F){ //看得懂不? ^_^
-						ba[it] = (unsigned char)'?';
-					}
-				}
-			}
-
-			// 1.leading
+			// leading crlfs
 			for(crlflen1=0,i=0; i<cb && (ba[i]=='\r' || ba[i]=='\n'); i++)
 				crlflen1++;
-			process_leading_crlf(ba, crlflen1);
 
-			if(crlflen1 == cb) return;
+			if(crlflen1==0 && process_leading_char(ba[0])){
+				ba++;
+				cb--;
+			}
+
+			if(cb <=0 ) return;
+
+			if(crlflen1) // reduce function call
+				process_leading_crlf(ba, crlflen1);
+
+			if(crlflen1 == cb) return; // all are crlfs, no more handlers
 
 			for(crlflen2=0,i=cb-1; i>=0 && (ba[i]=='\r' || ba[i]=='\n'); i--)
 				crlflen2++;
 
-			// 2.center non-crlf chars
-			process_none_crlf(ba+crlflen1, cb-crlflen1-crlflen2);
+			// check none-ansi (namely, non-print-able chars)
+			if(crlflen2==0 && utils.check_chs(ba+crlflen1, cb-crlflen1) != 0){
+				process_trailing_char(ba[ cb-1 ]);
+				bNoLast = TRUE;
+			}
 
-			// 3.trailing
-			process_trailing_crlf(ba+cb-crlflen2, crlflen2);
+			// center non-crlf chars
+			process_none_crlf(ba+crlflen1, cb-crlflen1-crlflen2-(bNoLast?1:0));
+
+			// trailing crlfs
+			if(crlflen2)
+				process_trailing_crlf(ba+cb-crlflen2, crlflen2);
 		}
 	}else{
 		do_buf_recv(ba,cb,0);
