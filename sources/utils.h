@@ -1,5 +1,5 @@
-#ifndef __UTILS_H__
-#define __UTILS_H__
+#ifndef __COM_UTILS_H__
+#define __COM_UTILS_H__
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
 #include <windows.h>
@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-
+enum newline_type {NLT_CR,NLT_LF,NLT_CRLF};
 
 #define __ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 
@@ -26,7 +26,7 @@ struct utils_s{
 	int (*set_clip_data)(char* str);
 	unsigned int (*str2hex)(char* str, unsigned char** ppBuffer,unsigned int buf_size);
 	char* (*hex2str)(unsigned char* hexarray, int* length, int linecch, int start, char* buf, int buf_size);
-	char* (*hex2chs)(unsigned char* hexarray,int length,char* buf,int buf_size);
+	char* (*hex2chs)(unsigned char* hexarray,int length,char* buf,int buf_size, enum newline_type nlt);
 	void (*center_window)(HWND hWnd, HWND hWndOwner);
 	int (*show_expr)(void);
 	void (*assert_expr)(void* pv,char* str);
@@ -49,7 +49,7 @@ char* get_file_name(char* title, char* filter, int action, int* opentype);
 int set_clip_data(char* str);
 unsigned int str2hex(char* str, unsigned char** ppBuffer,unsigned int buf_size);
 char* hex2str(unsigned char* hexarray, int* length, int linecch, int start, char* buf, int buf_size);
-char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size);
+char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size, enum newline_type nlt);
 void center_window(HWND hWnd, HWND hWndOwner);
 void myassert(void* pv,char* str);
 int wstr2lstr(char* src);
@@ -66,4 +66,4 @@ unsigned int eliminate_control_char(char* str);
 #endif
 
 
-#endif//!__UTILS_H__
+#endif//!__COM_UTILS_H__

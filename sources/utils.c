@@ -336,125 +336,104 @@ _exit_for:
 但偏偏Windows的编辑框以'\r\n'作为换行符,没有办法
 
 2014-07-07 修正:
-	今天又遇到奇葩, 只使用\r换行, 你TM能再标准一点么!!!
-		现在做如下统一换行要求:
-			① \r 后面没有 \n
-			② \n 
-			③ \r\n
-			④ \r\n\r
-			如果出现上面四种情况, 均作为一个换行符处理
+	现在做如下统一换行要求:
+		① \r 后面没有 \n
+		② \n 
+		③ \r\n
+		④ \r\n\r
+		如果出现上面四种情况, 均作为一个换行符处理
 	突然发现, 其实在这里可以全部处理掉所有(最后一个除外)的'\0'.
 2014-08-08:
 	为了防止edit乱码, 此处以3个'\0'作为结束
+
+2014-08-13:
+	RichEdit仅使用'\r'作为换行, 多添加一个参数
 **************************************************/
-char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size)
+
+static __inline void hex2chs_append_nl(unsigned char** pp, enum newline_type nlt)
+{
+	switch(nlt)
+	{
+	case NLT_CR:
+		**pp = '\r';
+		++*pp;
+		break;
+	case NLT_LF:
+		**pp = '\n';
+		++*pp;
+		break;
+	case NLT_CRLF:
+		**pp = '\r';
+		++*pp;
+		**pp = '\n';
+		++*pp;
+		break;
+	}
+}
+
+char* hex2chs(unsigned char* hexarray,int length,char* buf,int buf_size, enum newline_type nlt)
 {
 	char* buffer=NULL;
-	int total_length;
-	int line_r=0;
-	int line_rnr=0;
-	int z_cnt=0;
-	int len_addend=0;
-	//计算以上前两种情况出现的个数(第3种不需要处理)
+	unsigned char* p;
+	int total_length; // 并非真正的总长度依靠pch指针判断
+	int cnt_n = 0;
+
+	//计算以上各种情况出现的个数
+	//其实按照最大来估计空间
 	do{
-		int len=0;
-		for(line_r=0,line_rnr=0; len<length; len+=len_addend+1){
-			len_addend=0;
-			if(hexarray[len]=='\r'){
-				if(len<length-1){
-					if(hexarray[len+1]!='\n'){
-						line_r++;
-					}
-					else{
-						len_addend++; // skip next '\n'
-						if(len<length-2){
-							if(hexarray[len+2]=='\r'){
-								if(len<length-3){
-									if(hexarray[len+3]!='\n'){
-										line_rnr++;
-										len_addend ++; //skip next '\r'
-									}
-								}
-								else{
-									line_rnr++;
-									len_addend ++;
-								}
-							}
-						}
-					}
-				}
-				else{
-					line_r++;
-				}
-			}
-			else if(hexarray[len]=='\n'){
-				line_r++;
-			}
-			else if(hexarray[len]==0){
-				z_cnt++;
+		int i;
+		for(i=0; i<length; i++){
+			if(hexarray[i]=='\r' || hexarray[i]=='\n'){
+				cnt_n++;
 			}
 		}
-	}while((0));
+	}while(0);
 
-	total_length = 0
-		+ length*1 - line_r*1 - line_rnr*3	// 其中 前两种情况 已经在计算转换为'\r\n'时计算过
-		+ line_r * 2						// 每个 前两种情况之一 会被转换成 '\r\n'
-		+ line_rnr * 2						// 每个 '\r\n\r' 换成 '\r\n'
-		- z_cnt								// 0 不需要保存下来
-		+ 3									// 以3个'\0'结尾
-		;
+	total_length = (length-cnt_n)*1 //非'\r','\n'
+		+ cnt_n * (nlt == NLT_CRLF ? 2 : 1)
+		+ 1;
+
 	if(total_length<=buf_size && buf){
 		buffer = buf;
-		//memset(buffer,0,buf_size);
 	}else{
 		buffer = (char*)GET_MEM(total_length);
-		if(!buffer) return NULL;
+		if(!buffer){
+			if(buf)
+				*buf = '\0';
+			return buf;
+		}
 	}
 
-	// 转换前两种情况 + 处理'\0'
+	p = (unsigned char*)buffer;
 	do{
-		unsigned char* pch=(unsigned char*)buffer;
-		int itx,itx_addend;
-		for(itx=0; itx<length; itx+=itx_addend+1){
-			itx_addend=0;
-			if(hexarray[itx]=='\r'){
-				*pch++ = '\r';
-				*pch++ = '\n';
-
-				if(itx<length-1){
-					if(hexarray[itx+1]=='\n'){
-						itx_addend++;
-						if(itx<length-2){
-							if(hexarray[itx+2]=='\r'){
-								if(itx<length-3){
-									if(hexarray[itx+3]!='\n'){
-										itx_addend++;
-									}
-								}
-							}
-						}
+		int i, step;
+		for(i=0; i<length; i+=step+1){
+			step=0;
+			if(hexarray[i]=='\r'){
+				hex2chs_append_nl(&p, nlt);
+				if(i<length-1 && hexarray[i+1]=='\n'){
+					step++;
+					if( (i<length-2 && hexarray[i+2]=='\r') 
+						&& ((i==length-3) || (i<length-3 && hexarray[i+3]!='\n')) )
+					{
+						step++;
 					}
 				}
 			}
-			else if(hexarray[itx]=='\n'){
-				*pch++ = '\r';
-				*pch++ = '\n';
+			else if(hexarray[i]=='\n'){
+				hex2chs_append_nl(&p, nlt);
 			}
-			else if(hexarray[itx]==0){
-
+			else if(hexarray[i]==0){
+				// 如果需要"更形象"地显示'\0', 可以在这里处理
+				// 并在前面加上对'\0'个数的计算
 			}
 			else{
-				*pch++ = hexarray[itx];
+				*p++ = hexarray[i];
 			}
 		}
-// 		if((((unsigned int)pch-(unsigned int)buffer) != total_length-1))
-// 		{
-// 			utils.assert_expr(NULL,"");
-// 		}
 	}while((0));
-	buffer[total_length-1] = '\0';
-	buffer[total_length-2] = '\0';
-	buffer[total_length-3] = '\0';
+
+	*p++ = '\0';
 	return buffer;
 }
 
