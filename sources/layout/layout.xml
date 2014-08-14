@@ -1,7 +1,0 @@
-<Window>
-	<Vertical inset="5,5,5,50">
-		<Control id="1051" />
-		<Control height="5"/>
-		<Control id="1052" />
-	</Vertical>
-</Window>
