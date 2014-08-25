@@ -162,9 +162,4 @@
       <Filter>resources</Filter>
     </Manifest>
   </ItemGroup>
-  <ItemGroup>
-    <Xml Include="res\main.xml">
-      <Filter>resources</Filter>
-    </Xml>
-  </ItemGroup>
 </Project>

@@ -114,7 +114,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\YangTao\Desktop\SdkLayout\SdkLayout</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./sources/SdkLayout</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -124,7 +124,7 @@
       <AdditionalDependencies>setupapi.lib;sdklayout.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <AdditionalLibraryDirectories>C:\Users\YangTao\Desktop\SdkLayout\bin</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./sources/SdkLayout</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>res\xps.manifest</AdditionalManifestFiles>
@@ -186,9 +186,6 @@
     <Manifest Include="res\xps.manifest">
       <SubType>Designer</SubType>
     </Manifest>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="res\main.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

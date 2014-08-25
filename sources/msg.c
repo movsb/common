@@ -308,7 +308,7 @@ int on_create(HWND hWnd, HINSTANCE hInstance)
 	do{
 		layout = layout_new(hWnd, MAKEINTRESOURCE(IDR_RCDATA2),hInstance);
 		msg.layout = layout;
-		layout_visible(layout_control(layout, "recv_wnd_recv"), FALSE, FALSE);
+		layout_visible(layout_control(layout, "recv_wnd_recv"), FALSE);
 		layout_resize(layout,NULL);
 	}while(0);
 
@@ -563,18 +563,19 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 			int flag = !IsDlgButtonChecked(msg.hWndMain, IDC_CHECK_SIMPLE);
 
 			if(!flag){ // ¼ò½àÄ£Ê½
-				layout_visible(layout_control(layout, "recv_btns"), FALSE, FALSE);
-				layout_visible(layout_control(layout, "simple_mode_panel"), TRUE, TRUE);
+				layout_visible(layout_control(layout, "recv_btns"), FALSE);
+				layout_visible(layout_control(layout, "simple_mode_help_btn"), TRUE);
+				layout_visible(layout_control(layout, "simple_mode_panel"), TRUE);
 			}
 			else{
-				layout_visible(layout_control(layout, "simple_mode_panel"), FALSE, FALSE);
-				layout_visible(layout_control(layout, "recv_btns"), TRUE, TRUE);
+				layout_visible(layout_control(layout, "simple_mode_panel"), FALSE);
+				layout_visible(layout_control(layout, "recv_btns"), TRUE);
 			}
 
-			layout_visible(layout_control(layout, "send_wnd"), flag, flag);
-			layout_visible(layout_control(layout, "send_btns"), flag, flag);
-			layout_visible(layout_control(layout, "auto_send"), flag, flag);
-			layout_visible(layout_control(layout, "send_fmt"), flag, flag);
+			layout_visible(layout_control(layout, "send_wnd"), flag);
+			layout_visible(layout_control(layout, "send_btns"), flag);
+			layout_visible(layout_control(layout, "auto_send"), flag);
+			layout_visible(layout_control(layout, "send_fmt"), flag);
 
 			SendMessage(msg.hWndMain, WM_SIZE, 0, 0);
 			return 0;

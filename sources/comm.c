@@ -801,8 +801,8 @@ void set_data_fmt(void)
 	EnableWindow(GetDlgItem(msg.hWndMain,IDC_CHECK_USE_ESCAPE_CHAR),comm.data_fmt_send==DATA_FMT_CHAR);
 
 	b = comm.data_fmt_recv == DATA_FMT_CHAR;
-	layout_visible(layout_control(msg.layout, "edit_recv_char"), b, b);
-	layout_visible(layout_control(msg.layout, "edit_recv_hex"), !b, !b);
+	layout_visible(layout_control(msg.layout, "edit_recv_char"), b);
+	layout_visible(layout_control(msg.layout, "edit_recv_hex"), !b);
 }
 
 /**************************************************

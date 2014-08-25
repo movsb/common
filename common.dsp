@@ -102,10 +102,6 @@ SOURCE=.\sources\asctable.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\sources\cmd_dlg.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\sources\comm.c
 # End Source File
 # Begin Source File
@@ -122,19 +118,11 @@ SOURCE=.\sources\debug.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\sources\expr.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\sources\GetBaudRate.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\sources\GetBaudRate.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\sources\monitor.c
 # End Source File
 # Begin Source File
 
@@ -151,10 +139,6 @@ SOURCE=.\sources\send_cmd.cpp
 # Begin Source File
 
 SOURCE=.\sources\send_cmd.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\sources\stack.c
 # End Source File
 # Begin Source File
 

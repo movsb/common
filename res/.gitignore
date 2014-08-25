@@ -1,0 +1,3 @@
+common.aps
+*.xml
+!*_orig.xml
