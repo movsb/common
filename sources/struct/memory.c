@@ -101,13 +101,15 @@ void manage_mem(int what,void* pv)
 		debug_out(("检测内存泄漏...\n"));
 		if(!list->is_empty(&list_head)){
 			int i=1;
+#ifdef _DEBUG
 			utils.msgbox(msg.hWndMain,MB_ICONERROR,NULL,"发现未被释放的内存!\n\n请向作者提交内存分配信息~");
+#endif
 			//由于free_mem会移除链表结点,所以这里只能遍历,不能移除
 			while(!list->is_empty(&list_head)){
 				list_s* node = list_head.next;
 				common_mem_context* pc = list_data(node,common_mem_context,entry);
 				void* user_ptr = (void*)((unsigned char*)pc+sizeof(*pc));
-//#ifdef _DEBUG
+#ifdef _DEBUG
 				utils.msgbox(msg.hWndMain,MB_ICONEXCLAMATION,NULL,
 					"内存结点%d:\n\n"
 					"以下是内存分配信息:\n\n"
@@ -115,7 +117,7 @@ void manage_mem(int what,void* pv)
 					"来自文件:%s\n"
 					"文件行号:%d\n",
 					i++,pc->size,pc->file,pc->line);
-//#endif
+#endif
 				memory.free_mem(&user_ptr,"MANMEM_FREE");
 			}
 			list->init(&list_head);
@@ -154,7 +156,7 @@ void manage_mem(int what,void* pv)
 //#ifdef _DEBUG
 	pc->file = file;
 	pc->line = line;
-	debug_out(("分配内存:%u 字节\n来自文件:%s\n文件行号:%d\n\n",pc->size,pc->file,pc->line));
+	//debug_out(("分配内存:%u 字节\n来自文件:%s\n文件行号:%d\n\n",pc->size,pc->file,pc->line));
 //#endif
 
 	pct->sign_tail[0] = 'J';

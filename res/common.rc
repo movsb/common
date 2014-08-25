@@ -36,13 +36,10 @@ BEGIN
     COMBOBOX        IDC_CBO_STOP,30,60,42,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "更多\n设置",IDC_BTN_MORE_SETTINGS,3,89,21,20,BS_MULTILINE
     PUSHBUTTON      "打开串口(&W)",IDC_BTN_OPEN,26,89,44,20,BS_MULTILINE
-    CONTROL         "十六进制",IDC_RADIO_RECV_HEX,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,127,48,10
-    CONTROL         "字符模式",IDC_RADIO_RECV_CHAR,"Button",BS_AUTORADIOBUTTON,12,136,48,10
     CONTROL         "十六进制",IDC_RADIO_SEND_HEX,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,159,48,10
     CONTROL         "字符模式",IDC_RADIO_SEND_CHAR,"Button",BS_AUTORADIOBUTTON,12,170,48,10
     CONTROL         "自动发送",IDC_CHK_AUTO_SEND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,217,48,10
     EDITTEXT        IDC_EDIT_DELAY,12,237,47,12,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_EDIT_RECV,235,30,84,78,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_OEMCONVERT | ES_READONLY | ES_WANTRETURN | NOT WS_VISIBLE | NOT WS_BORDER | WS_VSCROLL | WS_HSCROLL
     PUSHBUTTON      "复制接收数据",IDC_BTN_COPY_RECV,78,132,61,16
     PUSHBUTTON      "清空接收数据",IDC_BTN_CLR_RECV,140,132,61,16
     PUSHBUTTON      "暂停显示(&D)",IDC_BTN_STOPDISP,202,132,61,16
@@ -65,12 +62,14 @@ BEGIN
     GROUPBOX        "自动发送",MAINSTATIC_AUTOSEND,5,208,66,44
     GROUPBOX        "发送格式",MAINSTATIC_SEND_FORMAT,5,151,66,55
     GROUPBOX        "接收格式",MAINSTATIC_RECV_FORMAT,5,119,66,29
-    EDITTEXT        IDC_EDIT_RECV2,111,19,96,90,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY | ES_WANTRETURN | NOT WS_BORDER | WS_VSCROLL | WS_HSCROLL
     LTEXT           "计时器",MAINSTATIC_TIMER,4,77,25,8
     LTEXT           "00:00:00",IDC_STATIC_TIMER,35,77,29,8
     CONTROL         "忽略回车",IDC_CHECK_IGNORE_RETURN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,191,48,10
     CONTROL         "转义字符",IDC_CHECK_USE_ESCAPE_CHAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,181,48,10
     CONTROL         "简洁模式",IDC_CHECK_SIMPLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,274,48,10
+    CONTROL         "十六进制",IDC_RADIO_RECV_HEX,"Button",BS_AUTORADIOBUTTON,0,126,48,10
+    CONTROL         "字符模式",IDC_RADIO_RECV_CHAR,"Button",BS_AUTORADIOBUTTON,0,138,48,10
+    EDITTEXT        IDC_EDIT_RECV,99,23,121,84,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY | ES_WANTRETURN | NOT WS_VISIBLE | WS_VSCROLL | WS_HSCROLL
 END
 
 IDD_MSG DIALOGEX 0, 0, 263, 219
@@ -229,7 +228,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,17,0,0
+ FILEVERSION 1,18,0,0
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -247,7 +246,7 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "女孩不哭<Email:anhbk@qq.com>"
             VALUE "FileDescription", "Com Monitor"
-            VALUE "FileVersion", "1.17.0.0"
+            VALUE "FileVersion", "1.18.0.0"
             VALUE "InternalName", "common"
             VALUE "LegalCopyright", "common Copyright (C) 2012-2014 女孩不哭"
             VALUE "OriginalFilename", "common.exe"
@@ -307,7 +306,7 @@ IDR_MENU_EDIT_RECV MENU
 BEGIN
     POPUP "popupmenu"
     BEGIN
-        MENUITEM "允许中文显示(&C)",                  MENU_EDIT_CHINESE, CHECKED
+        MENUITEM "允许中文显示(&C)(不可用)",             MENU_EDIT_CHINESE, CHECKED, INACTIVE
         MENUITEM "处理 ""删除"" 控制字符",              MENU_EDIT_CONTROL_CHAR, CHECKED
         MENUITEM "发送输入字符",                      MENU_EDIT_SEND_INPUT_CHAR, CHECKED
         MENUITEM "清空数据",                        MENU_EDIT_EMPTY
@@ -390,8 +389,7 @@ END
 // RCDATA
 //
 
-IDR_101                 RCDATA                  "E:\\Program\\Windows\\common\\sources\\layout\\layout.xml"
-IDR_RCDATA1             RCDATA                  "E:\\Program\\Windows\\common\\sources\\layout\\main.xml"
+IDR_RCDATA2             RCDATA                  "main.xml"
 #endif    // Chinese (Simplified, PRC) resources
 /////////////////////////////////////////////////////////////////////////////
 

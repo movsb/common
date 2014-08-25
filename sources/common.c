@@ -1,4 +1,4 @@
-//#include <vld.h>
+#include "stdafx.h"
 
 #include "msg.h"
 #include "utils.h"
@@ -11,6 +11,20 @@
 #pragma warning(disable:4100) //unreferenced formal parameter(s)
 
 static char* __THIS_FILE__ = __FILE__;
+comconfig* g_cfg;
+
+void com_load_config(void)
+{
+	char mp[MAX_PATH]={0};
+	GetModuleFileName(NULL, mp, __ARRAY_SIZE(mp));
+	strcpy(strrchr(mp, '\\')+1, "common.ini");
+	g_cfg = config_create(mp, 1);
+}
+
+void com_unload_config(void)
+{
+	config_close(g_cfg);
+}
 
 #if 1
 int CALLBACK WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nShowCmd)
@@ -23,10 +37,17 @@ int CALLBACK WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine
 	init_deal();
 	init_driver();
 	init_memory();
+
+	//InitCommonControls();
+	LoadLibrary("RichEd20.dll");
+
 #ifdef _DEBUG
 	AllocConsole();
 #endif
 	debug_out(("程序已运行\n"));
+
+	com_load_config();
+
 	msg.run_app();
 
 	while(GetMessage(&message,NULL,0,0)){
@@ -35,6 +56,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine
 			DispatchMessage(&message);
 		}
 	}
+
+	com_unload_config();
 
 	debug_out(("程序已结束\n"));
 #ifdef _DEBUG

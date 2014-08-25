@@ -39,7 +39,7 @@ INT_PTR CALLBACK PinCtrlDlgProc(HWND hWndDlg,UINT uMsg,WPARAM wParam, LPARAM lPa
 			case IDC_PINCTRL_OK:
 				if(HIWORD(wParam)!=BN_CLICKED)
 					return 0;
-				if(msg.hComPort==INVALID_HANDLE_VALUE){
+				if(msg.hComPort==NULL){
 					MessageBox(hWndDlg,"没有串口设备被打开!",COMMON_NAME,MB_ICONINFORMATION);
 					return 0;
 				}
@@ -64,7 +64,7 @@ INT_PTR CALLBACK PinCtrlDlgProc(HWND hWndDlg,UINT uMsg,WPARAM wParam, LPARAM lPa
 	case WM_INITDIALOG:
 		{
 			DWORD size = sizeof(cconfig);
-			if(msg.hComPort==INVALID_HANDLE_VALUE){
+			if(msg.hComPort==NULL){
 				utils.msgbox(hWndDlg,MB_ICONEXCLAMATION,COMMON_NAME,"请先打开一个串口设备!");
 				DestroyWindow(hWndDlg);
 				hWndPinCtrl = NULL;

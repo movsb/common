@@ -22,7 +22,7 @@
 #define IDD_GETBR                       131
 #define IDR_101                         134
 #define IDR_102                         135
-#define IDR_RCDATA1                     136
+#define IDR_RCDATA2                     137
 #define IDC_BTN_SEND                    1000
 #define IDC_MSG_OK                      1001
 #define IDC_CBO_CP                      1002
@@ -101,6 +101,7 @@
 #define MAINSTATIC_AUTOSEND             1079
 #define MAINSTATIC_PERIOD               1080
 #define IDC_CHECK_SIMPLE                1081
+#define IDC_CHECK2                      1085
 #define MENU_OTHER_ASCII                40001
 #define MENU_OTHER_HELP                 40002
 #define MENU_OTHER_CALC                 40003
@@ -134,9 +135,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        137
+#define _APS_NEXT_RESOURCE_VALUE        138
 #define _APS_NEXT_COMMAND_VALUE         40034
-#define _APS_NEXT_CONTROL_VALUE         1082
+#define _APS_NEXT_CONTROL_VALUE         1088
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

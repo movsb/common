@@ -12,6 +12,8 @@
 
 void init_comm(void);
 
+enum DATA_FORMAT{DATA_FMT_HEX,DATA_FMT_CHAR};
+
 #pragma warning(push)
 #pragma warning(disable:4201)
 struct comm_s{
@@ -32,8 +34,8 @@ struct comm_s{
 	//数据成员
 	struct{
 		//发送/接收数据格式
-		int data_fmt_send;	//0-字符
-		int data_fmt_recv;	//0-字符
+		enum DATA_FORMAT data_fmt_send;
+		enum DATA_FORMAT data_fmt_recv;
 		//忽略回车/字符转义
 		int data_fmt_ignore_return;
 		int data_fmt_use_escape_char;

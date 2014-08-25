@@ -82,7 +82,7 @@ INT_PTR CALLBACK TimeoutsDlgProc(HWND hWndDlg,UINT uMsg,WPARAM wParam,LPARAM lPa
 					_SETVALUE(ctimeouts.WriteTotalTimeoutConstant,IDC_CTO_EDIT_WRITE_CONSTANT);
 					#undef _SETVALUE
 					#pragma warning(pop)
-					if(msg.hComPort!=INVALID_HANDLE_VALUE){
+					if(msg.hComPort!=NULL){
 						int ret;
 						ret=MessageBox(hWndDlg,
 							"当前已有串口被打开,超时设置要怎样生效?\n\n"
@@ -92,7 +92,7 @@ INT_PTR CALLBACK TimeoutsDlgProc(HWND hWndDlg,UINT uMsg,WPARAM wParam,LPARAM lPa
 							"超时设置",
 							MB_YESNOCANCEL|MB_ICONEXCLAMATION);
 						if(ret==IDYES){
-							if(msg.hComPort == INVALID_HANDLE_VALUE){
+							if(msg.hComPort == NULL){
 								utils.msgbox(hWndDlg,MB_ICONEXCLAMATION,COMMON_NAME,
 									"在等待过程打开的串口中已经被关闭, 下一次打开时才会生效!");
 							}else{
@@ -130,10 +130,6 @@ INT_PTR CALLBACK TimeoutsDlgProc(HWND hWndDlg,UINT uMsg,WPARAM wParam,LPARAM lPa
 
 int ShowTimeouts(void)
 {
-	/*if(msg.hComPort!=INVALID_HANDLE_VALUE){
-		utils.msgbox(MB_ICONEXCLAMATION,COMMON_NAME,"请先关闭已经打开的串口设备!");
-		return 0;
-	}*/
 	if(hWndTimeouts){
 		SetWindowPos(hWndTimeouts,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
 		return 0;

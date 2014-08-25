@@ -19,22 +19,13 @@
     <ClCompile Include="sources\debug.c">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\expr.c">
-      <Filter>sources</Filter>
-    </ClCompile>
     <ClCompile Include="sources\load_driver\load_driver.c">
       <Filter>drivers</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\monitor.c">
-      <Filter>sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\msg.c">
       <Filter>sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\pinctrl.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\stack.c">
       <Filter>sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\str2hex.c">
@@ -55,22 +46,19 @@
     <ClCompile Include="sources\struct\parse_cmd.c">
       <Filter>struct</Filter>
     </ClCompile>
-    <ClCompile Include="sources\cmd_dlg.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\draw.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
     <ClCompile Include="sources\send_cmd.cpp">
       <Filter>sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\struct\Thunk.cpp">
       <Filter>struct</Filter>
     </ClCompile>
-    <ClCompile Include="sources\dummy_main.cpp">
+    <ClCompile Include="sources\GetBaudRate.cpp">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\GetBaudRate.cpp">
+    <ClCompile Include="sources\struct\Config.cpp">
+      <Filter>struct</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\stdafx.cpp">
       <Filter>sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -96,25 +84,13 @@
     <ClInclude Include="sources\debug.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="sources\draw.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\expr.h">
-      <Filter>headers</Filter>
-    </ClInclude>
     <ClInclude Include="sources\load_driver\load_driver.h">
       <Filter>drivers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\monitor.h">
-      <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="sources\msg.h">
       <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="sources\pinctrl.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\stack.h">
       <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="sources\str2hex.h">
@@ -126,7 +102,6 @@
     <ClInclude Include="sources\utils.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="res\resource.h" />
     <ClInclude Include="sources\struct\list.h">
       <Filter>struct</Filter>
     </ClInclude>
@@ -135,9 +110,6 @@
     </ClInclude>
     <ClInclude Include="sources\struct\parse_cmd.h">
       <Filter>struct</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\cmd_dlg.h">
-      <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="sources\send_cmd.h">
       <Filter>sources</Filter>
@@ -148,12 +120,15 @@
     <ClInclude Include="sources\GetBaudRate.h">
       <Filter>sources</Filter>
     </ClInclude>
-    <ClInclude Include="sources\layout\SdkLayout.h">
-      <Filter>layout</Filter>
+    <ClInclude Include="res\resource.h">
+      <Filter>resources</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="todo.txt" />
+    <ClInclude Include="sources\struct\Config.h">
+      <Filter>struct</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\stdafx.h">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="headers">
@@ -170,9 +145,6 @@
     </Filter>
     <Filter Include="struct">
       <UniqueIdentifier>{d9a76f60-29ba-406f-878d-5cb33039f150}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="layout">
-      <UniqueIdentifier>{597126c4-0724-4e3c-92cf-9727fa65814a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -191,7 +163,8 @@
     </Manifest>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="sources\layout\layout.xml" />
-    <Xml Include="sources\layout\main.xml" />
+    <Xml Include="res\main.xml">
+      <Filter>resources</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

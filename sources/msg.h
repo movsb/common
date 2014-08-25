@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <SdkLayout.h>
 #include "struct/list.h"
 
 #pragma warning(push)
@@ -24,15 +25,8 @@ struct msg_s{
 		HFONT hFont;
 		HFONT hFont2;
 		HACCEL hAccel;
-		//由于用户需要拉伸窗口大小,所以程序将允许左右拉伸窗口,高度变化没啥用处
-		struct{
-			RECT rcWindowC;
-			RECT rcWindow;
-			RECT rcRecv;		
-			RECT rcRecvGroup;
-			RECT rcSend;
-			RECT rcSendGroup;
-		}WndSize;
+
+		sdklayout* layout;
 	};
 
 	int (*run_app)(void);

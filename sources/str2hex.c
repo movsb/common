@@ -3,12 +3,10 @@
 #include "utils.h"
 #include "../res/resource.h"
 #include "struct/memory.h"
-#include "layout/SdkLayout.h"
 
 static HWND hWndStr2Hex;
 static int axisx,axisy;
 static HWND hSrc,hDst;
-void* pRootLayout;
 
 static char* __THIS_FILE__ = __FILE__;
 
@@ -57,18 +55,10 @@ INT_PTR CALLBACK Str2HexDlgProc(HWND hWndDlg,UINT uMsg,WPARAM wParam, LPARAM lPa
 			hDst = GetDlgItem(hWndDlg,IDC_EDIT_STR2HEX_DST);
 			SetWindowPos(hWndDlg,0,axisx,axisy,0,0,SWP_NOSIZE|SWP_NOZORDER);
 			if(axisx==0 && axisy==0) utils.center_window(hWndDlg,msg.hWndMain);
-			pRootLayout = NewLayout(hWndDlg, GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_101));
-			SendMessage(hWndDlg, WM_SIZE, 0, 0);
 			return 0;
 		}
 	case WM_SIZE:
 		{
-			RECT rc;
-			SIZE sz;
-			GetClientRect(hWndDlg, &rc);
-			sz.cx = rc.right-rc.left;
-			sz.cy = rc.bottom-rc.top;
-			SizeLayout(pRootLayout, &sz);
 			return 0;
 		}
 	}

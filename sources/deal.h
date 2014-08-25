@@ -73,12 +73,11 @@ struct deal_s{
 	// 就算当前接收数据包开始是\r\n(或其它), 也并不能说明这就是一个回车换行, 因为上一包中可能是以\r/\n结尾呢!!!
 	// 是不是我还不清楚怎么做才能做到所谓的"字符设备"的标准做法呢?
 	// 再加上Windows的记事本"很难"取得当前最后几个字符是什么, 所以在这里保存一下最后接收的几个字符
-#define DEAL_CACHE_SIZE 10240
+#define DEAL_CACHE_SIZE 1024
 	struct{
 		int cachelen;	//转换之前的crlf长度
-		int crlflen;	//转换之后的crlf长度, 按对数计
+		int crlen;		//转换之后的cr长度
 		unsigned char cache[DEAL_CACHE_SIZE];
-		unsigned char* ptr; // 目前尚未使用
 	}cache;
 
 	// 输入单个的非ansi字符, 很可能导致文本乱码
@@ -88,6 +87,13 @@ struct deal_s{
 		BOOL has;
 		unsigned char chars[DEAL_CHARS_SIZE];
 	}chars;
+
+	// Linux终端控制字符
+#define DEAL_CONTROLCHAR_SIZE 64
+	struct{
+		BOOL has;
+		unsigned char chars[DEAL_CONTROLCHAR_SIZE];
+	}ctrl;
 };
 
 #ifndef __DEAL_C__

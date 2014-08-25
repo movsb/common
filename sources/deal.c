@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -9,7 +11,6 @@
 #include "comm.h"
 #include "about.h"
 #include "debug.h"
-#include "draw.h"
 #include "struct/memory.h"
 #include "../res/resource.h"
 
@@ -39,9 +40,9 @@ void init_deal(void)
 	deal.add_text_critical     = add_text_critical;
 	deal.last_show             = 1;
 	deal.cache.cachelen	       = 0;
-	deal.cache.crlflen	       = 0;
-	deal.cache.ptr             = deal.cache.cache;
+	deal.cache.crlen	       = 0;
 	deal.chars.has	           = FALSE;
+	deal.ctrl.has              = FALSE;
 
 	InitializeCriticalSection(&deal.g_add_text_cs);
 }
@@ -53,8 +54,7 @@ void update_savebtn_status(void)
 	HWND hSave = GetDlgItem(msg.hWndMain, IDC_BTN_SAVEFILE);
 	HWND hCopy = GetDlgItem(msg.hWndMain, IDC_BTN_COPY_RECV);
 	//串口没打开或不显示数据
-	//PS:我自己现在都分不清楚到底是IHV或是NULL代表无效, 算了, 认了, 不过以后肯定知道该怎么搞了
-	BOOL bEnable = msg.hComPort==INVALID_HANDLE_VALUE || !msg.hComPort || !comm.fShowDataReceived;
+	BOOL bEnable = !msg.hComPort || !comm.fShowDataReceived;
 	EnableWindow(hSave,bEnable);
 	EnableWindow(hCopy,bEnable);
 }
@@ -267,78 +267,52 @@ BUG可花了我不少时间!!!
 	2014-07-06:增加控制字符处理
 **************************************************/
 
-static void delete_last_char(void)
-{
-	static int bIsEditTextUnicode = -1; // -1:undefined,0-false,1-true
-	int len = Edit_GetTextLength(msg.hEditRecv2);
-	if(len > 0){
-		HLOCAL hContent = (HLOCAL)SendMessage(msg.hEditRecv2, EM_GETHANDLE, 0, 0);
-		char* pContent = (char*)LocalLock(hContent);
-		if(!pContent) return;
-
-		if(len == 1){
-			LocalUnlock(hContent);
-			Edit_SetSel(msg.hEditRecv2,len-1,len);
-			Edit_ReplaceSel(msg.hEditRecv2,"");
-		}
-		else{
-			BOOL bIsLastCharCrLf;
-			// do check if text buffer unicode
-			// since msdn is not trustable for this.
-			if(bIsEditTextUnicode == -1){
-				int i = 0;
-				while(i < len){
-					if(pContent[i] == '\0'){
-						break; // unicode
-					}
-					i++;
-				}
-				if(i != len){
-					bIsEditTextUnicode = 1;
-				}
-				else{
-					bIsEditTextUnicode = pContent[len] != '\0';
-				}
-			}
-
-			bIsLastCharCrLf = 
-				bIsEditTextUnicode
-				? pContent[ (len-1)*2 ] == '\n'
-				: pContent[ len -1    ] == '\n'
-				;
-			LocalUnlock(hContent);
-
-			Edit_SetSel(msg.hEditRecv2,len-( bIsLastCharCrLf ? 2 : 1),len);
-			Edit_ReplaceSel(msg.hEditRecv2,"");
-		}
-		return;
-	}
-}
-
 static __inline void delete_chars(int n)
 {
-	if(n < 0) return;
+	int cch;
+	GETTEXTLENGTHEX gtl;
 
-	while(n--)
-		delete_last_char();
+	if(n <= 0)
+		return;
+
+	gtl.flags = GTL_DEFAULT;
+	gtl.codepage = CP_ACP;
+	cch = SendMessage(msg.hEditRecv2, EM_GETTEXTLENGTHEX, (WPARAM)&gtl, 0);
+	if(cch > 0){
+		if(n >= cch){
+			SetWindowText(msg.hEditRecv2, "");
+			return;
+		}
+		else{
+			CHARRANGE rng;
+			rng.cpMax = cch;
+			rng.cpMin = cch - n;
+			SendMessage(msg.hEditRecv2, EM_EXSETSEL, 0, (LPARAM)&rng);
+			SendMessage(msg.hEditRecv2, EM_REPLACESEL, FALSE, (LPARAM)"");
+		}
+	}
 }
 
 static void add_text_helper(char* str)
 {
-	int len;
 	unsigned int cntb = utils.eliminate_control_char(str);
 	char* p = str;
-	do{
-		if(*p != '\b'){ // --- 追加
-			len = Edit_GetTextLength(msg.hEditRecv2);
-			Edit_SetSel(msg.hEditRecv2,len,len);
-			Edit_ReplaceSel(msg.hEditRecv2,p);
-		}
-		else{ // --- 向前删除
-			delete_last_char();
-			p++;
-		}
-	}while(cntb-- && *p);
+	delete_chars(cntb);
+	p += cntb;
+	if(*p){
+		GETTEXTLENGTHEX gtl;
+		CHARRANGE rng;
+		int cch;
+
+		gtl.flags = GTL_DEFAULT;
+		gtl.codepage = CP_ACP;
+		cch = SendMessage(msg.hEditRecv2, EM_GETTEXTLENGTHEX, (WPARAM)&gtl, 0);
+
+		rng.cpMax = cch;
+		rng.cpMin = cch;
+		SendMessage(msg.hEditRecv2, EM_EXSETSEL, 0, (LPARAM)&rng);
+		Edit_ReplaceSel(msg.hEditRecv2,p);
+	}
 }
 
 static int process_leading_crlf(unsigned char* ba, int cb)
@@ -360,32 +334,23 @@ static int process_leading_crlf(unsigned char* ba, int cb)
 	cache_buf = (char*)deal.cache.cache;
 	memcpy(deal.cache.cache+deal.cache.cachelen, ba, i-deal.cache.cachelen);
 
-	buf = utils.hex2chs((unsigned char*)cache_buf, i, inner_buf, sizeof(inner_buf));
+	buf = utils.hex2chs((unsigned char*)cache_buf, i, inner_buf, sizeof(inner_buf), NLT_CR);
 
 	do{
-		// remove last crlf(s)
-		// debug_out(("process_leading_crlf: 向前删除 %d 个回车换行\n", deal.cache.crlflen));
-		//while(deal.cache.crlflen--)
-		//	delete_last_char();
-
-		// append new crlf(s)
-		//add_text_helper(buf);
-		// 
-
-		int newcrlf = strlen(buf)/2;
-		int diff = newcrlf - deal.cache.crlflen;
+		int newcr = strlen(buf);
+		int diff = newcr - deal.cache.crlen;
 
 		if(diff > 0){
-			add_text_helper(buf + deal.cache.crlflen*2);
+			add_text_helper(buf + deal.cache.crlen);
 		}
 		else{
 			delete_chars(-diff);
 		}
 	}while(0);
 
-	// append new crlf(s) to cache
+	// append new cr(s) to cache
 	deal.cache.cachelen = i;
-	deal.cache.crlflen = strlen(buf)/2; // for pair
+	deal.cache.crlen = strlen(buf);
 	//debug_out(("process_leading_crlf: 向后增加 %d 个回车换行\n", deal.cache.crlflen));
 
 	// GC
@@ -415,10 +380,10 @@ static int process_trailing_crlf(unsigned char* ba, int cb)
 	deal.cache.cachelen = cb;
 
 	// calc real crlf(s) len
-	buf = utils.hex2chs((unsigned char*)ba, cb, inner_buf, sizeof(inner_buf));
+	buf = utils.hex2chs((unsigned char*)ba, cb, inner_buf, sizeof(inner_buf), NLT_CR);
 	add_text_helper(buf);
 
-	deal.cache.crlflen = strlen(buf)/2; //for pair
+	deal.cache.crlen = strlen(buf);
 	//debug_out(("process_trailing_crlf: 向后增加 %d 个回车换行\n", deal.cache.crlflen));
 
 	//GC
@@ -436,10 +401,10 @@ static int process_none_crlf(unsigned char* ba, int cb)
 	if(cb <= 0) return 0;
 
 	deal.cache.cachelen = 0;
-	deal.cache.crlflen = 0;
+	deal.cache.crlen = 0;
 	//debug_out(("process_none_crlf: 清空回车换行缓冲\n"));
 
-	str=utils.hex2chs(ba,cb,inner_str,__ARRAY_SIZE(inner_str));
+	str=utils.hex2chs(ba,cb,inner_str,__ARRAY_SIZE(inner_str), NLT_CR);
 	add_text_helper(str);
 	if(str!=inner_str) memory.free_mem((void**)&str,NULL);
 
@@ -483,12 +448,24 @@ static int process_trailing_char(int c)
 	return 1;
 }
 
+// return bytes used
+static int process_leading_ctrl_chars(unsigned char* ba, int cb)
+{
+	if(deal.ctrl.has){
+
+	}
+	else{
+		debug_out(("process_leading_ctrl_chars: 原来没有处理控制字符\n"));
+		return 0;
+	}
+}
+
 void add_text_critical(unsigned char* ba, int cb)
 {
 	static char inner_str[10240];
 	if(cb<=0) return;
 	if(comm.fShowDataReceived){
-		if(1/*comm.data_fmt_recv*/){//16进制
+		if(comm.data_fmt_recv == DATA_FMT_HEX){//16进制
 			char* str=NULL;
 			DWORD len,cur_pos;
 			int cbnew = cb;
@@ -507,7 +484,7 @@ void add_text_critical(unsigned char* ba, int cb)
 			}
 			InterlockedExchangeAdd((long volatile*)&comm.data_count,cbnew);
 		}
-		if(1){//字符
+		if(comm.data_fmt_recv == DATA_FMT_CHAR){//字符
 			int crlflen1,crlflen2;
 			BOOL bNoFirst=FALSE, bNoLast=FALSE;
 			int i;
@@ -580,7 +557,7 @@ unsigned int __stdcall thread_read(void* pv)
 		COMSTAT sta;
 		DWORD comerr;
 
-		if(comm.fCommOpened==FALSE || msg.hComPort==INVALID_HANDLE_VALUE){
+		if(comm.fCommOpened==FALSE || msg.hComPort==NULL){
 			goto _exit;
 		}
 
@@ -596,7 +573,7 @@ unsigned int __stdcall thread_read(void* pv)
 
 		for(nTotalRead=0; nTotalRead < nBytesToRead; ){
 			retval = ReadFile(msg.hComPort, &block_data[0]+nTotalRead, nBytesToRead-nTotalRead, &nRead, NULL);
-			if(comm.fCommOpened == FALSE || msg.hComPort==INVALID_HANDLE_VALUE){
+			if(comm.fCommOpened == FALSE || msg.hComPort==NULL){
 				goto _exit;
 			}
 			if(retval == FALSE){
@@ -642,7 +619,7 @@ unsigned int __stdcall thread_write(void* pv)
 	BOOL bRet;
 
 	for(;;){
-		if(comm.fCommOpened==FALSE || msg.hComPort==INVALID_HANDLE_VALUE){
+		if(comm.fCommOpened==FALSE || msg.hComPort==NULL){
 			return 0;
 		}
 
@@ -663,7 +640,7 @@ unsigned int __stdcall thread_write(void* pv)
 		nWrittenData = 0;
 		while(nWrittenData < psd->data_size){
 			bRet = WriteFile(msg.hComPort, &psd->data[0]+nWrittenData,psd->data_size-nWrittenData, &nWritten, NULL);
-			if(comm.fCommOpened==FALSE || msg.hComPort==INVALID_HANDLE_VALUE){
+			if(comm.fCommOpened==FALSE || msg.hComPort==NULL){
 				debug_out(("因为comm.fCommOpened==FALSE或msg.hComPort,写线程退出!\n"));
 				return 0;
 			}
@@ -708,7 +685,6 @@ unsigned int __stdcall thread_write(void* pv)
 **************************************************/
 void cancel_auto_send(int reason)
 {
-	//if(!comm.fAutoSend&&msg.hComPort!=INVALID_HANDLE_VALUE) return;
 	EnableWindow(GetDlgItem(msg.hWndMain,IDC_BTN_SEND),TRUE);
 	EnableWindow(GetDlgItem(msg.hWndMain,IDC_EDIT_DELAY),TRUE);
 
@@ -735,7 +711,7 @@ void cancel_auto_send(int reason)
 **************************************************/
 static void __stdcall AutoSendTimerProc(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
-	if(!comm.fAutoSend || msg.hComPort==INVALID_HANDLE_VALUE){
+	if(!comm.fAutoSend || msg.hComPort==NULL){
 		deal.cancel_auto_send(0);
 		debug_out(("自动指针已释放\n"));
 		memory.free_mem((void**)deal.autoptr,"AutoSendTimerProc");
@@ -782,7 +758,7 @@ void check_auto_send(void)
 	EnableWindow(GetDlgItem(msg.hWndMain, IDC_EDIT_DELAY),FALSE);
 	EnableWindow(GetDlgItem(msg.hWndMain, IDC_BTN_SEND),FALSE);
 
-	if(msg.hComPort!=INVALID_HANDLE_VALUE){
+	if(msg.hComPort!=NULL){
 		deal.autoptr = do_send(1);
 		if(deal.autoptr==NULL){
 			deal.cancel_auto_send(0);
@@ -810,7 +786,7 @@ SEND_DATA* make_send_data(int fmt,void* data,size_t size)
 	int is_buffer_enough = 0;
 
 	//2013年11月2日 16:33:13 放这里明显不合适
-	if(msg.hComPort==NULL||msg.hComPort==INVALID_HANDLE_VALUE){
+	if(msg.hComPort==NULL){
 		return NULL;
 	}
 
@@ -870,7 +846,7 @@ int get_edit_data(int fmt,void** ppv,size_t* size)
 	if(buff==NULL) return 0;
 	GetWindowText(hSend,buff,len+1);
 
-	if(fmt){		//16进制方式发送
+	if(fmt==DATA_FMT_HEX){		//16进制方式发送
 		int ret;
 		int length;
 		bytearray = NULL;
@@ -913,7 +889,7 @@ int get_edit_data(int fmt,void** ppv,size_t* size)
 		
 	}
 	//len为16进制/字符数据最终实际长度
-	if(fmt){
+	if(fmt==DATA_FMT_HEX){
 		*ppv = bytearray;
 		memory.free_mem((void**)&buff,"");
 	}else{
@@ -955,7 +931,7 @@ void* do_send(int action)
 	size_t size = 0;
 	SEND_DATA* psd = NULL;
 
-	if(msg.hComPort==NULL || msg.hComPort==INVALID_HANDLE_VALUE){
+	if(msg.hComPort==NULL){
 		utils.msgbox(msg.hWndMain,MB_ICONEXCLAMATION,NULL,"请先打开串口设备~");
 		return NULL;
 	}
@@ -991,7 +967,7 @@ void* do_send(int action)
 int send_char_data(char ch)
 {
 	SEND_DATA* psd = NULL;
-	if(msg.hComPort==NULL || msg.hComPort==INVALID_HANDLE_VALUE){
+	if(msg.hComPort==NULL){
 		return -1;
 	}
 	psd = make_send_data(0, &ch, 1);

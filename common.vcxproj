@@ -76,11 +76,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\YangTao\Desktop\SdkLayout\SdkLayout</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>setupapi.lib;sources/Layout/SdkLayout.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>setupapi.lib;sdklayout_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\YangTao\Desktop\SdkLayout\bin</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>res\xps.manifest</AdditionalManifestFiles>
@@ -112,15 +114,17 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\YangTao\Desktop\SdkLayout\SdkLayout</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>setupapi.lib;sources/layout/sdklayout.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>setupapi.lib;sdklayout.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <AdditionalLibraryDirectories>C:\Users\YangTao\Desktop\SdkLayout\bin</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>res\xps.manifest</AdditionalManifestFiles>
@@ -129,22 +133,18 @@
   <ItemGroup>
     <ClCompile Include="sources\about.c" />
     <ClCompile Include="sources\asctable.c" />
-    <ClCompile Include="sources\cmd_dlg.c" />
     <ClCompile Include="sources\comm.c" />
     <ClCompile Include="sources\common.c" />
     <ClCompile Include="sources\deal.c" />
     <ClCompile Include="sources\debug.c" />
-    <ClCompile Include="sources\draw.cpp" />
-    <ClCompile Include="sources\dummy_main.cpp" />
-    <ClCompile Include="sources\expr.c" />
     <ClCompile Include="sources\GetBaudRate.cpp" />
     <ClCompile Include="sources\load_driver\load_driver.c" />
-    <ClCompile Include="sources\monitor.c" />
     <ClCompile Include="sources\msg.c" />
     <ClCompile Include="sources\pinctrl.c" />
     <ClCompile Include="sources\send_cmd.cpp" />
-    <ClCompile Include="sources\stack.c" />
+    <ClCompile Include="sources\stdafx.cpp" />
     <ClCompile Include="sources\str2hex.c" />
+    <ClCompile Include="sources\struct\Config.cpp" />
     <ClCompile Include="sources\struct\list.c" />
     <ClCompile Include="sources\struct\memory.c" />
     <ClCompile Include="sources\struct\parse_cmd.c" />
@@ -156,23 +156,19 @@
     <ClInclude Include="res\resource.h" />
     <ClInclude Include="sources\about.h" />
     <ClInclude Include="sources\asctable.h" />
-    <ClInclude Include="sources\cmd_dlg.h" />
     <ClInclude Include="sources\comm.h" />
     <ClInclude Include="sources\common.h" />
     <ClInclude Include="sources\deal.h" />
     <ClInclude Include="sources\debug.h" />
-    <ClInclude Include="sources\draw.h" />
-    <ClInclude Include="sources\expr.h" />
     <ClInclude Include="sources\GetBaudRate.h" />
-    <ClInclude Include="sources\layout\SdkLayout.h" />
     <ClInclude Include="sources\load_driver\com_drv.h" />
     <ClInclude Include="sources\load_driver\load_driver.h" />
-    <ClInclude Include="sources\monitor.h" />
     <ClInclude Include="sources\msg.h" />
     <ClInclude Include="sources\pinctrl.h" />
     <ClInclude Include="sources\send_cmd.h" />
-    <ClInclude Include="sources\stack.h" />
+    <ClInclude Include="sources\stdafx.h" />
     <ClInclude Include="sources\str2hex.h" />
+    <ClInclude Include="sources\struct\Config.h" />
     <ClInclude Include="sources\struct\list.h" />
     <ClInclude Include="sources\struct\memory.h" />
     <ClInclude Include="sources\struct\parse_cmd.h" />
@@ -192,13 +188,7 @@
     </Manifest>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="todo.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="sources\layout\layout.xml" />
-    <Xml Include="sources\layout\main.xml">
-      <SubType>Designer</SubType>
-    </Xml>
+    <Xml Include="res\main.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

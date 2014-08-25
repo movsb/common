@@ -1,7 +1,6 @@
 #define __UTILS_C__
 #include "utils.h"
 #include "msg.h"
-#include "expr.h"
 #include "about.h"
 #include "debug.h"
 #include "struct/memory.h"
@@ -22,7 +21,6 @@ void init_utils(void)
 	utils.str2hex                  = str2hex;
 	utils.hex2str                  = hex2str;
 	utils.center_window            = center_window;
-	utils.show_expr                = ShowExpr;
 	utils.hex2chs                  = hex2chs;
 	utils.assert_expr              = myassert;
 	utils.wstr2lstr                = wstr2lstr;

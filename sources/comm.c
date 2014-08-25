@@ -9,8 +9,9 @@
 #include "debug.h"
 #include "struct/memory.h"
 #include "../res/resource.h"
-#include "cmd_dlg.h"
 #include "send_cmd.h"
+
+#include <SdkLayout.h>
 
 struct comm_s comm;
 static char* __THIS_FILE__ = __FILE__;
@@ -57,8 +58,8 @@ void init_comm(void)
 	comm.switch_handle_control_char = switch_handle_control_char;
 	comm.switch_send_input_char     = switch_send_input_char;
 	//数据成员
-	comm.data_fmt_recv            = 0;	//字符
-	comm.data_fmt_send            = 0;	//字符
+	comm.data_fmt_recv            = DATA_FMT_CHAR;	//字符
+	comm.data_fmt_send            = DATA_FMT_CHAR;	//字符
 	comm.data_fmt_ignore_return   = 0;	//默认不开启
 	comm.data_fmt_use_escape_char = 0;	//默认不开启转义字符
 	comm.fAutoSend                = 0;	//非自动发送
@@ -400,11 +401,12 @@ int open(void)
 		if(lasterror==ERROR_FILE_NOT_FOUND){
 			comm.update((int*)-1);
 		}
+		msg.hComPort = NULL;
 		return 0;
 	}
 	if(!update_config(0)){
 		CloseHandle(msg.hComPort);
-		msg.hComPort=INVALID_HANDLE_VALUE;
+		msg.hComPort=NULL;
 		return 0;
 	}
 	deal.update_savebtn_status();
@@ -503,7 +505,7 @@ int close(int reason)
 	}
 	comm.fCommOpened = FALSE;
 	CloseHandle(msg.hComPort);
-	msg.hComPort = INVALID_HANDLE_VALUE;
+	msg.hComPort = NULL;
 	debug_out(("等待写线程退出!\n"));;
 	for(i=0;i<100;i++){
 		dw = WaitForSingleObject(deal.thread.hThreadWrite,10);
@@ -547,8 +549,9 @@ int close(int reason)
 	deal.update_savebtn_status();
 
 	deal.cache.cachelen = 0;
-	deal.cache.crlflen = 0;
+	deal.cache.crlen = 0;
 	deal.chars.has = FALSE;
+	deal.ctrl.has = FALSE;
 
 	deal.do_buf_send(SEND_DATA_ACTION_RESET,NULL);
 	deal.do_buf_recv(NULL,0,3);
@@ -582,7 +585,7 @@ int save_to_file(void)
 	int length = 0;
 	char* buffer = NULL;
 	unsigned char* bytearray = NULL;
-	HWND hEdit = comm.data_fmt_recv?msg.hEditRecv:msg.hEditRecv2;
+	HWND hEdit = comm.data_fmt_recv == DATA_FMT_CHAR ? msg.hEditRecv2:msg.hEditRecv;
 
 	//取得接收区的文本长度
 	length = GetWindowTextLength(hEdit);
@@ -595,7 +598,7 @@ int save_to_file(void)
 	if(file == NULL) return 0;
 	
 	//2013-03-18 更正:若为字符显示方式,16进制方式不被允许,因为格式基本上不满足!
-	if(opentype == 0 && !comm.data_fmt_recv){
+	if(opentype == 0 && comm.data_fmt_recv==DATA_FMT_CHAR){
 		utils.msgbox(msg.hWndMain,MB_ICONEXCLAMATION,NULL,"字符格式的数据不能被保存为16进制(二进制文件)形式!\n\n请考虑保存为文本格式!");
 		return 0;
 	}
@@ -783,18 +786,23 @@ int load_from_file(void)
 **************************************************/
 void set_data_fmt(void)
 {
-	comm.data_fmt_send            = IsDlgButtonChecked(msg.hWndMain,IDC_RADIO_SEND_HEX);
-	comm.data_fmt_recv            = IsDlgButtonChecked(msg.hWndMain,IDC_RADIO_RECV_HEX);
+	BOOL b;
+
+	comm.data_fmt_send = IsDlgButtonChecked(msg.hWndMain,IDC_RADIO_SEND_HEX)
+		? DATA_FMT_HEX : DATA_FMT_CHAR;
+
+	comm.data_fmt_recv = IsDlgButtonChecked(msg.hWndMain,IDC_RADIO_RECV_HEX)
+		? DATA_FMT_HEX : DATA_FMT_CHAR;
+
 	comm.data_fmt_ignore_return   = IsDlgButtonChecked(msg.hWndMain,IDC_CHECK_IGNORE_RETURN);
 	comm.data_fmt_use_escape_char = IsDlgButtonChecked(msg.hWndMain,IDC_CHECK_USE_ESCAPE_CHAR);
+	 
+	EnableWindow(GetDlgItem(msg.hWndMain,IDC_CHECK_IGNORE_RETURN),comm.data_fmt_send==DATA_FMT_CHAR);
+	EnableWindow(GetDlgItem(msg.hWndMain,IDC_CHECK_USE_ESCAPE_CHAR),comm.data_fmt_send==DATA_FMT_CHAR);
 
-	EnableWindow(GetDlgItem(msg.hWndMain,IDC_CHECK_IGNORE_RETURN),comm.data_fmt_send==0?TRUE:FALSE);
-	EnableWindow(GetDlgItem(msg.hWndMain,IDC_CHECK_USE_ESCAPE_CHAR),comm.data_fmt_send==0?TRUE:FALSE);
-
-	ShowWindow(msg.hEditRecv,comm.data_fmt_recv>0);
-	ShowWindow(msg.hEditRecv2,comm.data_fmt_recv==0);
-	SetDlgItemText(msg.hWndMain,IDC_STATIC_RECV,comm.data_fmt_recv?"数据接收 - 16进制模式":"数据接收 - 字符模式");
-	SetDlgItemText(msg.hWndMain,IDC_STATIC_SEND,comm.data_fmt_send?"数据发送 - 16进制模式":"数据发送 - 字符模式");
+	b = comm.data_fmt_recv == DATA_FMT_CHAR;
+	layout_visible(layout_control(msg.layout, "edit_recv_char"), b, b);
+	layout_visible(layout_control(msg.layout, "edit_recv_hex"), !b, !b);
 }
 
 /**************************************************
@@ -859,7 +867,7 @@ int hardware_config(void)
 	char str[64];
 	HWND hcp = GetDlgItem(msg.hWndMain,IDC_CBO_CP);
 
-	if(msg.hComPort!=INVALID_HANDLE_VALUE){
+	if(msg.hComPort!=NULL){
 		utils.msgbox(msg.hWndMain,MB_ICONINFORMATION,COMMON_NAME,"串口需要先被关闭!");
 		return 0;
 	}

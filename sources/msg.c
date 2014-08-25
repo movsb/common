@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <stdio.h>
 #include <ctype.h>
 #include <process.h>
@@ -10,14 +12,13 @@
 #include "comm.h"
 #include "asctable.h"
 #include "str2hex.h"
-#include "monitor.h"
-#include "draw.h"
 #include "debug.h"
 #include "struct/memory.h"
 #include "struct/list.h"
 #include "../res/resource.h"
 
 #include <SdkLayout.h>
+#include <Richedit.h>
 
 static sdklayout* layout;
 
@@ -28,6 +29,65 @@ CRITICAL_SECTION window_critical_section;
 
 static char* __THIS_FILE__  = __FILE__;
 
+static int set_ctrl_font(const char* name, const char* fs)
+{
+	int id;
+	char* c = strchr((char*)fs,',');
+	*c = '\0';
+	id = layout_newfont(msg.layout, fs, strtol(c+1, NULL, 10));
+	layout_setfont(layout_control(msg.layout, name), id);
+	return 0;
+}
+
+static void com_init_from_config(void)
+{
+	if(g_cfg){
+		char* v;
+		char* k;
+		k = "app.title";
+		if(config_has(g_cfg, k)){
+			v = config_getstr(g_cfg, k, "");
+			SetWindowText(msg.hWndMain, v);
+			free(v);
+		}
+
+		k = "ui.font";
+		if(config_has(g_cfg, k)){
+			char* comma;
+			v = config_getstr(g_cfg, k, "");
+			comma = strchr(v, ',');
+			*comma='\0';
+			layout_deffont(msg.layout, v, strtol(comma+1, NULL, 10));
+			free(v);
+		}
+
+		k = "app.icon";
+		if(config_has(g_cfg, k)){
+			HICON hIcon;
+			v = config_getstr(g_cfg, k, "");
+			hIcon = (HICON)LoadImage(NULL, v, IMAGE_ICON, 48, 48, LR_LOADFROMFILE);
+			if(hIcon){
+				SendMessage(msg.hWndMain, WM_SETICON, ICON_SMALL, (LPARAM)(hIcon));
+				SendMessage(msg.hWndMain, WM_SETICON, ICON_BIG,   (LPARAM)(hIcon));
+			}
+			free(v);
+		}
+
+		k = "ui.recv.edit_char.font";
+		if(config_has(g_cfg, k)){
+			v = config_getstr(g_cfg, k, "");
+			set_ctrl_font("edit_recv_char", v);
+			free(v);
+		}
+
+		k = "ui.recv.edit_hex.font";
+		if(config_has(g_cfg, k)){
+			v = config_getstr(g_cfg, k, "");
+			set_ctrl_font("edit_recv_hex", v);
+			free(v);
+		}
+	}
+}
 
 
 //消息结构体初始化, 构造函数
@@ -73,7 +133,7 @@ LRESULT CALLBACK RecvEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 	case WM_LBUTTONDBLCLK:
 	case WM_LBUTTONDOWN:
 	case WM_MOUSEMOVE:
-		if(fEnableSelect==0 || comm.fShowDataReceived&&msg.hComPort!=INVALID_HANDLE_VALUE){
+		if(fEnableSelect==0 || comm.fShowDataReceived&&msg.hComPort!=NULL){
 			if(uMsg==WM_LBUTTONDBLCLK || uMsg==WM_LBUTTONDOWN){
 				SetFocus(hWnd);
 			}
@@ -81,7 +141,7 @@ LRESULT CALLBACK RecvEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		}
 		break;
 	case WM_CONTEXTMENU:
-		if(comm.fShowDataReceived&&msg.hComPort!=INVALID_HANDLE_VALUE)
+		if(comm.fShowDataReceived&&msg.hComPort!=NULL)
 			return 0;
 		else 
 			break;
@@ -108,7 +168,7 @@ LRESULT CALLBACK Recv2EditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 	case WM_LBUTTONDBLCLK:
 	case WM_LBUTTONDOWN:
 	case WM_MOUSEMOVE:
-		if(fEnableSelect==0 || comm.fShowDataReceived&&msg.hComPort!=INVALID_HANDLE_VALUE){
+		if(fEnableSelect==0 || comm.fShowDataReceived&&msg.hComPort!=NULL){
 			if(uMsg==WM_LBUTTONDBLCLK || uMsg==WM_LBUTTONDOWN){
 				SetFocus(hWnd);
 			}
@@ -116,7 +176,7 @@ LRESULT CALLBACK Recv2EditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		}
 		break;
 	case WM_CONTEXTMENU:
-		if(msg.hComPort != INVALID_HANDLE_VALUE && comm.fShowDataReceived){
+		if(msg.hComPort != NULL && comm.fShowDataReceived){
 			POINT pt;
 			HMENU hEditMenu;
 			hEditMenu = GetSubMenu(LoadMenu(msg.hInstance,MAKEINTRESOURCE(IDR_MENU_EDIT_RECV)),0);
@@ -131,7 +191,7 @@ LRESULT CALLBACK Recv2EditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		}
 	case WM_CHAR:
 		{
-			if(comm.fEnableCharInput && comm.fShowDataReceived && msg.hComPort!=INVALID_HANDLE_VALUE && msg.hComPort){
+			if(comm.fEnableCharInput && comm.fShowDataReceived && msg.hComPort!=NULL){
 				int result;
 				result = deal.send_char_data((char)wParam);
 				if(result==0){
@@ -168,10 +228,6 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_INITDIALOG:
 		msg.on_create(hWnd,(HINSTANCE)GetModuleHandle(NULL));
 		return FALSE;
-	case WM_CTLCOLORBTN:
-		{
-			return (LRESULT)GetStockObject(NULL_BRUSH);
-		}
 	case WM_VSCROLL:
 	case WM_HSCROLL:
 		layout_scroll(layout, uMsg, wParam, lParam);
@@ -209,19 +265,15 @@ int on_create(HWND hWnd, HINSTANCE hInstance)
 	msg.hWndMain = hWnd;
 	msg.hInstance = hInstance;
 	msg.hEditRecv = GetDlgItem(hWnd, IDC_EDIT_RECV);
-	msg.hEditRecv2 = GetDlgItem(hWnd, IDC_EDIT_RECV2);
+	//msg.hEditRecv2 = GetDlgItem(hWnd, IDC_EDIT_RECV2);
 	msg.hEditSend = GetDlgItem(hWnd, IDC_EDIT_SEND);
-	msg.hComPort = INVALID_HANDLE_VALUE;
+	msg.hComPort = NULL;
 
-
-	//保存窗口默认的大小
-
-	GetWindowRect(msg.hEditRecv,&msg.WndSize.rcRecv);
-	GetWindowRect(msg.hEditSend,&msg.WndSize.rcSend);
-	GetWindowRect(GetDlgItem(hWnd,IDC_STATIC_RECV),&msg.WndSize.rcRecvGroup);
-	GetWindowRect(GetDlgItem(hWnd,IDC_STATIC_SEND),&msg.WndSize.rcSendGroup);
-	GetWindowRect(hWnd,&msg.WndSize.rcWindow);
-	GetClientRect(hWnd,&msg.WndSize.rcWindowC);
+	msg.hEditRecv2 = CreateWindowEx(0, RICHEDIT_CLASS, NULL, 
+		WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL |
+		ES_MULTILINE | ES_WANTRETURN | ES_AUTOHSCROLL | ES_AUTOVSCROLL |
+		ES_READONLY,
+		0, 0, 100, 100, hWnd, (HMENU)IDC_EDIT_RECV2, hInstance, 0);
 
 	//把窗体移动到屏幕中央
 	utils.center_window(hWnd,NULL);
@@ -234,27 +286,7 @@ int on_create(HWND hWnd, HINSTANCE hInstance)
 
 	//加载快捷键表
 	msg.hAccel = LoadAccelerators(msg.hInstance,MAKEINTRESOURCE(IDR_ACCELERATOR1));
-
-		//数据显示框设置
-		//等宽字体
-	msg.hFont = CreateFont(
-		10,5, /*Height,Width*/
-		0,0, /*escapement,orientation*/
-		FW_REGULAR,FALSE,FALSE,FALSE, /*weight, italic, underline, strikeout*/
-		ANSI_CHARSET,OUT_DEVICE_PRECIS,CLIP_MASK, /*charset, precision, clipping*/
-		DEFAULT_QUALITY, DEFAULT_PITCH, /*quality, and pitch*/
-		"Courier"); /*font name*/
-	GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-	strncpy(lf.lfFaceName, "Consolas", LF_FACESIZE);
-	lf.lfCharSet = DEFAULT_CHARSET;
-	lf.lfHeight = -12;
-	msg.hFont2 = CreateFontIndirect(&lf);
-	if(!msg.hFont2)
-		msg.hFont2 = msg.hFont;
 	
-	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_RECV, WM_SETFONT, (WPARAM)msg.hFont, MAKELPARAM(TRUE, 0));
-	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_RECV2, WM_SETFONT, (WPARAM)msg.hFont2, MAKELPARAM(TRUE, 0));
-	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_SEND, WM_SETFONT, (WPARAM)msg.hFont2, MAKELPARAM(TRUE, 0));
 	//文本显示区接收与发送缓冲大小
 	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_RECV, EM_SETLIMITTEXT, (WPARAM)COMMON_RECV_BUF_SIZE, 0);
 	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_SEND, EM_SETLIMITTEXT, (WPARAM)COMMON_SEND_BUF_SIZE, 0);
@@ -274,10 +306,13 @@ int on_create(HWND hWnd, HINSTANCE hInstance)
 	deal.do_buf_send(SEND_DATA_ACTION_INIT,NULL);
 
 	do{
-		layout = layout_new(hWnd, MAKEINTRESOURCE(IDR_RCDATA1),hInstance);
+		layout = layout_new(hWnd, MAKEINTRESOURCE(IDR_RCDATA2),hInstance);
+		msg.layout = layout;
 		layout_visible(layout_control(layout, "recv_wnd_recv"), FALSE, FALSE);
 		layout_resize(layout,NULL);
 	}while(0);
+
+	com_init_from_config();
 
 	ShowWindow(hWnd,SW_SHOWNORMAL);
 
@@ -286,7 +321,7 @@ int on_create(HWND hWnd, HINSTANCE hInstance)
 
 int on_close(void)
 {
-	if(msg.hComPort!=INVALID_HANDLE_VALUE){
+	if(msg.hComPort!=NULL){
 		int ret;
 		ret = utils.msgbox(msg.hWndMain,MB_ICONEXCLAMATION|MB_OKCANCEL, "提示",
 			"当前正处于调试状态, 您确定要退出吗?");
@@ -308,11 +343,6 @@ int on_destroy(void)
 {
 	msg.hWndMain = NULL;
 
-// 	if(msg.hFont){//删除创建的等宽字体
-// 		DeleteObject(SelectObject(GetDC(GetDlgItem(msg.hWndMain, IDC_EDIT_RECV)), GetStockObject(NULL_PEN)));
-// 		msg.hFont = NULL;
-// 	}
-
 	PostQuitMessage(0);
 	return 0;
 }
@@ -326,11 +356,11 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 		case MENU_OTHER_HELP:about.show();break;
 		case MENU_OTHER_NEWVERSION:about.update();break;
 		case MENU_OTHER_ASCII:ShowAsciiTable();break;
-		case MENU_OTHER_CALC:utils.show_expr();break;
+		case MENU_OTHER_CALC:MessageBox(msg.hWndMain, "not implemented!","",0);break;
 		case MENU_OTHER_NOTEPAD:ShellExecute(NULL,"open","notepad",NULL,NULL,SW_SHOWNORMAL);break;
 		case MENU_OTHER_DEVICEMGR:ShellExecute(NULL,"open","devmgmt.msc",NULL,NULL,SW_SHOWNORMAL);break;
-		case MENU_OTHER_MONITOR:ShowMonitorWindow();break;
-		case MENU_OTHER_DRAW:ShowDrawWindow();break;
+		case MENU_OTHER_MONITOR:MessageBox(msg.hWndMain, "not implemented!","",0);break;
+		case MENU_OTHER_DRAW:MessageBox(msg.hWndMain, "not implemented!","",0);break;
 		//Menu - More Settings
 		case MENU_MORE_TIMEOUTS:comm.show_timeouts();break;
 		case MENU_MORE_DRIVER:comm.hardware_config();break;
@@ -394,13 +424,13 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 		{
 			char* buffer = NULL;
 			int length = 0;
-			if(id==IDC_BTN_COPY_RECV&&comm.fShowDataReceived&&msg.hComPort!=INVALID_HANDLE_VALUE){
+			if(id==IDC_BTN_COPY_RECV&&comm.fShowDataReceived&&msg.hComPort!=NULL){
 				utils.msgbox(msg.hWndMain,MB_ICONEXCLAMATION,COMMON_NAME,
 					"在显示模式下不允许复制接收区数据!\n"
 					"请点击 停止显示 切换到暂停显示模式.");
 				return 0;
 			}
-			length = GetWindowTextLength(GetDlgItem(msg.hWndMain, id==IDC_BTN_COPY_RECV?(comm.data_fmt_recv?IDC_EDIT_RECV:IDC_EDIT_RECV2):IDC_EDIT_SEND));
+			length = GetWindowTextLength(GetDlgItem(msg.hWndMain, id==IDC_BTN_COPY_RECV?(comm.data_fmt_recv==DATA_FMT_HEX?IDC_EDIT_RECV:IDC_EDIT_RECV2):IDC_EDIT_SEND));
 			if(length == 0){
 				MessageBeep(MB_ICONINFORMATION);
 				//应lin0119要求, 取消复制成功的提示
@@ -410,7 +440,7 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 			buffer = (char*)GET_MEM(length+1);
 			if(buffer==NULL) return 0;
 
-			GetDlgItemText(msg.hWndMain, id==IDC_BTN_COPY_RECV?(comm.data_fmt_recv?IDC_EDIT_RECV:IDC_EDIT_RECV2):IDC_EDIT_SEND, buffer, length+1);
+			GetDlgItemText(msg.hWndMain, id==IDC_BTN_COPY_RECV?(comm.data_fmt_recv==DATA_FMT_HEX?IDC_EDIT_RECV:IDC_EDIT_RECV2):IDC_EDIT_SEND, buffer, length+1);
 			if(!utils.set_clip_data(buffer)){
 				utils.msgbox(msg.hWndMain,MB_ICONHAND, NULL, "操作失败!");
 			}else{
@@ -514,11 +544,11 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 				SetDlgItemText(msg.hWndMain,IDC_EDIT_RECV2,"");
 				break;
 			case IDYES:
-				SetDlgItemText(msg.hWndMain,comm.data_fmt_recv?IDC_EDIT_RECV:IDC_EDIT_RECV2,"");
+				SetDlgItemText(msg.hWndMain,comm.data_fmt_recv==DATA_FMT_HEX?IDC_EDIT_RECV:IDC_EDIT_RECV2,"");
 				break;
 			}
 			//
-			if(comm.data_fmt_recv) InterlockedExchange((long volatile*)&comm.data_count,0);
+			if(comm.data_fmt_recv==DATA_FMT_HEX) InterlockedExchange((long volatile*)&comm.data_count,0);
 			return 0;
 		}
 	case IDC_CHK_TOP:
@@ -593,7 +623,7 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 				return 0;
 			}else if(codeNotify == CBN_SELENDOK || codeNotify==CBN_SELENDCANCEL){
 				SetWindowPos(hWndCtrl,0,0,0,rc.right-rc.left,rc.bottom-rc.top,SWP_NOMOVE|SWP_NOZORDER);
-				ShowWindow(comm.data_fmt_recv?msg.hEditRecv:msg.hEditRecv2,TRUE);
+				ShowWindow(comm.data_fmt_recv==DATA_FMT_HEX?msg.hEditRecv:msg.hEditRecv2,TRUE);
 				ShowWindow(GetDlgItem(msg.hWndMain,IDC_STATIC_RECV),TRUE);
 				if(is_there_any_item==0){
 					ComboBox_ResetContent(hWndCtrl);
@@ -641,7 +671,7 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 #endif
 int on_device_change(WPARAM event, DEV_BROADCAST_HDR* pDBH)
 {
-	if(msg.hComPort==INVALID_HANDLE_VALUE){
+	if(msg.hComPort==NULL){
 		if(event==DBT_DEVICEARRIVAL){
 			if(pDBH->dbch_devicetype == DBT_DEVTYP_PORT){
 				DEV_BROADCAST_PORT* pPort = (DEV_BROADCAST_PORT*)pDBH;
@@ -679,7 +709,7 @@ int on_device_change(WPARAM event, DEV_BROADCAST_HDR* pDBH)
 
 int on_setting_change(void)
 {
-	if(msg.hComPort == INVALID_HANDLE_VALUE){
+	if(msg.hComPort == NULL){
 		extern HWND hComPort;
 		comm.update((int*)-1);
 		if(ComboBox_GetCount(hComPort)){
