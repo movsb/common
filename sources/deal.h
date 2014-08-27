@@ -14,13 +14,17 @@ extern "C" {
 
 void init_deal(void);
 
-/***********************************************************************
-名称:用来保存待发送的数据
-描述:
-参数:data_size,当前数据包的大小
-返回:
-说明:
-***********************************************************************/
+// 用于Linux控制字符解析时的状态机
+enum LINUXCTRL_STATE
+{
+	LCS_NONE,
+	LCS_ESC,
+	LCS_BRACKET,
+	LCS_ATTR,
+	LCS_SEMI,
+	LCS_M,
+};
+
 enum{SEND_DATA_TYPE_NOTUSED,SEND_DATA_TYPE_USED,SEND_DATA_TYPE_MUSTFREE,SEND_DATA_TYPE_AUTO_USED,SEND_DATA_TYPE_AUTO_MUSTFREE};
 enum{SEND_DATA_ACTION_GET,SEND_DATA_ACTION_RETURN,SEND_DATA_ACTION_INIT,SEND_DATA_ACTION_FREE,SEND_DATA_ACTION_RESET};
 typedef struct _SEND_DATA{
@@ -47,6 +51,7 @@ struct deal_s{
 	void (*start_timer)(int start);
 	void (*add_text)(unsigned char* ba, int cb);
 	void (*add_text_critical)(unsigned char* ba, int cb);
+	int (*processor)(unsigned char* ba, int cb);
 	//....
 	int last_show;
 	//计时器
@@ -91,9 +96,12 @@ struct deal_s{
 	// Linux终端控制字符
 #define DEAL_CONTROLCHAR_SIZE 64
 	struct{
-		BOOL has;
+		int pos;
 		unsigned char chars[DEAL_CONTROLCHAR_SIZE];
+		enum LINUXCTRL_STATE state;
 	}ctrl;
+	// 终端默认字体颜色
+	int termfg, termbg;
 };
 
 #ifndef __DEAL_C__

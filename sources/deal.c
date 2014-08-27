@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #define __DEAL_C__
 #include "deal.h"
@@ -42,7 +43,10 @@ void init_deal(void)
 	deal.cache.cachelen	       = 0;
 	deal.cache.crlen	       = 0;
 	deal.chars.has	           = FALSE;
-	deal.ctrl.has              = FALSE;
+	deal.ctrl.state            = LCS_NONE;
+	deal.processor             = NULL;
+	deal.termfg                = 30; //黑色
+	deal.termbg                = 47; //白色
 
 	InitializeCriticalSection(&deal.g_add_text_cs);
 }
@@ -266,6 +270,21 @@ _exit_dbs:
 BUG可花了我不少时间!!!
 	2014-07-06:增加控制字符处理
 **************************************************/
+//////////////////////////////////////////////////////////////////////////
+// 以下所有位于add_text之上的函数均是作为对add_text函数的补充与加强
+//////////////////////////////////////////////////////////////////////////
+
+
+static __inline int call_processor(int(*p)(unsigned char*,int), unsigned char** pba, int* pcb)
+{
+	int n = p(*pba, *pcb);
+	if(n > *pcb){
+		assert(0);
+	}
+	*pba += n;
+	*pcb -= n;
+	return n;
+}
 
 static __inline void delete_chars(int n)
 {
@@ -293,122 +312,117 @@ static __inline void delete_chars(int n)
 	}
 }
 
-static void add_text_helper(char* str)
+// \x1b[32;45m123\033[31;42m456\x1b[41;37m789\033[0m012\n
+static void richedit_apply_linux_attribute(int attr)
 {
-	unsigned int cntb = utils.eliminate_control_char(str);
-	char* p = str;
-	delete_chars(cntb);
-	p += cntb;
-	if(*p){
-		GETTEXTLENGTHEX gtl;
-		CHARRANGE rng;
-		int cch;
+	CHARFORMAT2 cf;
+	static struct{
+		int k;
+		COLORREF v;
+	}def_colors[] = 
+	{
+		{30, RGB(0,    0,  0)},
+		{31, RGB(255,  0,  0)},
+		{32, RGB(0,  255,  0)},
+		{33, RGB(255,255,  0)},
+		{34, RGB(0,    0,255)},
+		{35, RGB(255,  0,255)},
+		{36, RGB(0,  255,255)},
+		{37, RGB(255,255,255)},
+		{-1, RGB(0,0,0)},
+	};
 
-		gtl.flags = GTL_DEFAULT;
-		gtl.codepage = CP_ACP;
-		cch = SendMessage(msg.hEditRecv2, EM_GETTEXTLENGTHEX, (WPARAM)&gtl, 0);
+	cf.cbSize = sizeof(cf);
 
-		rng.cpMax = cch;
-		rng.cpMin = cch;
-		SendMessage(msg.hEditRecv2, EM_EXSETSEL, 0, (LPARAM)&rng);
-		Edit_ReplaceSel(msg.hEditRecv2,p);
+	if(attr>=30 && attr<=37){
+		cf.dwMask = CFM_COLOR;
+		cf.dwEffects = 0;
+		assert(deal.termfg>=30 && deal.termfg<=37);
+		cf.crTextColor = def_colors[attr-30].v;
+		SendMessage(msg.hEditRecv2, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&cf);
+	}
+	else if(attr>=40 && attr<=47){
+		cf.dwMask = CFM_BACKCOLOR;
+		cf.dwEffects = 0;
+		assert(deal.termbg>=40 && deal.termbg<=47);
+		cf.crBackColor = def_colors[attr-40].v;
+		SendMessage(msg.hEditRecv2, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&cf);
+	}
+	else if(attr == 0){
+		cf.dwMask = CFM_COLOR | CFM_BACKCOLOR | CFM_BOLD;
+		cf.dwEffects = 0;
+		assert( (deal.termfg>=30 && deal.termfg<=37)
+			&& (deal.termbg>=40 && deal.termbg<=47));
+		cf.crTextColor = def_colors[deal.termfg-30].v;
+		cf.crBackColor = def_colors[deal.termbg-40].v;
+		SendMessage(msg.hEditRecv2, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&cf);
+	}
+	else if(attr == 1){
+		cf.dwMask = CFM_BOLD;
+		cf.dwEffects = CFE_BOLD;
+		SendMessage(msg.hEditRecv2, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&cf);
+	}
+	else{
+		debug_out(("unknown or unsupported linux control format!\n"));
 	}
 }
 
-static int process_leading_crlf(unsigned char* ba, int cb)
+static void add_text_append(const char* str)
 {
-	static char inner_buf[10240];
+	GETTEXTLENGTHEX gtl;
+	CHARRANGE rng;
+	int cch;
 
-	char* buf;
-	char* cache_buf;
-	int i=0;
+	gtl.flags = GTL_DEFAULT;
+	gtl.codepage = CP_ACP;
+	cch = SendMessage(msg.hEditRecv2, EM_GETTEXTLENGTHEX, (WPARAM)&gtl, 0);
 
-	if(cb == 0) return 0;
+	rng.cpMax = cch;
+	rng.cpMin = cch;
+	SendMessage(msg.hEditRecv2, EM_EXSETSEL, 0, (LPARAM)&rng);
+	Edit_ReplaceSel(msg.hEditRecv2,str);
 
-	i = deal.cache.cachelen + cb;
-	// BUG: FIX
-	if(i > DEAL_CACHE_SIZE){
-		i = DEAL_CACHE_SIZE;
+	// Richedit bug: EM_SCROLLCARET will not work if a richedit gets no focus
+	// http://stackoverflow.com/questions/9757134/scrolling-richedit-without-it-having-focus
+	SendMessage(msg.hEditRecv2, WM_VSCROLL, SB_BOTTOM, 0);
+}
+
+int read_integer(char* str, int* pi)
+{
+	int r = 0;
+	char* p = str;
+
+	while(*p>='0' && *p<='9'){
+		r *= 10;
+		r += *p-'0';
+		p++;
 	}
 
-	cache_buf = (char*)deal.cache.cache;
-	memcpy(deal.cache.cache+deal.cache.cachelen, ba, i-deal.cache.cachelen);
+	*pi = r;
+	return (int)p - (int)str;
+}
 
-	buf = utils.hex2chs((unsigned char*)cache_buf, i, inner_buf, sizeof(inner_buf), NLT_CR);
+// 目前只支持前景与背景
+static void add_text_formatted(const char* str)
+{
+	int var;
+	const char* p = str;
 
-	do{
-		int newcr = strlen(buf);
-		int diff = newcr - deal.cache.crlen;
+	assert(*p == '\033');
+	p++;
+	assert(*p == '[');
+	p++;
 
-		if(diff > 0){
-			add_text_helper(buf + deal.cache.crlen);
+	while(*p != 'm'){
+		if(*p == ';'){
+			p++;
+			continue;
 		}
 		else{
-			delete_chars(-diff);
+			p += read_integer((char*)p, &var);
+			richedit_apply_linux_attribute(var);
 		}
-	}while(0);
-
-	// append new cr(s) to cache
-	deal.cache.cachelen = i;
-	deal.cache.crlen = strlen(buf);
-	//debug_out(("process_leading_crlf: 向后增加 %d 个回车换行\n", deal.cache.crlflen));
-
-	// GC
-	if(buf != inner_buf)
-		memory.free_mem((void**)&buf, "");
-
-	if(cache_buf != (char*)deal.cache.cache)
-		memory.free_mem((void**)&cache_buf,"");
-
-	return 0;
-}
-
-static int process_trailing_crlf(unsigned char* ba, int cb)
-{
-	static char inner_buf[10240];
-
-	char* buf;
-
-	if(cb == 0) return 0;
-
-	// BUG: FIX cb > sizeof(cache)
-	if(cb > DEAL_CACHE_SIZE)
-		cb = DEAL_CACHE_SIZE;
-
-	// save last crlf(s)
-	memcpy(deal.cache.cache, ba, cb);
-	deal.cache.cachelen = cb;
-
-	// calc real crlf(s) len
-	buf = utils.hex2chs((unsigned char*)ba, cb, inner_buf, sizeof(inner_buf), NLT_CR);
-	add_text_helper(buf);
-
-	deal.cache.crlen = strlen(buf);
-	//debug_out(("process_trailing_crlf: 向后增加 %d 个回车换行\n", deal.cache.crlflen));
-
-	//GC
-	if(buf != inner_buf)
-		memory.free_mem((void**)&buf, "");
-
-	return 0;
-}
-
-static int process_none_crlf(unsigned char* ba, int cb)
-{
-	static char inner_str[10240];
-	char* str;
-
-	if(cb <= 0) return 0;
-
-	deal.cache.cachelen = 0;
-	deal.cache.crlen = 0;
-	//debug_out(("process_none_crlf: 清空回车换行缓冲\n"));
-
-	str=utils.hex2chs(ba,cb,inner_str,__ARRAY_SIZE(inner_str), NLT_CR);
-	add_text_helper(str);
-	if(str!=inner_str) memory.free_mem((void**)&str,NULL);
-
-	return 0;
+	}
 }
 
 // returns true if c is used
@@ -448,16 +462,197 @@ static int process_trailing_char(int c)
 	return 1;
 }
 
-// return bytes used
-static int process_leading_ctrl_chars(unsigned char* ba, int cb)
+static int process_special_crlf(unsigned char* ba, int cb)
 {
-	if(deal.ctrl.has){
+	char inner_buf[10240];		// 内部缓冲
+	int n = 0;					// 记录新crlf的个数
+	char* str;
 
+	if(deal.processor != process_special_crlf){
+		deal.cache.crlen = 0;
+		deal.cache.cachelen = 0;
 	}
-	else{
-		debug_out(("process_leading_ctrl_chars: 原来没有处理控制字符\n"));
+
+	while(n < cb && (ba[n]=='\r' || ba[n]=='\n')){
+		n++;
+	}
+
+	if(n <= 0){
+		deal.processor = NULL;
 		return 0;
 	}
+
+	assert(n+ deal.cache.cachelen <= DEAL_CACHE_SIZE);
+	memcpy(deal.cache.cache+deal.cache.cachelen,
+		ba, n);
+
+	deal.cache.cachelen += n;
+
+	str = utils.hex2chs(deal.cache.cache, deal.cache.cachelen, 
+		inner_buf, __ARRAY_SIZE(inner_buf), NLT_CR);
+
+	do{
+		int newcrlen = strlen(str);
+		int diff = newcrlen - deal.cache.crlen;
+
+		if(diff > 0){
+			add_text_append(str + deal.cache.crlen);
+		}
+		else{
+			delete_chars(-diff);
+		}
+	}while((0));
+
+	deal.cache.crlen = strlen(str); // currently is CR.
+
+	if(str != inner_buf)
+		memory.free_mem((void**)&str, "");
+
+	deal.processor = process_special_crlf;
+
+	return n;
+}
+
+static int process_special_escctrl(unsigned char* ba, int cb)
+{
+	int i;
+	int step;
+
+	if(deal.processor != process_special_escctrl){
+		deal.ctrl.state = LCS_NONE;
+		deal.ctrl.pos = 0;
+	}
+
+	deal.processor = process_special_escctrl;
+
+	for(i = 0 ; i<cb ; i += step){
+		step = 0;
+		switch(deal.ctrl.state)
+		{
+		case LCS_NONE:
+			{
+				if(ba[i] == '\033'){
+					deal.ctrl.state = LCS_ESC;
+					step = 1;
+					deal.ctrl.chars[deal.ctrl.pos++] = ba[i];
+				}
+				else{
+					debug_out(("state: LCS_NONE: expect:\\033, but 0x%02X!\n", ba[i]));
+					deal.processor = NULL;
+					return i;
+				}
+				break;
+			}
+		case LCS_ESC:
+			{
+				if(ba[i]=='['){
+					deal.ctrl.state = LCS_BRACKET;
+					step = 1;
+					deal.ctrl.chars[deal.ctrl.pos++] = ba[i];
+				}
+				else{
+					debug_out(("state: LCS_ESC: expect: [, but 0x%02X\n", ba[i]));
+					deal.ctrl.state = LCS_NONE;
+					deal.processor = NULL;
+					return i;
+				}
+				break;
+			}
+		case LCS_BRACKET:
+		case LCS_ATTR:
+		case LCS_SEMI:
+			{
+				if(ba[i]>='0' && ba[i]<='9'){
+					deal.ctrl.state = LCS_ATTR;
+					step = 1;
+					deal.ctrl.chars[deal.ctrl.pos++] = ba[i];
+				}
+				else if(ba[i] == ';'){
+					deal.ctrl.state = LCS_SEMI;
+					step = 1;
+					deal.ctrl.chars[deal.ctrl.pos++] = ba[i];
+				}
+				else if(ba[i] == 'm'){
+					deal.ctrl.state = LCS_M;
+					step = 1;
+					deal.ctrl.chars[deal.ctrl.pos++] = ba[i];
+					deal.ctrl.chars[deal.ctrl.pos++] = '\0';
+				}
+				else{
+					debug_out(("state: LCS_BRACKET/LCS_ATTR: not [0-9] || ; || m \n"));
+					deal.ctrl.state = LCS_NONE;
+					deal.processor = NULL;
+					return i;
+				}
+				break;
+			}
+		case LCS_M:
+			{
+				deal.ctrl.state = LCS_NONE;
+				deal.processor = NULL;
+				add_text_formatted((char*)deal.ctrl.chars);
+				return i;
+			}
+		default:
+			assert(0);
+		}
+	}
+	return i;
+}
+
+static int process_special(unsigned char* ba, int cb)
+{
+	int n;
+
+	if(*ba >= 0x20){
+		n = 0;
+	}
+	else if(*ba=='\r' || *ba=='\n'){
+		n = call_processor(process_special_crlf, &ba, &cb);
+	}
+	else if(*ba == '\t'){
+		char tab[2];
+		tab[0] = '\t';
+		tab[1] = '\0';
+		add_text_append(tab);
+		n = 1;
+	}
+	else if(*ba == '\b'){
+		delete_chars(1);
+		n = 1;
+	}
+	else if(*ba == '\033'){
+		n = call_processor(process_special_escctrl, &ba, &cb);
+	}
+	else{
+		n = 1;
+	}
+
+	return n;
+}
+
+static int process_normal(unsigned char* ba, int cb)
+{
+	static char inner_buf[10240];
+	char* str;
+	int n = 0;
+
+	while(n < cb && ba[n] >= 0x20){
+		n++;
+	}
+
+	if(n <= 0)
+		return 0;
+
+	str = utils.hex2chs(ba, n, inner_buf, __ARRAY_SIZE(inner_buf), NLT_CR);
+	add_text_append(str);
+	
+	if(str != inner_buf)
+		memory.free_mem((void**)&str, "");
+
+	deal.processor = NULL;
+
+	return n;
 }
 
 void add_text_critical(unsigned char* ba, int cb)
@@ -485,41 +680,19 @@ void add_text_critical(unsigned char* ba, int cb)
 			InterlockedExchangeAdd((long volatile*)&comm.data_count,cbnew);
 		}
 		if(comm.data_fmt_recv == DATA_FMT_CHAR){//字符
-			int crlflen1,crlflen2;
-			BOOL bNoFirst=FALSE, bNoLast=FALSE;
-			int i;
+			for(; cb ; )
+			{
+				if(deal.processor){
+					call_processor(deal.processor, &ba, &cb);
+					continue; // must
+				}
 
-			// leading crlfs
-			for(crlflen1=0,i=0; i<cb && (ba[i]=='\r' || ba[i]=='\n'); i++)
-				crlflen1++;
+				call_processor(process_special, &ba, &cb);
+				if(deal.processor) continue;
 
-			if(crlflen1==0 && process_leading_char(ba[0])){
-				ba++;
-				cb--;
+				call_processor(process_normal, &ba, &cb);
+				if(deal.processor) continue;
 			}
-
-			if(cb <=0 ) return;
-
-			if(crlflen1) // reduce function call
-				process_leading_crlf(ba, crlflen1);
-
-			if(crlflen1 == cb) return; // all are crlfs, no more handlers
-
-			for(crlflen2=0,i=cb-1; i>=0 && (ba[i]=='\r' || ba[i]=='\n'); i--)
-				crlflen2++;
-
-			// check none-ansi (namely, non-print-able chars)
-			if(crlflen2==0 && utils.check_chs(ba+crlflen1, cb-crlflen1) != 0){
-				process_trailing_char(ba[ cb-1 ]);
-				bNoLast = TRUE;
-			}
-
-			// center non-crlf chars
-			process_none_crlf(ba+crlflen1, cb-crlflen1-crlflen2-(bNoLast?1:0));
-
-			// trailing crlfs
-			if(crlflen2)
-				process_trailing_crlf(ba+cb-crlflen2, crlflen2);
 		}
 	}else{
 		do_buf_recv(ba,cb,0);
@@ -614,8 +787,6 @@ unsigned int __stdcall thread_write(void* pv)
 {
 	DWORD nWritten,nRead,nWrittenData;
 	SEND_DATA* psd = NULL;
-	//OVERLAPPED overlap={0};
-	//HANDLE hWriteEvent = CreateEvent(NULL,TRUE, FALSE,NULL);
 	BOOL bRet;
 
 	for(;;){
@@ -639,7 +810,9 @@ unsigned int __stdcall thread_write(void* pv)
 
 		nWrittenData = 0;
 		while(nWrittenData < psd->data_size){
+			debug_out(("WriteFile: writing %d bytes\n", psd->data_size - nWrittenData));
 			bRet = WriteFile(msg.hComPort, &psd->data[0]+nWrittenData,psd->data_size-nWrittenData, &nWritten, NULL);
+			debug_out(("end writing.\n"));
 			if(comm.fCommOpened==FALSE || msg.hComPort==NULL){
 				debug_out(("因为comm.fCommOpened==FALSE或msg.hComPort,写线程退出!\n"));
 				return 0;
@@ -651,13 +824,10 @@ unsigned int __stdcall thread_write(void* pv)
 				utils.msgerr(msg.hWndMain,"写串口设备时遇到错误");
 				InterlockedExchange((long volatile*)&comm.cchNotSend,0);
 				update_status(NULL);
-				//comm.close();
-				//comm.update((int*)-1);
 				SetTimer(msg.hWndMain,TIMER_ID_THREAD,100,NULL);
 				return 0;
 			}
 			if(nWritten==0) continue;
-			//debug_out(("in WriteFile,nWritten==%u\n",nWritten));
 			nWrittenData += nWritten;
 			InterlockedExchangeAdd((volatile long*)&comm.cchSent,nWritten);				//发送计数   - 增加
 			InterlockedExchangeAdd((volatile long*)&comm.cchNotSend,-(LONG)nWritten);	//未发送计数 - 减少
