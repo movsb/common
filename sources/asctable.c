@@ -16,12 +16,13 @@ static char* __THIS_FILE__ = __FILE__;
 文件说明:显示出0~127的ASCII码
 **********************************************************/
 
-#define ASC_FONT_HEIGHT		12					//字体高度
+#define ASC_FONT_HEIGHT		14					//字体高度
 #define ASC_TEXT_ASCENT		5					//行距
 #define ASC_LINES_CLIENT	15					//每屏幕显示的行数
-#define ASC_CLIENT_WIDTH	350					//窗口客户区宽度
+#define ASC_CLIENT_WIDTH	380					//窗口客户区宽度
 #define ASC_MOUSE_DELTA		ASC_LINES_CLIENT	//鼠标滚轮滚一次步进值
-#define ASC_TOTAL_ENTRY		128					//0~127,ASCII码总数,根据实际情况修改
+#define ASC_TOTAL_ENTRY		256					//0~127,ASCII码总数,根据实际情况修改
+#define ASC_FACENAME		"Consolas"			//字体名
 
 struct{
 	unsigned char index;
@@ -68,39 +69,33 @@ static HWND hWndAsciiTable;
 //用于保存窗口坐标
 static int axisx=0,axisy=0;
 
-COLORREF set_text_color(int update)
-{
-	static struct{
-		int cur_cr;
-		COLORREF cr[8];
-	}cr_table={
-		0,
-		{RGB(255,0,0),RGB(0,255,0),RGB(0,0,255),RGB(255,255,0),
-		RGB(0,255,255),RGB(255,0,255),RGB(0,0,0),RGB(255,255,255)}
-	};
-	COLORREF cur_cr=cr_table.cr[cr_table.cur_cr];
-	if(update)
-		cr_table.cur_cr++;
-	if(cr_table.cur_cr==__ARRAY_SIZE(cr_table.cr))
-		cr_table.cur_cr=0;
-	return cur_cr;
-}
+//字体前景与背景颜色值
+static int fgcolor=0;
+static int bgcolor=6;
+
+static COLORREF cr_table[] ={
+	RGB(255,0,0),RGB(0,255,0),RGB(0,0,255),RGB(255,255,0),
+	RGB(0,255,255),RGB(255,0,255),RGB(0,0,0),RGB(255,255,255),
+};
 
 LRESULT CALLBACK AscWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-	case WM_RBUTTONDOWN:
-		set_text_color(1);
-		InvalidateRect(hWnd,NULL,TRUE);
+	case WM_LBUTTONUP:
+		fgcolor = (++fgcolor) % __ARRAY_SIZE(cr_table);
+		InvalidateRect(hWnd, NULL, TRUE);
 		return 0;
-	case WM_LBUTTONDOWN:
-		SendMessage(hWnd,WM_NCLBUTTONDOWN,HTCAPTION,0);
+	case WM_RBUTTONUP:
+		bgcolor = (++bgcolor) % __ARRAY_SIZE(cr_table);
+		InvalidateRect(hWnd, NULL, TRUE);
 		return 0;
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
 			HDC hdc;
+			RECT rc;
+			HBRUSH hbr;
 
 			int i;
 
@@ -116,12 +111,17 @@ LRESULT CALLBACK AscWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			GetScrollInfo(hWnd,SB_VERT,&si);
 
 			hdc = BeginPaint(hWnd,&ps);
+
+			GetClientRect(hWnd, &rc);
+			hbr = CreateSolidBrush(cr_table[bgcolor]);
+			FillRect(hdc, &rc, hbr);
+			DeleteObject(hbr);
+
 			hf=(HFONT)SelectObject(hdc,(HGDIOBJ)hFont);
 			SetBkMode(hdc,TRANSPARENT);
-			//SetTextColor(hdc,ASC_TEXT_COLOR);
-			SetTextColor(hdc,set_text_color(0));
+			SetTextColor(hdc,cr_table[fgcolor]);
 			
-			len=sprintf(str,"DEC OCT HEX   Description");
+			len=sprintf(str,"%4s %4s  %4s  %s","十","八","十六","描述");
 			TextOut(hdc,x,y,str,len);
 			y += ASC_FONT_HEIGHT+ASC_TEXT_ASCENT;
 			len=sprintf(str,"----------------------------------------");
@@ -131,13 +131,15 @@ LRESULT CALLBACK AscWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			for(i=si.nPos;i<si.nPos+ASC_LINES_CLIENT;i++){
 				if(i<32){
 					int index=table1[i].index;
-					len=_snprintf(str,sizeof(str),"%3d,%03o, %02X   %s",index,index,index,table1[index].description);
+					len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %s",index,index,index,table1[index].description);
 				}else if(i==32){
-					len=_snprintf(str,sizeof(str),"%3d,%03o, %02X   %s",32,32,32,"(Space)");
+					len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %s",32,32,32,"(Space)");
 				}else if(i<127){
-					len=_snprintf(str,sizeof(str),"%3d,%03o, %02X   %c",i,i,i,(char)i);
+					len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %c",i,i,i,(char)i);
 				}else if(i==127){
-					len=_snprintf(str,sizeof(str),"%3d,%03o, %02X   %s",127,127,127,"(DEL)");
+					len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %s",127,127,127,"(DEL)");
+				}else if(i>127 && i<=255){
+					len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %c",i,i,i,(char)i);
 				}else{
 					break;
 				}
@@ -230,9 +232,16 @@ LRESULT CALLBACK AscWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				break;
 			}
 
-			hFont = CreateFont(ASC_FONT_HEIGHT,8,0,0,FW_REGULAR,FALSE,FALSE,FALSE,
-				ANSI_CHARSET,OUT_DEVICE_PRECIS,CLIP_MASK,
-				DEFAULT_QUALITY, DEFAULT_PITCH,"Courier");
+			for(;;){
+				LOGFONT lf = { 0 };
+				GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
+				strncpy(lf.lfFaceName, ASC_FACENAME, LF_FACESIZE);
+				lf.lfCharSet = DEFAULT_CHARSET;
+				lf.lfHeight = -ASC_FONT_HEIGHT;
+				hFont = CreateFontIndirect(&lf);
+				break;
+			}
+
 			return 0;
 		}
 	case WM_CLOSE:
@@ -273,7 +282,7 @@ int ShowAsciiTable(void)
 	wcx.lpszClassName = "AsciiTable";
 	wcx.hIconSm = wcx.hIcon;
 	RegisterClassEx(&wcx);
-	hWndAsciiTable = CreateWindowEx(0, "AsciiTable", "ASCII 码表(鼠标左键拖动,右键换色)",
+	hWndAsciiTable = CreateWindowEx(0, "AsciiTable", "ASCII 码表(左键:前景色,右键:背景色)",
 		WS_OVERLAPPEDWINDOW&~WS_MAXIMIZEBOX&~WS_SIZEBOX|WS_VSCROLL,
 		CW_USEDEFAULT, CW_USEDEFAULT, ASC_CLIENT_WIDTH, 0,
 		msg.hWndMain, NULL, hInst, NULL); 
