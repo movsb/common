@@ -687,6 +687,8 @@ unsigned int remove_string_linefeed(char* str)
 		必需保证4个字符的格式
 	3.'?',''','"', 等print-able字符不需要转义
 	4.源字符串会被修改 - 一直不习惯用const修饰, 该注意下了
+	5.支持的8进制转义字符格式:
+		\??? - 其中一个问号代表一个8进制字符, 1-3位, 最大为377
 **************************************************/
 static __inline unsigned char val_from_char(char c)
 {
@@ -694,6 +696,20 @@ static __inline unsigned char val_from_char(char c)
 	else if(c>='a' && c<='f') return c-'a'+10;
 	else if(c>='A' && c<='F') return c-'A'+10;
 	else return 0;
+}
+
+static __inline int char_oct_from_chars(char* str, unsigned char* poct)
+{
+	unsigned char oct = 0;
+	int i;
+
+	for(i=0; i<3 && (*str>='0' && *str<='7'); i++,str++){
+		oct *= 8;
+		oct += *str-'0';
+	}
+
+	*poct = oct;
+	return i;
 }
 
 unsigned int parse_string_escape_char(char* str)
@@ -735,7 +751,15 @@ unsigned int parse_string_escape_char(char* str)
 				goto _error;
 				break;
 			default:
-				goto _error;
+				{
+					// 8进制判断
+					if(*p2>='0' && *p2<='7'){
+						p2 += char_oct_from_chars(p2, (unsigned char*)p1);
+						p1 ++;
+						break;
+					}
+					goto _error;
+				}
 			}
 		}else{
 			*p1++ = *p2++;
