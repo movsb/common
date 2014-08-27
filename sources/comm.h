@@ -29,7 +29,6 @@ struct comm_s{
 	int (*show_timeouts)(void);
 	int (*update_config)(int only_update);
 	int (*switch_disp)(void);
-	int (*switch_handle_control_char)(void);
 	int (*switch_send_input_char)(void);
 	//数据成员
 	struct{
@@ -51,7 +50,6 @@ struct comm_s{
 		int fCommOpened;
 		//是否允许显示中文
 		int fDisableChinese;
-		int fEnableControlChar;		//允许控制字符
 		int fEnableCharInput;		//允许发送输入字符
 
 
@@ -86,7 +84,6 @@ int hardware_config(void);
 int update_config(int only_update);
 int close(int reason);
 int switch_disp(void);
-int switch_handle_control_char(void);
 int switch_send_input_char(void);
 #endif
 

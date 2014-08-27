@@ -55,7 +55,6 @@ void init_comm(void)
 	comm.show_timeouts   = ShowTimeouts;
 	comm.update_config   = update_config;
 	comm.switch_disp     = switch_disp;
-	comm.switch_handle_control_char = switch_handle_control_char;
 	comm.switch_send_input_char     = switch_send_input_char;
 	//数据成员
 	comm.data_fmt_recv            = DATA_FMT_CHAR;	//字符
@@ -66,7 +65,6 @@ void init_comm(void)
 	comm.fShowDataReceived        = 1;	//显示接收到的数据
 	comm.data_count               = 0;;
 	comm.fDisableChinese          = 1;	//默认不允许显示中文
-	comm.fEnableControlChar		  = 1;	//默认允许控制字符
 	comm.fEnableCharInput		  = 1;  //默认允许发送输入字符
 }
 
@@ -551,7 +549,9 @@ int close(int reason)
 	deal.cache.cachelen = 0;
 	deal.cache.crlen = 0;
 	deal.chars.has = FALSE;
-	deal.ctrl.has = FALSE;
+	deal.ctrl.state = LCS_NONE;
+	deal.ctrl.pos = 0;
+	deal.processor = NULL;
 
 	deal.do_buf_send(SEND_DATA_ACTION_RESET,NULL);
 	deal.do_buf_recv(NULL,0,3);
@@ -819,22 +819,6 @@ int switch_disp(void)
 	}else{//当前为显示中文
 		comm.fDisableChinese = 1;
 	}
-	return 0;
-}
-
-/**************************************************
-函  数:switch_handle_control_char
-功  能:切换是否需要处理\b控制字符
-参  数:
-返  回:(未使用)
-说  明:
-**************************************************/
-int switch_handle_control_char(void)
-{
-	if(comm.fEnableControlChar)
-		comm.fEnableControlChar = 0;
-	else
-		comm.fEnableControlChar = 1;
 	return 0;
 }
 

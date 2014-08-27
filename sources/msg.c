@@ -182,7 +182,6 @@ LRESULT CALLBACK Recv2EditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			hEditMenu = GetSubMenu(LoadMenu(msg.hInstance,MAKEINTRESOURCE(IDR_MENU_EDIT_RECV)),0);
 			GetCursorPos(&pt);
 			CheckMenuItem(hEditMenu,MENU_EDIT_CHINESE,MF_BYCOMMAND|(comm.fDisableChinese?MF_UNCHECKED:MF_CHECKED));
-			CheckMenuItem(hEditMenu,MENU_EDIT_CONTROL_CHAR,MF_BYCOMMAND|(comm.fEnableControlChar?MF_CHECKED:MF_UNCHECKED));
 			CheckMenuItem(hEditMenu,MENU_EDIT_SEND_INPUT_CHAR,MF_BYCOMMAND|(comm.fEnableCharInput?MF_CHECKED:MF_UNCHECKED));
 			TrackPopupMenu(hEditMenu,TPM_LEFTALIGN,pt.x,pt.y,0,msg.hWndMain,NULL);
 			return 0;
@@ -368,7 +367,6 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 		case MENU_OTHER_STR2HEX:ShowStr2Hex();break;
 		//Menu - EditBox
 		case MENU_EDIT_CHINESE:comm.switch_disp();break;
-		case MENU_EDIT_CONTROL_CHAR:comm.switch_handle_control_char();break;
 		case MENU_EDIT_SEND_INPUT_CHAR:comm.switch_send_input_char();break;
 		case MENU_EDIT_EMPTY: SetWindowText(msg.hEditRecv2, "");break; //可能导致与add_text冲突
 		}

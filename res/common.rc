@@ -307,7 +307,6 @@ BEGIN
     POPUP "popupmenu"
     BEGIN
         MENUITEM "允许中文显示(&C)(不可用)",             MENU_EDIT_CHINESE, CHECKED, INACTIVE
-        MENUITEM "处理 ""删除"" 控制字符",              MENU_EDIT_CONTROL_CHAR, CHECKED
         MENUITEM "发送输入字符",                      MENU_EDIT_SEND_INPUT_CHAR, CHECKED
         MENUITEM "清空数据",                        MENU_EDIT_EMPTY
     END

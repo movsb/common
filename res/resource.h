@@ -125,7 +125,6 @@
 #define IDACC_STOPDISP                  40023
 #define IDACC_CLRCOUNTER                40024
 #define ID_POPUPMENU_40028              40028
-#define MENU_EDIT_CONTROL_CHAR          40029
 #define ID_POPUPMENU_40030              40030
 #define MENU_EDIT_SEND_INPUT_CHAR       40031
 #define ID_POPUPMENU_40032              40032
