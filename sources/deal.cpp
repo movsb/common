@@ -426,41 +426,41 @@ static void add_text_formatted(const char* str)
 }
 
 // returns true if c is used
-static int process_leading_char(int c)
-{
-	if(deal.chars.has){
-		if(c>0x7F){
-			deal.chars.chars[1] = c;
-			deal.chars.chars[2] = '\0';
-			add_text_helper((char*)deal.chars.chars);
-
-			debug_out(("process_leading_char: 原来有, 结合并处理了\n"));
-
-			deal.chars.has = FALSE;
-			return TRUE;
-		}else{
-			char buf[5];
-			sprintf(buf, "<%02X>", (unsigned char)deal.chars.chars[0]);
-			add_text_helper(buf);
-			debug_out(("process_leading_char: 原来有, 单独处理了\n"));
-
-			deal.chars.has = FALSE;
-			return FALSE;
-		}
-	}
-	else{
-		debug_out(("process_leading_char: 原来没有, 不作处理了\n"));
-		return FALSE;
-	}
-}
-
-static int process_trailing_char(int c)
-{
-	deal.chars.has = TRUE;
-	deal.chars.chars[0] = c;
-	debug_out(("process_trailing_char: 增加了未处理字符\n"));
-	return 1;
-}
+// static int process_leading_char(int c)
+// {
+// 	if(deal.chars.has){
+// 		if(c>0x7F){
+// 			deal.chars.chars[1] = c;
+// 			deal.chars.chars[2] = '\0';
+// 			add_text_helper((char*)deal.chars.chars);
+// 
+// 			debug_out(("process_leading_char: 原来有, 结合并处理了\n"));
+// 
+// 			deal.chars.has = FALSE;
+// 			return TRUE;
+// 		}else{
+// 			char buf[5];
+// 			sprintf(buf, "<%02X>", (unsigned char)deal.chars.chars[0]);
+// 			add_text_helper(buf);
+// 			debug_out(("process_leading_char: 原来有, 单独处理了\n"));
+// 
+// 			deal.chars.has = FALSE;
+// 			return FALSE;
+// 		}
+// 	}
+// 	else{
+// 		debug_out(("process_leading_char: 原来没有, 不作处理了\n"));
+// 		return FALSE;
+// 	}
+// }
+// 
+// static int process_trailing_char(int c)
+// {
+// 	deal.chars.has = TRUE;
+// 	deal.chars.chars[0] = c;
+// 	debug_out(("process_trailing_char: 增加了未处理字符\n"));
+// 	return 1;
+// }
 
 static int process_special_crlf(unsigned char* ba, int cb)
 {

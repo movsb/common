@@ -7,7 +7,7 @@
 #include "../res/resource.h"
 #include "struct/Thunk.h"
 
-EXTERN_C void center_window(HWND hWnd, HWND hWndOwner);
+void center_window(HWND hWnd, HWND hWndOwner);
 
 class AGetBaudRate
 {
@@ -84,7 +84,7 @@ private:
 	}
 };
 
-EXTERN_C BOOL GetNewBR(HWND hParent,int* value)
+BOOL GetNewBR(HWND hParent,int* value)
 {
 	AGetBaudRate br(hParent);
 	if(br.GetDlgCode()==IDOK){

@@ -8,10 +8,6 @@
 #include <string.h>
 #include <process.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void init_deal(void);
 
 // 用于Linux控制字符解析时的状态机
@@ -136,11 +132,5 @@ void add_text_critical(unsigned char* ba, int cb);
 void start_timer(int start);
 
 #endif
-
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif//__DEAL_H__

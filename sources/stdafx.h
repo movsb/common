@@ -4,6 +4,7 @@
 
 #include <windows.h>
 #include <Richedit.h>
+#include <assert.h>
 
 #include "struct/Config.h"
 

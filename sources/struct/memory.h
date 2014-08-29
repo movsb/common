@@ -3,10 +3,6 @@
 
 #include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void init_memory(void);
 
 //用于Manage_mem的动作参数
@@ -46,8 +42,5 @@ void free_mem(void** ppv,char* prefix);
 
 #endif
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif//!__MEMORY_H__

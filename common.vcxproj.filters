@@ -1,53 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="sources\about.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\asctable.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\comm.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\common.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\deal.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\debug.c">
-      <Filter>sources</Filter>
-    </ClCompile>
     <ClCompile Include="sources\load_driver\load_driver.c">
       <Filter>drivers</Filter>
     </ClCompile>
-    <ClCompile Include="sources\msg.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\pinctrl.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\str2hex.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\timeouts.c">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\utils.c">
-      <Filter>sources</Filter>
-    </ClCompile>
     <ClCompile Include="sources\struct\list.c">
       <Filter>struct</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\struct\memory.c">
-      <Filter>struct</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\struct\parse_cmd.c">
-      <Filter>struct</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\send_cmd.cpp">
-      <Filter>sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\struct\Thunk.cpp">
       <Filter>struct</Filter>
@@ -60,6 +18,48 @@
     </ClCompile>
     <ClCompile Include="sources\stdafx.cpp">
       <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\about.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\asctable.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\comm.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\common.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\deal.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\debug.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\msg.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\pinctrl.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\send_cmd.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\str2hex.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\timeouts.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\utils.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\struct\memory.cpp">
+      <Filter>struct</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\struct\parse_cmd.cpp">
+      <Filter>struct</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

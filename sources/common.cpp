@@ -35,7 +35,6 @@ int CALLBACK WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine
 	init_about();
 	init_comm();
 	init_deal();
-	init_driver();
 	init_memory();
 
 	//InitCommonControls();

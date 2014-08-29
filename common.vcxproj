@@ -131,26 +131,26 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="sources\about.c" />
-    <ClCompile Include="sources\asctable.c" />
-    <ClCompile Include="sources\comm.c" />
-    <ClCompile Include="sources\common.c" />
-    <ClCompile Include="sources\deal.c" />
-    <ClCompile Include="sources\debug.c" />
+    <ClCompile Include="sources\about.cpp" />
+    <ClCompile Include="sources\asctable.cpp" />
+    <ClCompile Include="sources\comm.cpp" />
+    <ClCompile Include="sources\common.cpp" />
+    <ClCompile Include="sources\deal.cpp" />
+    <ClCompile Include="sources\debug.cpp" />
     <ClCompile Include="sources\GetBaudRate.cpp" />
     <ClCompile Include="sources\load_driver\load_driver.c" />
-    <ClCompile Include="sources\msg.c" />
-    <ClCompile Include="sources\pinctrl.c" />
+    <ClCompile Include="sources\msg.cpp" />
+    <ClCompile Include="sources\pinctrl.cpp" />
     <ClCompile Include="sources\send_cmd.cpp" />
     <ClCompile Include="sources\stdafx.cpp" />
-    <ClCompile Include="sources\str2hex.c" />
+    <ClCompile Include="sources\str2hex.cpp" />
     <ClCompile Include="sources\struct\Config.cpp" />
     <ClCompile Include="sources\struct\list.c" />
-    <ClCompile Include="sources\struct\memory.c" />
-    <ClCompile Include="sources\struct\parse_cmd.c" />
+    <ClCompile Include="sources\struct\memory.cpp" />
+    <ClCompile Include="sources\struct\parse_cmd.cpp" />
     <ClCompile Include="sources\struct\Thunk.cpp" />
-    <ClCompile Include="sources\timeouts.c" />
-    <ClCompile Include="sources\utils.c" />
+    <ClCompile Include="sources\timeouts.cpp" />
+    <ClCompile Include="sources\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="res\resource.h" />

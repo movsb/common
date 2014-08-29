@@ -12,11 +12,6 @@ enum newline_type {NLT_CR,NLT_LF,NLT_CRLF};
 
 #define __ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 void init_utils(void);
 
 struct utils_s{
@@ -57,11 +52,6 @@ unsigned int remove_string_return(char* str);
 unsigned int remove_string_linefeed(char* str);
 unsigned int parse_string_escape_char(char* str);
 unsigned int eliminate_control_char(char* str);
-#endif
-
-
-#ifdef __cplusplus
-}
 #endif
 
 
