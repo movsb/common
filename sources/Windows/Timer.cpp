@@ -6,7 +6,7 @@ namespace Common{
 		SMART_ASSERT(_timer != NULL).Fatal();
 		SMART_ASSERT(_tid == 0).Fatal();
 
-		_timer->update_timer("00:00:00");
+		_timer->update_timer(0,0,0);
 		_time_value[0] = _time_value[1] = _time_value[2] = 0;
 
 		_tid = ::timeSetEvent(1000, 0, _timer_proc, DWORD_PTR(this), TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
@@ -21,7 +21,7 @@ namespace Common{
 		::timeKillEvent(_tid);
 		_tid = 0;
 		if (bsetzero)
-			_timer->update_timer("00:00:00");
+			_timer->update_timer(0,0,0);
 	}
 
 	void c_timer::set_notifier(i_notifier* not)
@@ -41,7 +41,6 @@ namespace Common{
 
 	void c_timer::timer_proc()
 	{
-		char tstr[9];
 		if (++_time_value[0] == 60){
 			_time_value[0] = 0;
 			if (++_time_value[1] == 60){
@@ -51,8 +50,8 @@ namespace Common{
 				}
 			}
 		}
-		sprintf(tstr, "%02d:%02d:%02d", _time_value[2], _time_value[1], _time_value[0]);
-		if (_timer) _timer->update_timer(tstr);
+		if (_timer) _timer->update_timer(
+			_time_value[2], _time_value[1], _time_value[0]);
 	}
 
 	c_timer::~c_timer()

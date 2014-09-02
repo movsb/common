@@ -6,7 +6,7 @@ namespace Common{
 	{
 	public:
 		// mm timer 运行在单独的线程中, 不能直接操作UI,应SendMessage
-		virtual void update_timer(const char* tstr) = 0;
+		virtual void update_timer(int h, int m, int s) = 0;
 	};
 
 	class c_timer
