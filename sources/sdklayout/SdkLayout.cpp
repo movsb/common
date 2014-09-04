@@ -10,7 +10,7 @@ bool CSdkLayout::SetLayout(HWND hWnd, LPCTSTR xml, HINSTANCE hInst)
 	m_hWnd = hWnd;
 	CDialogBuilder builder;
 	CContainerUI* pRoot = static_cast<CContainerUI*>(
-		builder.Create(xml, &m_Manager, hInst ? hInst : GetModuleHandle(NULL)));
+		builder.Create(xml, &m_Manager, hInst ? hInst : GetModuleHandle(NULL), m_getid));
 	assert(pRoot);
 	if(pRoot){
 		m_Manager.SetHWND(hWnd);

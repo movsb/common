@@ -2,7 +2,7 @@
 
 namespace SdkLayout {
 
-CContainerUI* CDialogBuilder::Create(LPCTSTR xml, CPaintManagerUI* manager, HINSTANCE hInst)
+	CContainerUI* CDialogBuilder::Create(LPCTSTR xml, CPaintManagerUI* manager, HINSTANCE hInst, IDialogBuilder_GetID* pgetid)
 {
 	//资源ID为0-65535，两个字节；字符串指针为4个字节
     if( HIWORD(xml) != NULL ) {
@@ -44,6 +44,7 @@ CContainerUI* CDialogBuilder::Create(LPCTSTR xml, CPaintManagerUI* manager, HINS
 		}
 	}
 	m_pManager = manager;
+	m_getid = pgetid;
 
 	return static_cast<CContainerUI*>(_Parse(&root, NULL));
 }
@@ -120,7 +121,19 @@ CControlUI* CDialogBuilder::_Parse(CMarkupNode* pRoot, CContainerUI* pParent)
         if( node.HasAttributes() ) {
             int nAttributes = node.GetAttributeCount();
             for( int i = 0; i < nAttributes; i++ ) {
-                pControl->SetAttribute(node.GetAttributeName(i), node.GetAttributeValue(i));
+				char iid[16];
+				LPCTSTR name = node.GetAttributeName(i);
+				LPCTSTR value = node.GetAttributeValue(i);
+				if (name[0] == _T('i') && name[1] == _T('d')){
+					if (value[0] > '9'){ // string id
+						if (m_getid){
+							UINT id = m_getid->get_ctrl_id(value);
+							sprintf(iid, "%d", id);
+							value = iid;
+						}
+					}
+				}
+                pControl->SetAttribute(name, value);
             }
         }
 

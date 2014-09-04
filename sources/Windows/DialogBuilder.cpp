@@ -3,7 +3,7 @@
 namespace Common{
 	void c_dialog_builder::show(HWND hParent)
 	{
-		Create(hParent, "", WS_POPUPWINDOW | WS_SIZEBOX | WS_VISIBLE, 0);
+		Create(hParent, "", GetDialogStyle(), 0);
 		SIZE sz = _layout.GetPostSize();
 		ResizeClient(sz.cx, sz.cy);
 		CenterWindow();
@@ -22,6 +22,7 @@ namespace Common{
 			_layout.ProcessScrollMessage(uMsg, wParam, lParam);
 			return 0;
 		case WM_CREATE:
+			_layout.SetDlgGetID(this);
 			_layout.SetLayout(m_hWnd, get_skin_xml());
 			SMART_ASSERT(_layout.GetRoot() != NULL).Fatal();
 			return 0;

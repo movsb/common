@@ -24,10 +24,16 @@
 
 namespace SdkLayout{
 
+	class IDialogBuilder_GetID
+	{
+	public:
+		virtual UINT get_ctrl_id(LPCTSTR name) const = 0;
+	};
+
 class CSdkLayout
 {
 public:
-	CSdkLayout(){m_hWnd=NULL;m_pRoot=NULL;}
+	CSdkLayout(){ m_hWnd = NULL; m_pRoot = NULL; m_getid = NULL; }
 	~CSdkLayout(){DeleteLayout();}
 	HWND GetHWND() const {return m_hWnd;}
 	CContainerUI* GetRoot() const {return m_pRoot;}
@@ -41,6 +47,7 @@ public:
 	CPaintManagerUI* GetManager() {return &m_Manager;}
 	bool SetLayout(HWND hWnd, LPCTSTR xml, HINSTANCE hInst=NULL);
 	bool SetLayout(HWND hWnd, UINT id, HINSTANCE hInst=NULL);
+	void SetDlgGetID(IDialogBuilder_GetID* pgetid){ m_getid = pgetid; }
 	void DeleteLayout();
 	void ResizeLayout(const RECT& rc);
 	void ResizeLayout();
@@ -56,6 +63,7 @@ private:
 	CContainerUI* m_pRoot;
 	CPaintManagerUI m_Manager;
 	CDuiRect m_rcLast;
+	IDialogBuilder_GetID* m_getid;
 };
 
 }

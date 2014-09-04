@@ -5,16 +5,19 @@
 
 namespace SdkLayout {
 
+	class IDialogBuilder_GetID;
+
 class CDialogBuilder
 {
 public:
-    CContainerUI* Create(LPCTSTR xml, CPaintManagerUI* manager, HINSTANCE hInst = NULL);
+    CContainerUI* Create(LPCTSTR xml, CPaintManagerUI* manager, HINSTANCE hInst = NULL, IDialogBuilder_GetID* pgetid=0);
 
 private:
     CControlUI* _Parse(CMarkupNode* parent, CContainerUI* pParent = NULL);
 
     CMarkup m_xml;
 	CPaintManagerUI* m_pManager;
+	IDialogBuilder_GetID* m_getid;
 };
 
 } // namespace SdkLayout
