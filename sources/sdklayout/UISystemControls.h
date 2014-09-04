@@ -45,11 +45,15 @@ namespace SdkLayout{
 	class CStaticUI : public CSystemControlUI
 	{
 	public:
-		CStaticUI();
 		virtual void SetManager(CPaintManagerUI* mgr);
 		virtual void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
+	};
 
-	protected:
-		bool m_bCheck;
+	// Group 和其它标准控件一样使用, 不要当作控件的容器!
+	class CGroupUI : public CSystemControlUI
+	{
+	public:
+		CGroupUI();
+		virtual void SetManager(CPaintManagerUI* mgr);
 	};
 }

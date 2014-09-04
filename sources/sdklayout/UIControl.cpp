@@ -7,7 +7,7 @@ m_bInited(false),
 m_bVisible(true), 
 m_bVisibleByParent(true),
 m_bDisplayed(true),
-m_id(-1),
+m_id(0),
 m_name(0),
 m_font(-1),
 m_pManager(NULL),
@@ -31,7 +31,7 @@ void CControlUI::DoInit()
 {
 	assert(m_pManager != NULL);
 	m_bInited = true;
-	SetFont(GetFont());
+	SetFont(-2);
 	SetVisible(IsVisible());
 	SetDisplayed(IsDispalyed());
 }
@@ -220,7 +220,7 @@ void CControlUI::SetFont( int id )
 	if(id != -2)
 		m_font = id; 
 	if(IsWindow(GetHWND()) && m_pManager){
-		HFONT hFont = id==-1 ? m_pManager->GetDefaultFont() : m_pManager->GetFont(id);
+		HFONT hFont = m_font==-1 ? m_pManager->GetDefaultFont() : m_pManager->GetFont(m_font);
 		SendMessage(m_hWnd, WM_SETFONT, WPARAM(hFont), MAKELPARAM(TRUE,0));
 	}
 }
@@ -228,11 +228,8 @@ void CControlUI::SetFont( int id )
 void CControlUI::SetManager(CPaintManagerUI* mgr)
 {
 	m_pManager = mgr;
-	if (m_id == -1){
+	if (m_id <= 0){
 		m_hWnd = NULL;
-	}
-	else if (m_id == 0){
-		assert(0);
 	}
 	else if (m_id > 0){
 		m_hWnd = GetDlgItem(m_pManager->GetHWND(), m_id);

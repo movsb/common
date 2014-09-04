@@ -75,16 +75,11 @@ namespace SdkLayout{
 
 	void CCheckUI::SetAttribute( LPCTSTR pstrName, LPCTSTR pstrValue )
 	{
-		if(_tcscmp(pstrName, "selected") == 0) m_bCheck = _tcscmp(pstrValue,"true")==0;
+		if(_tcscmp(pstrName, "checked") == 0) m_bCheck = _tcscmp(pstrValue,"true")==0;
 		else CSystemControlUI::SetAttribute(pstrName, pstrValue);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	CStaticUI::CStaticUI()
-	{
-
-	}
-
 	void CStaticUI::SetManager( CPaintManagerUI* mgr )
 	{
 		m_pManager = mgr;
@@ -96,5 +91,16 @@ namespace SdkLayout{
 		CSystemControlUI::SetAttribute(pstrName, pstrValue);
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	CGroupUI::CGroupUI()
+	{
+		m_dwStyle |= BS_GROUPBOX;
+	}
+
+	void CGroupUI::SetManager(CPaintManagerUI* mgr)
+	{
+		m_pManager = mgr;
+		Create(WC_BUTTON);
+	}
 }
 
