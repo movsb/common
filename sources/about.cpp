@@ -1,29 +1,11 @@
-#define __ABOUT_C__
-#include "about.h"
-#include "msg.h"
-#include "utils.h"
+#include "StdAfx.h"
 #include "../res/resource.h"
-
-#include <Windows.h>
-#include <WinInet.h>
 
 #pragma comment(lib,"WinInet")
 
-struct about_s about;
 static char* __THIS_FILE__ = __FILE__;
 
-void soft_update(void);
-
-void init_about(void)
-{
-	memset(&about,0,sizeof(about));
-	about.show   = show_about;
-	about.update = soft_update;
-}
-
-void show_about(void)
-{
-	char* help_msg = 
+const char* Common::c_about_dlg::about_str = 
 		"软件说明:\r\n"
 		"    1.软件用C语言/C++/SDK方式完成, 绿色小巧, 不会给系统带来任何的垃圾文件\r\n"
 		"    2.能实现对串口通过的读取与写入,16进制与字符方式两种\r\n"
@@ -64,7 +46,6 @@ void show_about(void)
 		"    发布第1个版本\r\n"
 		"2012-12-26:\r\n"
 		"    自动识别当前存在,插入,移除的串口号\r\n"
-		//"    关闭串口后接收与发送缓冲计数器现已自动清零(2013-01-05)"
 		"2013-01-11 1.0.0.1:\r\n"
 		"    增加保存接收区数据到文件(16进制/文本形式)\r\n"
 		"    增加从文件读数据到发送区(16进制/文本形式)\r\n"
@@ -193,136 +174,109 @@ void show_about(void)
 
 		""
 		;
-	DialogBoxParam(msg.hInstance, MAKEINTRESOURCE(IDD_MSG), msg.hWndMain, DialogProc, (LPARAM)help_msg);
-}
 
-INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	static HFONT hf;
-	switch(uMsg)
+struct control_id{
+	UINT id;
+	const char* name;
+};
+
+#define IDC_EDIT_HELP		2
+#define IDC_BTN_OK			3
+#define IDC_STK_NAME		4
+#define IDC_BTN_WEBSITE		5
+
+static control_id cids[] = {
+		{ IDC_EDIT_HELP,	"edit_help" },
+		{ IDC_BTN_OK,		"btn_ok" },
+		{ IDC_STK_NAME,		"stk_name" },
+		{ IDC_BTN_WEBSITE,	"btn_website" },
+};
+
+namespace Common{
+	LRESULT c_about_dlg::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 	{
-	case WM_INITDIALOG:
+		switch(uMsg)
 		{
-			//soft_update();
-			SetWindowText(hwndDlg,"关于 "COMMON_NAME_AND_VERSION);
-			SetDlgItemText(hwndDlg,IDC_STATIC_VERSION,COMMON_NAME_AND_VERSION"  编译时间:"__DATE__" - "__TIME__);
-			SetDlgItemText(hwndDlg, IDC_MSG_EDIT_MSG, (char*)lParam);
-			SetFocus(GetDlgItem(hwndDlg, IDC_MSG_OK));
-			utils.center_window(hwndDlg,msg.hWndMain);
-			
+		case WM_CREATE:
 			{
-				//TODO:我只是觉得那字体太难看, 没别的意思
-				OSVERSIONINFO osver = {0};
-				osver.dwOSVersionInfoSize = sizeof(osver);
-				GetVersionEx(&osver);
-				if(osver.dwMajorVersion >= 6){ //Windows Vista Or Later
-					NONCLIENTMETRICS ncm = {0};
-					ncm.cbSize = sizeof(ncm);
-					SystemParametersInfo(SPI_GETNONCLIENTMETRICS,sizeof(ncm),(PVOID)&ncm,0);
-					hf = CreateFontIndirect(&ncm.lfCaptionFont);
-					SendDlgItemMessage(msg.hWndMain,IDC_MSG_EDIT_MSG,WM_SETFONT,(WPARAM)hf,MAKELPARAM(TRUE,0));
-				}
+				__super::HandleMessage(uMsg, wParam, lParam, bHandled);
+				SetWindowText(m_hWnd, "关于 "COMMON_NAME_AND_VERSION);
+				SetDlgItemText(m_hWnd,IDC_STK_NAME,COMMON_NAME_AND_VERSION"  编译时间:"__DATE__" - "__TIME__);
+				SetDlgItemText(m_hWnd, IDC_EDIT_HELP, about_str);
+				SetFocus(GetDlgItem(m_hWnd, IDC_BTN_OK));
+				return 0;
+			}
+		case WM_PAINT:
+			{
+				PAINTSTRUCT ps;
+				HICON hIcon;
+				HDC hDC = BeginPaint(m_hWnd, &ps);
+				hIcon = LoadIcon(theApp.instance(), MAKEINTRESOURCE(IDI_ICON1));
+				DrawIcon(hDC, 10, 10 ,hIcon);
+				EndPaint(m_hWnd, &ps);
+				DestroyIcon(hIcon);
+				return 0;
+			}
+		case WM_CLOSE:
+			break;
+		case WM_COMMAND:
+			if(LOWORD(wParam) == IDC_BTN_OK && HIWORD(wParam)==BN_CLICKED){
+				Close();
+				return 0;
+			}else if((LOWORD(wParam)==IDC_BTN_WEBSITE) && HIWORD(wParam) == BN_CLICKED){
+				char* web = "http://www.cnblogs.com/nbsofer/archive/2012/12/24/2831700.html";
+				ShellExecute(NULL, "open", web, NULL, NULL, SW_SHOWNORMAL);
+				return 0;
 			}
 			return 0;
 		}
-	case WM_PAINT:
-		{
-			PAINTSTRUCT ps;
-			HICON hIcon;
-			HDC hDC = BeginPaint(hwndDlg, &ps);
-			hIcon = LoadIcon(msg.hInstance, MAKEINTRESOURCE(IDI_ICON1));
-			DrawIcon(hDC, 10, 10 ,hIcon);
-			EndPaint(hwndDlg, &ps);
-			DestroyIcon(hIcon);
-			return 0;
+		return __super::HandleMessage(uMsg, wParam, lParam, bHandled);
+	}
+
+	LPCTSTR c_about_dlg::get_skin_xml() const
+	{
+		return 
+R"feifei(
+<Window size="420,450">
+	<Font name = "微软雅黑" size = "12" default = "true" />
+	<Vertical>
+		<Vertical inset = "5,5,5,5">
+			<Horizontal height="50" inset="0,0,0,0">
+				<Control width="45" />
+				<Vertical inset="0,0,0,5">
+					<Static id="stk_name" height="20"/>
+					<Static text="女孩不哭(QQ:191035066) 开始于 2012-12-24 平安夜" height="20"/>
+				</Vertical>
+			</Horizontal>
+			<Edit style="1076889860" exstyle="131072" id="edit_help" inset="0,5,0,5" minheight="300"/>
+			<Horizontal height="30" inset="0,5,0,0">
+				<Control />
+				<Button id="btn_website" text="官方网址" width="100" />
+				<Control width="10" />
+				<Button id="btn_ok" text="确定" width="100" />
+				<Control />
+			</Horizontal>
+		</Vertical>
+	</Vertical>
+</Window>
+)feifei";
+	}
+
+	UINT c_about_dlg::GetDialogStyle() const
+	{
+		return WS_POPUPWINDOW | WS_SIZEBOX;
+	}
+
+	UINT c_about_dlg::get_ctrl_id(LPCTSTR name) const
+	{
+		for (int i = 0; i < sizeof(cids) / sizeof(cids[0]); i++){
+			if (strcmp(cids[i].name, name) == 0)
+				return cids[i].id;
 		}
-	case WM_CLOSE:
-		DeleteObject((HGDIOBJ)hf);
-		hf=NULL;
-		EndDialog(hwndDlg, 0);
-		return 0;
-	case WM_COMMAND:
-		if(LOWORD(wParam) == IDC_MSG_OK && HIWORD(wParam)==BN_CLICKED){
-			SendMessage(hwndDlg, WM_CLOSE, 0, 0);
-			return 0;
-		}else if(LOWORD(wParam) == IDC_MSG_HOTLINK && HIWORD(wParam) == BN_CLICKED){
-			char* web = "http://www.cnblogs.com/nbsofer/archive/2012/12/24/2831700.html";
-			ShellExecute(NULL, "open", web, NULL, NULL, SW_SHOWNORMAL);
-			return 0;
-		}
-		return 0;
-	default:
 		return 0;
 	}
-}
 
 
-void soft_update(void)
-{
-	HINTERNET hInternet = NULL;
-	HINTERNET hFile = NULL;
-	DWORD dwBytesRead = 0;
-	const char* log = "http://files.cnblogs.com/nbsofer/common_update.xml";
+	const char* c_about_dlg::soft_name = COMMON_NAME_AND_VERSION ;
 
-	char buffer[1024] = {0};
-	char link[128] = {0};
-	char version[5]={0};
-	char* p = NULL;
-	int i;
-	int sehcode=0;
-
-	hInternet = InternetOpen("common",INTERNET_OPEN_TYPE_PRECONFIG,NULL,NULL,0);
-	if(hInternet==NULL) return;
-	do{
-		hFile = InternetOpenUrl(hInternet,log,NULL,0,0,0);
-		if(hFile == NULL) break;
-
-		if(!InternetReadFile(hFile,buffer,sizeof(buffer)-1,&dwBytesRead))
-			break;
-		InternetCloseHandle(hFile);
-
-		if(memcmp(buffer,"common",6) != 0)
-			break;
-
-		p = buffer+8;
-		memcpy(version,p,4);
-		p += 6;
-
-		i=0;
-		while(*p && *p!='\r' && i<sizeof(link)-1){
-			link[i++] = *p++;
-		}
-		p += 2;
-
-		i = strcmp(version,COMMON_VERSION);
-		if(i==0){
-			MessageBox(msg.hWndMain,
-				"恭喜, 您目前使用的是最新版本,无需更新~\n\n"
-				"如果您有什么建议,或是发现了BUG, 请查看帮助并联系作者~",
-				COMMON_NAME_AND_VERSION,MB_OK|MB_ICONINFORMATION);
-		}else if(i>0){
-			i = utils.msgbox(msg.hWndMain,MB_ICONINFORMATION|MB_YESNO,
-				"检查到新版本",
-				"检查到软件有新版本更新, 点击是进入下载页面\n\n"
-				"当前版本: " COMMON_VERSION " "
-				"更新版本: %s\n\n"
-				"新版本内容:\n%s",version,p);
-			if(i == IDYES){
-				ShellExecute(NULL,"open",link,NULL,NULL,SW_SHOWNORMAL);
-			}
-		}else{
-			utils.msgbox(msg.hWndMain,MB_ICONINFORMATION,
-				COMMON_NAME_AND_VERSION,
-				"咦~ 貌似, 貌似你跟我有*fei*一般的关系, 您已经提前使用了更新版本, 无需再作更新啦~ 享用吧~");
-		}
-		sehcode = 1;
-	}while(0);
-
-	InternetCloseHandle(hInternet);
-
-	if(sehcode == 0 ){
-		utils.msgbox(msg.hWndMain,MB_ICONEXCLAMATION,
-			COMMON_NAME_AND_VERSION,
-			"很不幸, 但是在检查新版本的过程中貌似遇到了错误~");
-	}
 }

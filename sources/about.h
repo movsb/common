@@ -1,6 +1,6 @@
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
-#include <windows.h>
+#pragma once
+
+namespace Common{
 
 #define COMMON_NAME			"Com Monitor"
 #define COMMON_VERSION		"1.18 Beta"
@@ -11,24 +11,16 @@
 	#define COMMON_NAME_AND_VERSION COMMON_NAME " " COMMON_VERSION " "
 #endif
 
-struct about_s{
-	void (*show)(void);
-	void (*update)(void);
-};
+	class c_about_dlg : public c_dialog_builder
+	{
+	protected:
+		virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+		virtual LPCTSTR get_skin_xml() const override;
+		virtual UINT get_ctrl_id(LPCTSTR name) const;
+		virtual UINT GetDialogStyle() const override;
 
-void init_about(void);
-
-
-#ifndef __ABOUT_C__
-
-extern struct about_s about;
-
-#else
-
-#undef __ABOUT_C__
-
-void soft_update(void);
-void show_about(void);
-INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-#endif
+	private:
+		static const char* about_str;
+		static const char* soft_name;
+	};
+}
