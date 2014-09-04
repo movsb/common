@@ -102,5 +102,18 @@ namespace SdkLayout{
 		m_pManager = mgr;
 		Create(WC_BUTTON);
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	CEditUI::CEditUI()
+	{
+
+	}
+
+	void CEditUI::SetManager(CPaintManagerUI* mgr)
+	{
+		m_pManager = mgr;
+		Create(WC_EDIT);
+	}
+
 }
 

@@ -106,6 +106,7 @@ CControlUI* CDialogBuilder::_Parse(CMarkupNode* pRoot, CContainerUI* pParent)
 		else if(_tcscmp(pstrClass, _T("Check"))==0)			pControl = new CCheckUI;
 		else if(_tcscmp(pstrClass, _T("Static"))==0)		pControl = new CStaticUI;
 		else if (_tcscmp(pstrClass, _T("Group")) == 0)		pControl = new CGroupUI;
+		else if (_tcscmp(pstrClass, _T("Edit")) == 0)		pControl = new CEditUI;
 
         if( node.HasChildren() ) {
             _Parse(&node, static_cast<CContainerUI*>(pControl));

@@ -56,4 +56,11 @@ namespace SdkLayout{
 		CGroupUI();
 		virtual void SetManager(CPaintManagerUI* mgr);
 	};
+
+	class CEditUI : public CSystemControlUI
+	{
+	public:
+		CEditUI();
+		virtual void SetManager(CPaintManagerUI* mgr);
+	};
 }
