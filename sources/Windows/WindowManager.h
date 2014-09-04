@@ -1,0 +1,46 @@
+#pragma once
+
+namespace Common {
+
+	class IMessageFilter
+	{
+	public:
+		virtual bool FilterMessage(HWND hChild, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
+	};
+
+	class IAcceleratorTranslator
+	{
+	public:
+		virtual bool TranslateAccelerator(MSG* pmsg) = 0;
+	};
+
+	class CWindowManager
+	{
+	public:
+		CWindowManager();
+		virtual ~CWindowManager();
+
+		void Init(HWND hWnd, IMessageFilter* flt);
+		void DeInit();
+		HWND& hWnd() {return m_hWnd;}
+
+		bool FilterMessage(MSG* pmsg);
+		IMessageFilter*& MessageFilter(){return m_pMsgFilter;}
+
+		bool TranslateAccelerator(MSG* pmsg);
+		bool AddAcceleratorTranslator(IAcceleratorTranslator* pat);
+		bool RemoveAcceleratorTranslator(IAcceleratorTranslator* pat);
+
+		static void MessageLoop();
+		static bool TranslateMessage(MSG* pmsg);
+		bool AddWindowManager(CWindowManager* pwm);
+		bool RemoveWindowManager(CWindowManager* pwm);
+
+
+	protected:
+		HWND m_hWnd;
+		IMessageFilter* m_pMsgFilter;
+		Util::c_ptr_array<IAcceleratorTranslator> m_AcceTrans;
+		static Util::c_ptr_array<CWindowManager> m_aWndMgrs;
+	};
+}
