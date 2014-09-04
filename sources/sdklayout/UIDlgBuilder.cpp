@@ -27,9 +27,22 @@ CContainerUI* CDialogBuilder::Create(LPCTSTR xml, CPaintManagerUI* manager, HINS
 	if( !root.IsValid() ) return NULL;
 
 	LPCTSTR pRootName = root.GetName();
-	if(_tcscmp(pRootName, _T("Window")))
+	if (_tcscmp(pRootName, _T("Window")))
 		return NULL;
 
+	int nAttributes = root.GetAttributeCount();
+	for (int i = 0; i < nAttributes; i++) {
+		LPCTSTR pstrName = root.GetAttributeName(i);
+		LPCTSTR pstrValue = root.GetAttributeValue(i);
+		if (_tcscmp(pstrName, _T("size")) == 0) {
+			LPTSTR pstr = NULL;
+			int cx = _tcstol(pstrValue, &pstr, 10);  assert(pstr);
+			int cy = _tcstol(pstr + 1, &pstr, 10);    assert(pstr);
+			SIZE& initsz = manager->InitSize();
+			initsz.cx = cx;
+			initsz.cy = cy;
+		}
+	}
 	m_pManager = manager;
 
 	return static_cast<CContainerUI*>(_Parse(&root, NULL));
@@ -91,6 +104,7 @@ CControlUI* CDialogBuilder::_Parse(CMarkupNode* pRoot, CContainerUI* pParent)
 		else if(_tcscmp(pstrClass, _T("Option"))==0)		pControl = new COptionUI;
 		else if(_tcscmp(pstrClass, _T("Check"))==0)			pControl = new CCheckUI;
 		else if(_tcscmp(pstrClass, _T("Static"))==0)		pControl = new CStaticUI;
+		else if (_tcscmp(pstrClass, _T("Group")) == 0)		pControl = new CGroupUI;
 
         if( node.HasChildren() ) {
             _Parse(&node, static_cast<CContainerUI*>(pControl));

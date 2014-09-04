@@ -71,7 +71,9 @@ void CSdkLayout::SetDefFont(LPCTSTR face, int sz)
 void CSdkLayout::_InitializeLayout()
 {
 	if(!m_pRoot) return;
-	
+
+	SIZE& sz = m_Manager.InitSize();
+	::SetWindowPos(m_hWnd, 0, 0, 0, sz.cx, sz.cy, SWP_NOMOVE | SWP_NOZORDER);
 	m_pRoot->DoInit();
 
 	ResizeLayout();

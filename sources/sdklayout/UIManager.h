@@ -26,11 +26,13 @@ public:
 	int   GetFont(HFONT hFont);
 	void SetHWND(HWND hwnd) {m_hWnd = hwnd;}
 	HWND GetHWND() {return m_hWnd;}
+	SIZE& InitSize() { return m_szInitSize; }
 
 private:
 	HWND  m_hWnd;
     HFONT m_DefaultFontInfo;
     CStdPtrArray m_aCustomFonts;
+	SIZE  m_szInitSize;
 };
 
 } // namespace SdkLayout

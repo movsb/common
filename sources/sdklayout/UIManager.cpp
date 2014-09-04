@@ -8,6 +8,7 @@ CPaintManagerUI::CPaintManagerUI()
     ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
     lf.lfCharSet = DEFAULT_CHARSET;
     m_DefaultFontInfo = ::CreateFontIndirect(&lf);
+	m_szInitSize.cx = m_szInitSize.cy = 500;
 }
 
 CPaintManagerUI::~CPaintManagerUI()
