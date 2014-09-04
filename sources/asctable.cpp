@@ -1,10 +1,4 @@
-#define _WIN32_WINNT 0x0501
-#include <windows.h>
-#include <stdio.h>
-#include "asctable.h"
-#include "utils.h"		//center_window
-#include "msg.h"		//handle.hWndMain
-#include "../res/resource.h"	//IDI_ICON1
+#include "StdAfx.h"
 
 static char* __THIS_FILE__ = __FILE__;
 
@@ -24,7 +18,7 @@ static char* __THIS_FILE__ = __FILE__;
 #define ASC_TOTAL_ENTRY		256					//0~127,ASCII码总数,根据实际情况修改
 #define ASC_FACENAME		"Consolas"			//字体名
 
-struct{
+static struct{
 	unsigned char index;
 	char* description;
 }table1[32]={
@@ -62,233 +56,211 @@ struct{
 	{0x1F,"US  Unit Separator"}
 };
 
-static HFONT hFont;
-static HWND hWndAsciiTable;
-//COLORREF cur_cr=RGB(255,0,0);
-
-//用于保存窗口坐标
-static int axisx=0,axisy=0;
-
-//字体前景与背景颜色值
-static int fgcolor=0;
-static int bgcolor=6;
-
 static COLORREF cr_table[] ={
 	RGB(255,0,0),RGB(0,255,0),RGB(0,0,255),RGB(255,255,0),
 	RGB(0,255,255),RGB(255,0,255),RGB(0,0,0),RGB(255,255,255),
 };
 
-LRESULT CALLBACK AscWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	switch (uMsg)
+
+namespace Common{
+	int c_asctable_dlg::axisx = -1;
+	int c_asctable_dlg::axisy = -1;
+	int c_asctable_dlg::_fgcolor = 0;
+	int c_asctable_dlg::_bgcolor = 6;
+
+	LRESULT c_asctable_dlg::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 	{
-	case WM_LBUTTONUP:
-		fgcolor = (++fgcolor) % __ARRAY_SIZE(cr_table);
-		InvalidateRect(hWnd, NULL, TRUE);
-		return 0;
-	case WM_RBUTTONUP:
-		bgcolor = (++bgcolor) % __ARRAY_SIZE(cr_table);
-		InvalidateRect(hWnd, NULL, TRUE);
-		return 0;
-	case WM_PAINT:
+		switch(uMsg)
 		{
-			PAINTSTRUCT ps;
-			HDC hdc;
-			RECT rc;
-			HBRUSH hbr;
+		case WM_LBUTTONDOWN:
+			_fgcolor = (++_fgcolor) % __ARRAY_SIZE(cr_table);
+			::InvalidateRect(m_hWnd, NULL, TRUE);
+			return 0;
+		case WM_RBUTTONDOWN:
+			_bgcolor = (++_bgcolor) % __ARRAY_SIZE(cr_table);
+			::InvalidateRect(m_hWnd, NULL, TRUE);
+			return 0;
+		case WM_PAINT:
+			{
+				PAINTSTRUCT ps;
+				HDC hdc;
+				RECT rc;
+				HBRUSH hbr;
 
-			int i;
+				int i;
 
-			int x=0,y=0;
-			char str[64];
-			int len;
+				int x=0,y=0;
+				char str[64];
+				int len;
 
-			HFONT hf;
-			SCROLLINFO si;
-			si.cbSize=sizeof(si);
-			si.fMask=SIF_ALL;
+				HFONT hf;
+				SCROLLINFO si;
+				si.cbSize=sizeof(si);
+				si.fMask=SIF_ALL;
 
-			GetScrollInfo(hWnd,SB_VERT,&si);
+				GetScrollInfo(m_hWnd,SB_VERT,&si);
 
-			hdc = BeginPaint(hWnd,&ps);
+				hdc = BeginPaint(m_hWnd,&ps);
 
-			GetClientRect(hWnd, &rc);
-			hbr = CreateSolidBrush(cr_table[bgcolor]);
-			FillRect(hdc, &rc, hbr);
-			DeleteObject(hbr);
+				GetClientRect(m_hWnd, &rc);
+				hbr = CreateSolidBrush(cr_table[_bgcolor]);
+				FillRect(hdc, &rc, hbr);
+				DeleteObject(hbr);
 
-			hf=(HFONT)SelectObject(hdc,(HGDIOBJ)hFont);
-			SetBkMode(hdc,TRANSPARENT);
-			SetTextColor(hdc,cr_table[fgcolor]);
-			
-			len=sprintf(str,"%4s %4s  %4s  %s","十","八","十六","描述");
-			TextOut(hdc,x,y,str,len);
-			y += ASC_FONT_HEIGHT+ASC_TEXT_ASCENT;
-			len=sprintf(str,"----------------------------------------");
-			TextOut(hdc,x,y,str,len);
-			y += ASC_FONT_HEIGHT+ASC_TEXT_ASCENT;
+				hf=(HFONT)SelectObject(hdc,(HGDIOBJ)_hFont);
+				SetBkMode(hdc,TRANSPARENT);
+				SetTextColor(hdc,cr_table[_fgcolor]);
 
-			for(i=si.nPos;i<si.nPos+ASC_LINES_CLIENT;i++){
-				if(i<32){
-					int index=table1[i].index;
-					len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %s",index,index,index,table1[index].description);
-				}else if(i==32){
-					len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %s",32,32,32,"(Space)");
-				}else if(i<127){
-					len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %c",i,i,i,(char)i);
-				}else if(i==127){
-					len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %s",127,127,127,"(DEL)");
-				}else if(i>127 && i<=255){
-					len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %c",i,i,i,(char)i);
-				}else{
-					break;
-				}
+				len=sprintf(str,"%4s %4s  %4s  %s","十","八","十六","描述");
 				TextOut(hdc,x,y,str,len);
 				y += ASC_FONT_HEIGHT+ASC_TEXT_ASCENT;
-			}
+				len=sprintf(str,"----------------------------------------");
+				TextOut(hdc,x,y,str,len);
+				y += ASC_FONT_HEIGHT+ASC_TEXT_ASCENT;
 
-			SelectObject(hdc,hf);
-			EndPaint(hWnd,&ps);
-			
-			return 0;
-		}
-	case WM_VSCROLL:
-		{
-			SCROLLINFO si;
-			ZeroMemory(&si,sizeof(si));
-			si.cbSize = sizeof(si);
-			si.fMask = SIF_ALL;
-			GetScrollInfo(hWnd,SB_VERT,&si);
-			switch(LOWORD(wParam))
-			{
-			case SB_ENDSCROLL:break;
-			case SB_TOP:si.nPos=0;break;
-			case SB_BOTTOM:si.nPos=ASC_TOTAL_ENTRY-1;break;
-			case SB_LINEUP:si.nPos--;break;
-			case SB_LINEDOWN:si.nPos++;break;
-			case SB_PAGEUP:si.nPos-=si.nPage;break;
-			case SB_PAGEDOWN:si.nPos+=si.nPage;break;
-			case SB_THUMBTRACK:
-			case SB_THUMBPOSITION:
-				si.nPos = si.nTrackPos;break;
-			}
-			if(LOWORD(wParam)==SB_LINEUP && si.nPos < si.nMin ||
-				LOWORD(wParam)==SB_LINEDOWN && si.nPos+ASC_LINES_CLIENT-1 > si.nMax)
-			{
-				MessageBeep(MB_OK);
+				for(i=si.nPos;i<si.nPos+ASC_LINES_CLIENT;i++){
+					if(i<32){
+						int index=table1[i].index;
+						len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %s",index,index,index,table1[index].description);
+					}else if(i==32){
+						len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %s",32,32,32,"(Space)");
+					}else if(i<127){
+						len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %c",i,i,i,(char)i);
+					}else if(i==127){
+						len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %s",127,127,127,"(DEL)");
+					}else if(i>127 && i<=255){
+						len=_snprintf(str,sizeof(str),"%4d, %03o,  %02X   %c",i,i,i,(char)i);
+					}else{
+						break;
+					}
+					TextOut(hdc,x,y,str,len);
+					y += ASC_FONT_HEIGHT+ASC_TEXT_ASCENT;
+				}
+
+				SelectObject(hdc,hf);
+				EndPaint(m_hWnd,&ps);
+
 				return 0;
 			}
-			if(si.nPos<si.nMin) si.nPos=si.nMin;
-			if(si.nPos+(int)si.nPage-1>si.nMax) 
-				si.nPos=si.nMax-si.nPage+1;
-			SetScrollInfo(hWnd,SB_VERT,&si,TRUE);
-			InvalidateRect(hWnd,NULL,TRUE);
-			return 0;
-		}
-	case WM_MOUSEWHEEL:
-		{
-			int delta;
-			SCROLLINFO si;
-			delta = (short)HIWORD(wParam);//WHEEL_DELTA
-			ZeroMemory(&si, sizeof(SCROLLINFO));
-			si.fMask = SIF_ALL;
-			si.cbSize = sizeof(SCROLLINFO);
-			GetScrollInfo(hWnd,SB_VERT,&si);
-			if(si.nPos==ASC_TOTAL_ENTRY-ASC_LINES_CLIENT&&delta<0 || si.nPos==0 && delta>0)
+		case WM_VSCROLL:
 			{
-				MessageBeep(MB_OK);
+				SCROLLINFO si;
+				ZeroMemory(&si,sizeof(si));
+				si.cbSize = sizeof(si);
+				si.fMask = SIF_ALL;
+				GetScrollInfo(m_hWnd,SB_VERT,&si);
+				switch(LOWORD(wParam))
+				{
+				case SB_ENDSCROLL:break;
+				case SB_TOP:si.nPos=0;break;
+				case SB_BOTTOM:si.nPos=ASC_TOTAL_ENTRY-1;break;
+				case SB_LINEUP:si.nPos--;break;
+				case SB_LINEDOWN:si.nPos++;break;
+				case SB_PAGEUP:si.nPos-=si.nPage;break;
+				case SB_PAGEDOWN:si.nPos+=si.nPage;break;
+				case SB_THUMBTRACK:
+				case SB_THUMBPOSITION:
+					si.nPos = si.nTrackPos;break;
+				}
+				if(LOWORD(wParam)==SB_LINEUP && si.nPos < si.nMin ||
+					LOWORD(wParam)==SB_LINEDOWN && si.nPos+ASC_LINES_CLIENT-1 > si.nMax)
+				{
+					MessageBeep(MB_OK);
+					return 0;
+				}
+				if(si.nPos<si.nMin) si.nPos=si.nMin;
+				if(si.nPos+(int)si.nPage-1>si.nMax) 
+					si.nPos=si.nMax-si.nPage+1;
+				SetScrollInfo(m_hWnd,SB_VERT,&si,TRUE);
+				InvalidateRect(m_hWnd,NULL,TRUE);
 				return 0;
 			}
-			if(delta < 0) si.nPos+=ASC_MOUSE_DELTA;
-			if(delta > 0) si.nPos-=ASC_MOUSE_DELTA;
-			if (si.nPos < si.nMin) si.nPos = si.nMin;
-			if (si.nPos+(int)si.nPage-1 > si.nMax) 
-				si.nPos = si.nMax-si.nPage+1;
-			SetScrollInfo(hWnd,SB_VERT,&si,TRUE);
-			InvalidateRect(hWnd,NULL,TRUE);
-			return 0;
-		}
-	case WM_CREATE:
-		{
-			SCROLLINFO si;
-			ZeroMemory(&si,sizeof(si));
-			si.cbSize = sizeof(si);
-			si.fMask = SIF_ALL;
-			si.nMin=0; 
-			si.nMax = ASC_TOTAL_ENTRY-1;
-			si.nPos=si.nTrackPos=0;
-			si.nPage = ASC_LINES_CLIENT;
-			SetScrollInfo(hWnd,SB_VERT,&si,TRUE);
-
-			for(;;){
-				RECT rcW;RECT rcC;
-				int borderheight;
-				GetWindowRect(hWnd,&rcW);
-				GetClientRect(hWnd,&rcC);
-				borderheight = (rcW.bottom-rcW.top)-(rcC.bottom-rcC.top);
-				MoveWindow(hWnd,axisx,axisy,rcW.right-rcW.left,
-					borderheight+(ASC_LINES_CLIENT+2)*(ASC_FONT_HEIGHT+ASC_TEXT_ASCENT),TRUE);
-				if(axisx==0 && axisy==0) utils.center_window(hWnd,msg.hWndMain);
-				break;
+		case WM_MOUSEWHEEL:
+			{
+				int delta;
+				SCROLLINFO si;
+				delta = (short)HIWORD(wParam);//WHEEL_DELTA
+				ZeroMemory(&si, sizeof(SCROLLINFO));
+				si.fMask = SIF_ALL;
+				si.cbSize = sizeof(SCROLLINFO);
+				GetScrollInfo(m_hWnd,SB_VERT,&si);
+				if(si.nPos==ASC_TOTAL_ENTRY-ASC_LINES_CLIENT&&delta<0 || si.nPos==0 && delta>0)
+				{
+					MessageBeep(MB_OK);
+					return 0;
+				}
+				if(delta < 0) si.nPos+=ASC_MOUSE_DELTA;
+				if(delta > 0) si.nPos-=ASC_MOUSE_DELTA;
+				if (si.nPos < si.nMin) si.nPos = si.nMin;
+				if (si.nPos+(int)si.nPage-1 > si.nMax) 
+					si.nPos = si.nMax-si.nPage+1;
+				SetScrollInfo(m_hWnd,SB_VERT,&si,TRUE);
+				InvalidateRect(m_hWnd,NULL,TRUE);
+				return 0;
 			}
+		case WM_CREATE:
+			{
+				SCROLLINFO si;
+				ZeroMemory(&si,sizeof(si));
+				si.cbSize = sizeof(si);
+				si.fMask = SIF_ALL;
+				si.nMin=0; 
+				si.nMax = ASC_TOTAL_ENTRY-1;
+				si.nPos=si.nTrackPos=0;
+				si.nPage = ASC_LINES_CLIENT;
+				SetScrollInfo(m_hWnd,SB_VERT,&si,TRUE);
 
-			for(;;){
-				LOGFONT lf = { 0 };
-				GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-				strncpy(lf.lfFaceName, ASC_FACENAME, LF_FACESIZE);
-				lf.lfCharSet = DEFAULT_CHARSET;
-				lf.lfHeight = -ASC_FONT_HEIGHT;
-				hFont = CreateFontIndirect(&lf);
-				break;
+				for(;;){
+					RECT rcW;RECT rcC;
+					int borderheight;
+					GetWindowRect(m_hWnd,&rcW);
+					GetClientRect(m_hWnd,&rcC);
+					borderheight = (rcW.bottom-rcW.top)-(rcC.bottom-rcC.top);
+					MoveWindow(m_hWnd,axisx,axisy,ASC_CLIENT_WIDTH+16, // "猜的"
+						borderheight+(ASC_LINES_CLIENT+2)*(ASC_FONT_HEIGHT+ASC_TEXT_ASCENT),TRUE);
+					break;
+				}
+
+				for(;;){
+					LOGFONT lf = { 0 };
+					GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
+					strncpy(lf.lfFaceName, ASC_FACENAME, LF_FACESIZE);
+					lf.lfCharSet = DEFAULT_CHARSET;
+					lf.lfHeight = -ASC_FONT_HEIGHT;
+					_hFont = CreateFontIndirect(&lf);
+					break;
+				}
+
+				return 0;
 			}
-
-			return 0;
+		case WM_CLOSE:
+			{
+				RECT rc;
+				GetWindowRect(m_hWnd,&rc);
+				axisx=rc.left;
+				axisy=rc.top;
+				DeleteObject(_hFont);
+				DestroyWindow(m_hWnd);
+				return 0;
+			}
 		}
-	case WM_CLOSE:
-		{
-			RECT rc;
-			GetWindowRect(hWnd,&rc);
-			axisx=rc.left;
-			axisy=rc.top;
-			DeleteObject(hFont);
-			SendMessage(msg.hWndMain,WM_APP+0,1,(LPARAM)hWndAsciiTable);
-			DestroyWindow(hWnd);
-			hWndAsciiTable=NULL;
-			return 0;
-		}
+		return CWnd::HandleMessage(uMsg, wParam, lParam, bHandled);
 	}
-	return DefWindowProc(hWnd, uMsg, wParam, lParam);
-}
 
-int ShowAsciiTable(void)
-{
-	WNDCLASSEX wcx = {0};
-	HINSTANCE hInst = NULL;
-	if(hWndAsciiTable){
-		if(IsIconic(hWndAsciiTable))
-			ShowWindow(hWndAsciiTable,SW_RESTORE);
-		SetWindowPos(hWndAsciiTable,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
-		return 1;
+	c_asctable_dlg::c_asctable_dlg()
+		: _hFont(0)
+	{
+
 	}
-	hInst = GetModuleHandle(NULL);
-	wcx.cbSize = sizeof(wcx);
-	wcx.style = CS_HREDRAW|CS_VREDRAW;
-	wcx.lpfnWndProc = AscWndProc;
-	wcx.hInstance = hInst;
-	wcx.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1));
-	wcx.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wcx.hbrBackground = (HBRUSH) GetStockObject (BLACK_BRUSH);
-	wcx.lpszMenuName = NULL;
-	wcx.lpszClassName = "AsciiTable";
-	wcx.hIconSm = wcx.hIcon;
-	RegisterClassEx(&wcx);
-	hWndAsciiTable = CreateWindowEx(0, "AsciiTable", "ASCII 码表(左键:前景色,右键:背景色)",
-		WS_OVERLAPPEDWINDOW&~WS_MAXIMIZEBOX&~WS_SIZEBOX|WS_VSCROLL,
-		CW_USEDEFAULT, CW_USEDEFAULT, ASC_CLIENT_WIDTH, 0,
-		msg.hWndMain, NULL, hInst, NULL); 
-	if(hWndAsciiTable == NULL) return 0;
-	ShowWindow(hWndAsciiTable, SW_SHOWNORMAL);
-	UpdateWindow(hWndAsciiTable);
-	SendMessage(msg.hWndMain,WM_APP+0,0,(LPARAM)hWndAsciiTable);
-	return 1;
+
+	void c_asctable_dlg::show( HWND hParent )
+	{
+		Create(hParent, "ASCII 码表(左键:前景色,右键:背景色)", 
+			WS_OVERLAPPEDWINDOW & ~ WS_MAXIMIZEBOX & ~WS_SIZEBOX, 0,
+			0, 0, 0, 0);
+		if(axisx==-1 && axisy==-1){
+			CenterWindow();
+		}
+		ShowWindow();
+	}
 }
