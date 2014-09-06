@@ -1,17 +1,5 @@
 #include <stdio.h>
-#define  __list_c__
 #include "list.h"
-
-struct _my_list _inner_list = {
-	list_is_empty,
-	list_init,
-	list_insert_head,
-	list_insert_tail,
-	list_remove_head,
-	list_remove_tail,
-	list_remove
-};
-struct _my_list* list = &_inner_list;
 
 /**************************************************
 º¯  Êı:list_is_empty@4
