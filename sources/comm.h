@@ -92,6 +92,7 @@ namespace Common {
 	enum csdp_type{
 		csdp_local,		// 本地包, 不需要释放
 		csdp_alloc,		// 分配包, 在数据量大于默认缓冲区或内部缓冲区不够时被分配
+		csdp_exit,		
 	};
 #pragma pack(push,1)
 	// 基础发送数据包, 不包含缓冲区
@@ -126,6 +127,8 @@ namespace Common {
 		void					put(c_send_data_packet* psdp);			// 向发送队列尾插入一个新的数据包
 		void					put_front(c_send_data_packet* psdp);	// 插入一个发送数据包到队列首, 优先处理
 		c_send_data_packet*		get();									// 包获取者调用此接口取得数据包, 没有包时会被挂起
+		c_send_data_packet*		query_head();
+		HANDLE					get_event() const { return _hEvent; }
 
 	private:
 		c_send_data_packet_extended	_data[100];	// 预定义的本地包的个数
@@ -266,6 +269,9 @@ namespace Common {
 
 	// 内部工作线程
 	private:
+		bool _begin_threads();
+		bool _end_threads();
+
 		struct thread_helper_context
 		{
 			CComm* that;
@@ -275,16 +281,21 @@ namespace Common {
 			}which;
 		};
 		unsigned int thread_read();
-		void wait_read_event() { ::WaitForSingleObject(_hevent_continue_to_read, INFINITE); }
+		//void wait_read_event() { ::WaitForSingleObject(_hevent_continue_to_read, INFINITE); }
 		unsigned int thread_write();
 		static unsigned int __stdcall thread_helper(void* pv);
 	public:
-		void resume_read_thread() { ::SetEvent(_hevent_continue_to_read); }
-		void suspend_read_thread() { ::ResetEvent(_hevent_continue_to_read); }
+		//void resume_read_thread() { ::SetEvent(_hevent_continue_to_read); }
+		//void suspend_read_thread() { ::ResetEvent(_hevent_continue_to_read); }
 	private:
-		HANDLE		_hthread_read;
-		HANDLE		_hthread_write;
-		HANDLE		_hevent_continue_to_read; //如果UI还未完成数据的处理和显示, 应该等待
+		HANDLE		_hthread_read;				// 读线程句柄
+		HANDLE		_hthread_write;				// 写线程句柄
+
+		HANDLE		_hevent_read_start;			// 通知读线程开始与结束的事件
+		HANDLE		_hevent_read_end;			// 通知读线程开始与结束的事件
+
+		HANDLE		_hevent_write_start;		// 通知写线程开始与结束的事件
+		HANDLE		_hevent_write_end;		// 通知写线程开始与结束的事件
 
 	// 串口配置结构体
 	private:
