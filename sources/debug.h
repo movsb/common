@@ -1,12 +1,10 @@
 #pragma once
 
 #ifdef _DEBUG
-#define debug_out(x) DebugOut##x
+#define debug_out(x) printf##x
 #else
 #define debug_out(x) 
 #endif
-
-void DebugOut(char* fmt, ...);
 
 
 //////////////////////////////////////////////////////////////////////////
