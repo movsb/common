@@ -31,9 +31,6 @@ void CControlUI::DoInit()
 {
 	assert(m_pManager != NULL);
 	m_bInited = true;
-	SetFont(-2);
-	SetVisible(IsVisible());
-	SetDisplayed(IsDispalyed());
 }
 
 bool CControlUI::SetFocus()

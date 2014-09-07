@@ -74,6 +74,11 @@ void CSdkLayout::_InitializeLayout()
 
 	SIZE& sz = m_Manager.InitSize();
 	::SetWindowPos(m_hWnd, 0, 0, 0, sz.cx, sz.cy, SWP_NOMOVE | SWP_NOZORDER);
+
+	m_pRoot->SetFont(-2);
+	m_pRoot->SetVisible(m_pRoot->IsVisible());
+	//m_pRoot->SetDisplayed(m_pRoot->IsDispalyed());
+
 	m_pRoot->DoInit();
 
 	ResizeLayout();

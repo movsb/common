@@ -106,7 +106,7 @@ namespace SdkLayout
 
 		for(int i=0; i<m_items.GetSize(); i++){
 			CControlUI* pControl = static_cast<CControlUI*>(m_items[i]);
-			pControl->SetVisibleByParent(bVisible);
+			pControl->SetVisibleByParent(IsVisible());
 		}
 
 		NeedParentUpdate();
