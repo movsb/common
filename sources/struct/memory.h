@@ -1,46 +1,29 @@
-#ifndef __MEMORY_H__
-#define __MEMORY_H__
+#pragma once
 
-#include <stdlib.h>
+namespace Common{
+	class i_notifier;
 
-void init_memory(void);
+	class c_memory
+	{
+	public:
+		c_memory();
+		~c_memory();
+		void set_notifier(i_notifier* pn);
+		void* get(size_t size,char* file,int line);
+		void free(void** ppv,char* prefix);
 
-//用于Manage_mem的动作参数
-enum{MANMEM_INITIALIZE,MANMEM_INTSERT,MANMEM_REMOVE,MANMEM_FREE};
+	protected:
+		void _insert(list_s* p);
+		int _remove(list_s* p);
+		void _delect_leak();
 
-//#ifdef _DEBUG
-#define GET_MEM(size) memory.get_mem_debug(size,__THIS_FILE__,__LINE__)
-//#else
-//#define GET_MEM(size) memory.get_mem(size)
-//#endif
+	protected:
+		i_notifier* _notifier;
+		list_s _head;
+		CRITICAL_SECTION _cs;
+	};
 
-struct memory_s{
-	void (*manage_mem)(int what,void* pv);
-//#ifdef _DEBUG
-	void* (*get_mem_debug)(size_t size,char* file,int line);
-//#else
-//	void* (*get_mem)(size_t size);
-//#endif
-	void (*free_mem)(void** ppv,char* prefix);
-};
+	extern c_memory memory;
+}
 
-#ifndef __MEMORY_C__
-	extern struct memory_s memory;
-#else
-#undef __MEMORY_C__
-struct memory_s memory;
-
-
-
-void manage_mem(int what,void* pv);
-//#ifdef _DEBUG
-void* get_mem_debug(size_t size,char* file,int line);
-//#else
-//void* get_mem(size_t size);
-//#endif
-void free_mem(void** ppv,char* prefix);
-
-#endif
-
-
-#endif//!__MEMORY_H__
+#define GET_MEM(size) memory.get(size,__THIS_FILE__,__LINE__)
