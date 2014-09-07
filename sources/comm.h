@@ -291,16 +291,18 @@ namespace Common {
 		HANDLE		_hthread_read;				// 读线程句柄
 		HANDLE		_hthread_write;				// 写线程句柄
 
-		HANDLE		_hevent_read_start;			// 通知读线程开始与结束的事件
-		HANDLE		_hevent_read_end;			// 通知读线程开始与结束的事件
+		HANDLE		_hevent_read_start;			// 自动重置,通知读线程开始与结束的事件
+		HANDLE		_hevent_read_end;			// 手动重置,通知读线程开始与结束的事件
 
-		HANDLE		_hevent_write_start;		// 通知写线程开始与结束的事件
-		HANDLE		_hevent_write_end;		// 通知写线程开始与结束的事件
+		HANDLE		_hevent_write_start;		// 自动重置,通知写线程开始与结束的事件
+		HANDLE		_hevent_write_end;			// 手动重置,通知写线程开始与结束的事件
 
 	// 串口配置结构体
 	private:
-		COMMCONFIG			_commconfig;
+		//COMMPROP			_commprop;
+		//COMMCONFIG			_commconfig;
 		COMMTIMEOUTS		_timeouts;
+		DCB					_dcb;
 
 	// 串口设置(供外部调用)
 	public:
@@ -333,7 +335,9 @@ namespace Common {
 		bool		open(int com_id);
 		bool		close();
 		HANDLE		get_handle() { return _hComPort; }
-		bool		is_opened() { return !!_hComPort; }
+		bool		is_opened() { 
+			return !!_hComPort; 
+		}
 		bool		begin_threads();
 		bool		end_threads();
 

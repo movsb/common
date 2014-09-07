@@ -84,8 +84,6 @@ namespace Common{
 		_timeouts.WriteTotalTimeoutMultiplier = 0;
 		_timeouts.WriteTotalTimeoutConstant = 0;
 
-
-		::memset(&_commconfig, 0, sizeof(_commconfig));
 	}
 
 
@@ -189,6 +187,7 @@ namespace Common{
 		// 进入工作线程, 但如果不是因为串口而工作, 则意味着该结束了
 		if (!is_opened()){
 			debug_out(("[写线程] 没有任务, 写线程退出\n"));
+			::SetEvent(_hevent_write_end);
 			return 0;
 		}
 		 
@@ -300,6 +299,7 @@ namespace Common{
 		if (!is_opened()){
 			debug_out(("[读线程] 没有任务, 读线程退出\n"));
 			delete[] block_data;
+			::SetEvent(_hevent_read_end);
 			return 0;
 		}
 
@@ -463,39 +463,29 @@ namespace Common{
 	{
 		SMART_ASSERT(is_opened()).Fatal();
 
-		unsigned long ccsize = sizeof(_commconfig);
-		if (!::GetCommConfig(get_handle(), &_commconfig, &ccsize)){
-			_notifier->msgerr("取串口默认配置出错");
-			return false;
-		}
-		if (!::GetCommState(get_handle(), &_commconfig.dcb)){
-			_notifier->msgerr("取串口状态时出错");
+		if (!::GetCommState(get_handle(), &_dcb)){
+			_notifier->msgerr("GetCommState()错误");
 			return false;
 		}
 
-		_commconfig.dcb.fBinary = TRUE;
-		_commconfig.dcb.BaudRate = pssc->baud_rate;
-		_commconfig.dcb.fParity = pssc->parity == NOPARITY ? FALSE : TRUE;
-		_commconfig.dcb.Parity = pssc->parity;
-		_commconfig.dcb.ByteSize = pssc->databit;
-		_commconfig.dcb.StopBits = pssc->stopbit;
+		_dcb.fBinary = TRUE;
+		_dcb.BaudRate = pssc->baud_rate;
+		_dcb.fParity = pssc->parity == NOPARITY ? FALSE : TRUE;
+		_dcb.Parity = pssc->parity;
+		_dcb.ByteSize = pssc->databit;
+		_dcb.StopBits = pssc->stopbit;
 
-		if (!::SetCommConfig(get_handle(), &_commconfig, sizeof(_commconfig))){
-			_notifier->msgerr("COM配置错误");
+		if (!::SetCommState(_hComPort, &_dcb)){
+			_notifier->msgerr("SetCommMask()错误");
 			return false;
 		}
+
 		if (!::SetCommMask(get_handle(), EV_RXCHAR)){
 			_notifier->msgerr("SetCommMask()错误");
 			return false;
 		}
 		if (!::SetCommTimeouts(get_handle(), &_timeouts)){
 			_notifier->msgerr("设置串口超时错误");
-			//TOOD: show config
-			return false;
-		}
-		//TODO: size
-		if (!::SetupComm(get_handle(), COMMON_READ_BUFFER_SIZE, COMMON_READ_BUFFER_SIZE)){
-			_notifier->msgerr("SetupComm");
 			return false;
 		}
 
@@ -548,8 +538,24 @@ namespace Common{
 	bool CComm::_end_threads()
 	{
 		SMART_ASSERT(is_opened() == false).Fatal();
+
+		// 由读写线程设置并让当前线程等待他们的结束
+		::ResetEvent(_hevent_read_end);
+		::ResetEvent(_hevent_write_end);
+
+		// 此时串口是关闭的, 收到此事件即准备退出线程
 		::SetEvent(_hevent_read_start);
 		::SetEvent(_hevent_write_start);
+
+		// 等待读写线程完全退出
+		::WaitForSingleObject(_hevent_read_end, INFINITE);
+		::WaitForSingleObject(_hevent_write_end, INFINITE);
+
+		::CloseHandle(_hevent_read_end);
+		::CloseHandle(_hevent_read_start);
+		::CloseHandle(_hevent_write_end);
+		::CloseHandle(_hevent_write_start);
+
 		return false;
 	}
 
