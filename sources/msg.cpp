@@ -657,6 +657,8 @@ namespace Common {
 							com_try_close(false);
 							return 0;
 						}
+						_text_data_receiver.reset_buffer();
+						_hex_data_receiver.reset_buffer();
 						_comm.begin_threads();
 						com_lock_ui_panel(true);
 						com_update_open_btn_text();
