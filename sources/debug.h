@@ -33,7 +33,9 @@ public:
 	CSmartAssert& __SMART_ASSERT_B;
 	CSmartAssert& Context(const char* expr, const char* file, int line)
 	{
-		m_expr = expr;
+		std::stringstream ss;
+		ss << expr << "\nfile: " << file << "\nline: " << line;
+		m_expr = ss.str();
 		__debug_file << "\r\n[" << file << ", " << line << "]\r\n";
 		__debug_file << "Assertion failed: " << expr << "\r\n";
 		__debug_file.flush();
@@ -44,6 +46,9 @@ public:
 	template <class T>
 	CSmartAssert& Out(const char* str, T t)
 	{
+		std::stringstream ss;
+		ss << "\n\t" << str << " = " << t << "\n";
+		m_expr += ss.str();
 		__debug_file << "\t" << str << " = " << t << "\r\n";
 		__debug_file.flush();
 		return *this;
