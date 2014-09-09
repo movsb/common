@@ -16,11 +16,11 @@ bool CSdkLayout::SetLayout(HWND hWnd, LPCTSTR xml, HINSTANCE hInst)
 		m_Manager.SetHWND(hWnd);
 		m_pRoot = pRoot;
 		m_pRoot->SetManager(&m_Manager);
-		DWORD dwStyle = GetWindowLongPtr(GetHWND(), GWL_STYLE);
-		dwStyle |= WS_VSCROLL | WS_HSCROLL;
-		SetWindowLongPtr(GetHWND(), GWL_STYLE, dwStyle);
-		ShowScrollBar(m_hWnd, SB_VERT, TRUE);
-		ShowScrollBar(m_hWnd, SB_HORZ, TRUE);
+		//DWORD dwStyle = GetWindowLongPtr(GetHWND(), GWL_STYLE);
+		//dwStyle |= WS_VSCROLL | WS_HSCROLL;
+		//SetWindowLongPtr(GetHWND(), GWL_STYLE, dwStyle);
+		//ShowScrollBar(m_hWnd, SB_VERT, TRUE);
+		//ShowScrollBar(m_hWnd, SB_HORZ, TRUE);
 		_InitializeLayout();
 	}
 	return !!m_pRoot;
@@ -42,7 +42,7 @@ void CSdkLayout::ResizeLayout(const RECT& rc)
 {
 	if(!m_pRoot || !m_hWnd) return;
 	m_pRoot->SetPos(rc);
-	_ProcessScrollBar(rc);
+	//_ProcessScrollBar(rc);
 	::InvalidateRect(m_hWnd, &rc, FALSE);
 	m_rcLast = rc;
 }
@@ -59,6 +59,13 @@ CControlUI* CSdkLayout::FindControl(LPCTSTR name)
 {
 	return m_pRoot ? m_pRoot->FindControl(name) : NULL;
 }
+
+
+CControlUI* CSdkLayout::FindControl(HWND hwnd)
+{
+	return m_pRoot ? m_pRoot->FindControl(hwnd) : NULL;
+}
+
 
 void CSdkLayout::SetDefFont(LPCTSTR face, int sz)
 {

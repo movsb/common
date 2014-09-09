@@ -8,7 +8,7 @@ m_bVisible(true),
 m_bVisibleByParent(true),
 m_bDisplayed(true),
 m_id(0),
-m_name(0),
+m_name(""),
 m_font(-1),
 m_pManager(NULL),
 m_pParent(NULL)
@@ -208,8 +208,12 @@ SIZE CControlUI::EstimateSize(SIZE szAvailable)
 
 CControlUI* CControlUI::FindControl(LPCTSTR name)
 {
-	UINT hash = HashKey(name);
-	return hash==m_name ? this : NULL;
+	return name == m_name ? this : NULL;
+}
+
+CControlUI* CControlUI::FindControl(HWND hwnd)
+{
+	return hwnd == m_hWnd ? this : NULL;
 }
 
 void CControlUI::SetFont( int id )

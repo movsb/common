@@ -86,14 +86,28 @@ namespace SdkLayout
 
 	CControlUI* CContainerUI::FindControl(LPCTSTR name)
 	{
-		UINT hash = HashKey(name);
-		if(hash == m_name) return static_cast<CControlUI*>(this);
+		if (name == m_name) return this;
 		else{
 			for(int i=0; i<m_items.GetSize(); i++){
 				CControlUI* pControl = static_cast<CControlUI*>(m_items[i]);
 				CControlUI* pSubControl = NULL;
 				pSubControl = pControl->FindControl(name);
 				if(pSubControl)
+					return pSubControl;
+			}
+		}
+		return NULL;
+	}
+
+	CControlUI* CContainerUI::FindControl(HWND hwnd)
+	{
+		if (hwnd == m_hWnd) return this;
+		else{
+			for (int i = 0; i < m_items.GetSize(); i++){
+				CControlUI* pControl = static_cast<CControlUI*>(m_items[i]);
+				CControlUI* pSubControl = NULL;
+				pSubControl = pControl->FindControl(hwnd);
+				if (pSubControl)
 					return pSubControl;
 			}
 		}

@@ -43,6 +43,7 @@ public:
 
 	virtual void SetManager(CPaintManagerUI* mgr);
 	virtual CControlUI* FindControl(LPCTSTR name);
+	virtual CControlUI* FindControl(HWND hwnd);
 	virtual void SetFont(int id);
 
 protected:

@@ -81,6 +81,7 @@ public:
 	virtual void SetManager(CPaintManagerUI* mgr);
 
 	virtual HWND GetHWND() const	{return m_hWnd;}
+	operator HWND() const { return m_hWnd; }
 
 	virtual void NeedUpdate()
 	{
@@ -106,9 +107,10 @@ public:
 	virtual CControlUI* GetParent() const {return m_pParent;}
 	virtual void SetParent(CControlUI* pParent) { assert(pParent); m_pParent = pParent;}
 
-	virtual void SetName(LPCTSTR name) {m_name = HashKey(name);};
-	virtual UINT GetName() const {return m_name;}
+	virtual void SetName(LPCTSTR name) {m_name = name;};
+	virtual const CTinyString& GetName() const {return m_name;}
 	virtual CControlUI* FindControl(LPCTSTR name);
+	virtual CControlUI* FindControl(HWND hwnd);
 
 	CContainerUI* ToContainerUI() {return (CContainerUI*)(this);}
 	CHorizontalLayoutUI* ToHorizontalUI() {return (CHorizontalLayoutUI*)(this);}
@@ -119,7 +121,7 @@ protected:
 	HWND m_hWnd;
 	int m_font;
 	int  m_id;
-	UINT m_name;
+	CTinyString m_name;
 
 	CPaintManagerUI* m_pManager;
 	CControlUI* m_pParent; // should be CContainerUI*

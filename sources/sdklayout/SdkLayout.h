@@ -33,7 +33,7 @@ namespace SdkLayout{
 class CSdkLayout
 {
 public:
-	CSdkLayout(){ m_hWnd = NULL; m_pRoot = NULL; m_getid = NULL; }
+	CSdkLayout(){ m_hWnd = NULL; m_pRoot = NULL; m_getid = NULL;}
 	~CSdkLayout(){DeleteLayout();}
 	HWND GetHWND() const {return m_hWnd;}
 	CContainerUI* GetRoot() const {return m_pRoot;}
@@ -52,6 +52,7 @@ public:
 	void ResizeLayout(const RECT& rc);
 	void ResizeLayout();
 	CControlUI* FindControl(LPCTSTR name);
+	CControlUI* FindControl(HWND hwnd);
 	void SetDefFont(LPCTSTR face, int sz);
 
 private:
