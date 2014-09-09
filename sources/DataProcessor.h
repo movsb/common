@@ -38,7 +38,7 @@ namespace Common{
 		{
 			int n;
 			bool c = proc->process_some(follow, *pba, *pcb, &n);
-			assert(n <= *pcb);
+			SMART_ASSERT(n <= *pcb)(n)(*pcb).Fatal();
 			*pba += n;
 			*pcb -= n;
 			*ppre = c ? proc : NULL;
@@ -89,15 +89,16 @@ namespace Common{
 		virtual void reset_buffer();
 
 	protected:
-		enum{
-			LCS_NONE,
-			LCS_ESC,
-			LCS_BRACKET,
-			LCS_ATTR,
-			LCS_SEMI,
-			LCS_M,
+		enum lcs_state{
+			LCS_NONE,LCS_ESC,LCS_BRACKET,LCS_VAL,LCS_SEMI,
+			LCS_H,LCS_f,
+			LCS_A,LCS_B,LCS_C,LCS_D,
+			LCS_s,LCS_u,LCS_j,LCS_K,
+			LCS_h,LCS_l,LCS_EQU,
+			LCS_m,LCS_P
 		} _state;
-		c_byte_array<64, 64> _data;
+		c_byte_array<64, 64> _data;		// Êý¾ÝÕ»
+		std::vector<lcs_state> _stack;	// ×´Ì¬Õ»
 	public:
 		Window::c_rich_edit* _richedit;
 	};

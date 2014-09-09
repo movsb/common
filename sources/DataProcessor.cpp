@@ -36,7 +36,7 @@ namespace Common{
 				continue;
 			}
 
-			if (process(_proc_hex, false, &ba, &cb, &_pre_proc))
+			if (process(_proc_hex, false, &ba, &cb, &_pre_proc) || cb==0)
 				continue;
 		}
 	}
@@ -111,14 +111,28 @@ namespace Common{
 	}
 
 	//////////////////////////////////////////////////////////////////////////
+	static int read_integer(char* str, int* pi)
+	{
+		int r = 0;
+		char* p = str;
+
+		while (*p >= '0' && *p <= '9'){
+			r *= 10;
+			r += *p - '0';
+			p++;
+		}
+
+		*pi = r;
+		return (int)p - (int)str;
+	}
+
 	bool c_escape_data_processor::process_some(bool follow, const unsigned char* ba, int cb, int* pn)
 	{
 		int i = 0;
 		int step;
 
 		if (!follow){
-			_state = LCS_NONE;
-			_data.empty();
+			reset_buffer();
 		}
 
 		bool r = true;
@@ -128,7 +142,6 @@ namespace Common{
 			switch (_state)
 			{
 			case LCS_NONE:
-			{
 				if (ba[i] == '\033'){
 					_state = LCS_ESC;
 					step = 1;
@@ -140,9 +153,7 @@ namespace Common{
 					goto _exit;
 				}
 				break;
-			}
 			case LCS_ESC:
-			{
 				if (ba[i] == '['){
 					_state = LCS_BRACKET;
 					step = 1;
@@ -155,45 +166,273 @@ namespace Common{
 					goto _exit;
 				}
 				break;
-			}
 			case LCS_BRACKET:
-			case LCS_ATTR:
-			case LCS_SEMI:
-			{
 				if (ba[i] >= '0' && ba[i] <= '9'){
-					_state = LCS_ATTR;
-					step = 1;
-					_data.append_char(ba[i]);
+					while (i + step<cb && ba[i + step] >= '0' && ba[i + step] <= '9'){
+						_data.append_char(ba[i + step]);
+						step++;
+					}
+					_state = LCS_VAL;
 				}
-				else if (ba[i] == ';'){
-					_state = LCS_SEMI;
+				else if (ba[i] == 'H'){
+					_data.append_char('H');
 					step = 1;
-					_data.append_char(ba[i]);
+					_state = LCS_H;
+				}
+				else if (ba[i] == 'f'){
+					_data.append_char('f');
+					step = 1;
+					_state = LCS_f;
 				}
 				else if (ba[i] == 'm'){
-					_state = LCS_M;
+					_data.append_char('m');
 					step = 1;
-					_data.append_char(ba[i]);
-					_data.append_char('\0');
+					_state = LCS_m;
+				}
+				else if (ba[i] == 's'){
+					_data.append_char('s');
+					step = 1;
+					_state = LCS_s;
+				}
+				else if (ba[i] == 'u'){
+					_data.append_char('u');
+					step = 1;
+					_state = LCS_u;
+				}
+				else if (ba[i] == 'K'){
+					_data.append_char('K');
+					step = 1;
+					_state = LCS_K;
+				}
+				else if (ba[i] == 'm'){
+					_data.append_char('m');
+					step = 1;
+					_state = LCS_m;
+				}
+				else if (ba[i] == '='){
+					_data.append_char('=');
+					step = 1;
+					_state = LCS_EQU;
+				}
+				else if (ba[i] == 'A'){
+					_data.append_char('A');
+					step = 1;
+					_state = LCS_A;
+				}
+				else if (ba[i] == 'B'){
+					_data.append_char('B');
+					step = 1;
+					_state = LCS_B;
+				}
+				else if (ba[i] == 'C'){
+					_data.append_char('C');
+					step = 1;
+					_state = LCS_C;
+				}
+				else if (ba[i] == 'D'){
+					_data.append_char('D');
+					step = 1;
+					_state = LCS_D;
 				}
 				else{
-					debug_out(("state: LCS_BRACKET/LCS_ATTR: not [0-9] || ; || m \n"));
+					debug_out(("state: LCS_BRACKET: unexpected token: %02X\n", ba[i]));
 					_state = LCS_NONE;
 					r = false;
 					goto _exit;
 				}
 				break;
-			}
-			case LCS_M:
-			{
-				_state = LCS_NONE;
+			case LCS_VAL:
+				if (ba[i] >= '0' && ba[i] <= '9'){
+					while (i + step < cb && ba[i + step] >= '0' && ba[i + step] <= '9'){
+						_data.append_char(ba[i + step]);
+						step++;
+					}
+					_state = LCS_VAL;
+					goto _no_push_state;
+				}
+				if (_stack[_stack.size() - 2] == LCS_BRACKET){
+					if (ba[i] == ';'){
+						_state = LCS_SEMI;
+						step = 1;
+						_data.append_char(';');
+					}
+					else if (ba[i] == 'A'){
+						_state = LCS_A;
+						step = 1;
+						_data.append_char('A');
+					}
+					else if (ba[i] == 'B'){
+						_state = LCS_B;
+						step = 1;
+						_data.append_char('B');
+					}
+					else if (ba[i] == 'C'){
+						_state = LCS_C;
+						step = 1;
+						_data.append_char('C');
+					}
+					else if (ba[i] == 'D'){
+						_state = LCS_D;
+						step = 1;
+						_data.append_char('D');
+					}
+					else if (ba[i] == 'j'){
+						_state = LCS_j;
+						step = 1;
+						_data.append_char('j');
+					}
+					else if (ba[i] == 'm'){
+						_state = LCS_m;
+						step = 1;
+						_data.append_char('m');
+					}
+					else{
+						debug_out(("state: LCS_VAL: unknown token: %02X\n", ba[i]));
+						_state = LCS_NONE;
+						r = false;
+						goto _exit;
+
+					}
+				}
+				else if (_stack[_stack.size() - 2] == LCS_EQU){
+					if (ba[i] == 'h'){
+						_state = LCS_h;
+						step = 1;
+						_data.append_char('h');
+					}
+					else if (ba[i] == 'l'){
+						_state = LCS_l;
+						step = 1;
+						_data.append_char('l');
+					}
+					else{
+						debug_out(("state: LCS_EQU+LCS_VAL: unexpected token: %02X\n", ba[i]));
+						_state = LCS_NONE;
+						r = false;
+						goto _exit;
+					}
+				}
+				else if (_stack[_stack.size() - 2] == LCS_SEMI){
+					if (_stack.size() == 5){
+						if (ba[i] == 'H'){
+							_state = LCS_H;
+							step = 1;
+							_data.append_char('H');
+							goto _push_state;
+						}
+						else if (ba[i] == 'f'){
+							_state = LCS_f;
+							step = 1;
+							_data.append_char('f');
+							goto _push_state;
+						}
+					}
+
+					if(ba[i] == ';'){
+						_state = LCS_SEMI;
+						step = 1;
+						_data.append_char(';');
+					}
+					else if (ba[i] == 'm'){
+						_state = LCS_m;
+						step = 1;
+						_data.append_char('m');
+					}
+					else{
+						debug_out(("state: LCS_SEMI+LCS_VAL: unexpected token: %02X\n", ba[i]));
+						_state = LCS_NONE;
+						r = false;
+						goto _exit;
+					}
+				}
+				else{
+					debug_out(("state: LCS_VAL: unexpected token: %02X\n", ba[i]));
+					r = false;
+					goto _exit;
+				}
+				break;
+			case LCS_SEMI:
+				if (ba[i] >= '0' && ba[i] <= '9'){
+					while (i+step<cb && ba[i + step] >= '0' && ba[i + step] <= '9'){
+						_data.append_char(ba[i + step]);
+						step++;
+					}
+					_state = LCS_VAL;
+				}
+				else if (ba[i] == 'm'){
+					_state = LCS_m;
+					step = 1;
+					_data.append_char('m');
+				}
+				else if (ba[i] == 'H'){
+					_state = LCS_H;
+					step = 1;
+					_data.append_char('H');
+				}
+				else if (ba[i] == 'f'){
+					_state = LCS_f;
+					step = 1;
+					_data.append_char('f');
+				}
+				else if (ba[i] == ';'){
+					_state = LCS_SEMI;
+					step = 1;
+					_data.append_char(';');
+				}
+				else{
+					debug_out(("state: LCS_SEMI: unknown token: %02X\n", ba[i]));
+					r = false;
+					goto _exit;
+				}
+				break;
+			case LCS_EQU:
+				if (ba[i] >= '0' && ba[i] <= '9'){
+					while (i + step < cb && ba[i + step] >= '0' && ba[i + step] <= '9'){
+						_data.append_char(ba[i + step]);
+						step++;
+					}
+					_state = LCS_VAL;
+				}
+				else if (ba[i] == 'h'){
+					_state = LCS_h;
+					step = 1;
+					_data.append_char('h');
+				}
+				else if (ba[i] == 'l'){
+					_state = LCS_l;
+					step = 1;
+					_data.append_char('l');
+				}
+				else{
+					debug_out(("state: LCS_EQU: unknown token %02X\n", ba[i]));
+					r = false;
+					_state = LCS_NONE;
+					goto _exit;
+				}
+				break;
+			case LCS_H:	case LCS_f:
+			case LCS_A:	case LCS_B:	case LCS_C:	case LCS_D:
+			case LCS_s:	case LCS_u:
+			case LCS_j:
+			case LCS_K:
+			case LCS_m:
+			case LCS_h:	case LCS_l:
+				debug_out(("parsing completed\n"));
 				r = false;
+				_state = LCS_NONE;
+				_data.append_char('\0');
 				_richedit->apply_linux_attributes((char*)_data.get_data());
 				goto _exit;
-			}
 			default:
-				assert(0);
+				debug_out(("unknown lcs token\n"));
+				r = false;
+				_state = LCS_NONE;
+				goto _exit;
 			}
+		_push_state:
+			_stack.push_back(_state);
+		_no_push_state:
+			;
 		}
 
 	_exit:
@@ -204,6 +443,8 @@ namespace Common{
 	void c_escape_data_processor::reset_buffer()
 	{
 		_state = LCS_NONE;
+		_stack.clear();
+		_stack.push_back(_state);
 		_data.empty();
 	}
 
