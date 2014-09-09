@@ -366,7 +366,7 @@ namespace Common{
 					bRet = ::ReadFile(_hComPort, block_data + nTotalRead, nBytesToRead - nTotalRead, &nRead, &overlap);
 					if (bRet != FALSE){
 						bSucceed = ::GetOverlappedResult(_hComPort, &overlap, &nRead, FALSE);
-						if(bSucceed) debug_out(("[读线程] 读取 %d 字节\n", nRead));
+						if(bSucceed) debug_out(("[读线程] 读取 %d 字节, bRet==TRUE\n", nRead));
 					}
 					else{
 						if (::GetLastError() == ERROR_IO_PENDING){
@@ -389,7 +389,7 @@ namespace Common{
 								break;
 							case WAIT_OBJECT_0 + 1:
 								bSucceed = ::GetOverlappedResult(_hComPort, &overlap, &nRead, FALSE);
-								debug_out(("[读线程] 读取 %d 字节\n", nRead));
+								debug_out(("[读线程] 读取 %d 字节, bRet==TRUE\n", nRead));
 								break;
 							}
 						}
@@ -399,9 +399,14 @@ namespace Common{
 					}
 
 					if (bSucceed){
-						nTotalRead += nRead;
-						_data_counter.add_recv(nRead);
-						_data_counter.call_updater();
+						if (nRead > 0){
+							nTotalRead += nRead;
+							_data_counter.add_recv(nRead);
+							_data_counter.call_updater();
+						}
+						else{
+							nBytesToRead--;
+						}
 					}
 					else{
 						_notifier->msgerr("[读操作失败]");
