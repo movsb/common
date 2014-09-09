@@ -2,7 +2,7 @@
 #include "WindowManager.h"
 
 namespace Common{
-	Util::c_ptr_array<CWindowManager> CWindowManager::m_aWndMgrs;
+	c_ptr_array<CWindowManager> CWindowManager::m_aWndMgrs;
 
 	CWindowManager::CWindowManager()
 		: m_hWnd(0)

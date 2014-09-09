@@ -40,7 +40,7 @@ namespace Common {
 	protected:
 		HWND m_hWnd;
 		IMessageFilter* m_pMsgFilter;
-		Util::c_ptr_array<IAcceleratorTranslator> m_AcceTrans;
-		static Util::c_ptr_array<CWindowManager> m_aWndMgrs;
+		c_ptr_array<IAcceleratorTranslator> m_AcceTrans;
+		static c_ptr_array<CWindowManager> m_aWndMgrs;
 	};
 }
