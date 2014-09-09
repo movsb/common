@@ -1,74 +1,165 @@
-#ifndef __MSG_H__
-#define __MSG_H__
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
-#include <Windows.h>
-#include <WindowsX.h>
-#include <Dbt.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#pragma once
 
-#include <SdkLayout.h>
-#include "struct/list.h"
+namespace Common {
+	// 发送文件格式选择对话框
+	class c_send_file_format_dlg : public c_dialog_builder
+	{
+	public:
+		c_send_file_format_dlg() {  }
+		SdkLayout::CTinyString get_selected_type() { return _selected; }
+	protected:
+		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam);
+		virtual LPCTSTR		get_skin_xml() const override;
+		virtual LRESULT		on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code);
+		virtual DWORD		get_window_style() const { return WS_POPUP | WS_SIZEBOX; }
 
-#pragma warning(push)
-#pragma warning(disable:4201)
-struct msg_s{
-	struct{
-		HWND hWndMain;
-		HINSTANCE hInstance;
-		HANDLE hComPort;
-		HWND hEditRecv;
-		HWND hEditRecv2;
-		HWND hEditSend;
-		HFONT hFont;
-		HFONT hFont2;
-		HACCEL hAccel;
-
-		sdklayout* layout;
+	protected:
+		SdkLayout::CTinyString _selected;
 	};
 
-	int (*run_app)(void);
-	int (*on_create)(HWND hWnd, HINSTANCE hInstance);
-	int (*on_close)(void);
-	int (*on_destroy)(void);
-	int (*on_command)(HWND hwhWndCtrl, int id, int codeNotify);
-	int (*on_device_change)(WPARAM event, DEV_BROADCAST_HDR* pDBH);
-	int (*on_setting_change)(void);
-	int (*on_timer)(int id);
-	int (*on_size)(int width,int height);
-	int (*on_app)(UINT uMsg,WPARAM wParam,LPARAM lParam);
-};
-#pragma warning(pop)
+	// 发送格式控制对话框
+	class c_send_data_format_dlg : public c_dialog_builder
+	{
+	public:
+		c_send_data_format_dlg(bool bchar, DWORD* attr)
+			: _bchar(bchar)
+			, _dwAttr(attr)
+		{
+		}
 
-int init_msg(void);
-enum{TIMER_ID_THREAD};
+	protected:
+		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam);
+		virtual LPCTSTR		get_skin_xml() const override;
+		virtual LRESULT		on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code);
+		virtual DWORD		get_window_style() const { return WS_OVERLAPPEDWINDOW; }
+		virtual DWORD		get_window_ex_style() const override { return WS_EX_TOOLWINDOW; }
+		virtual void		on_final_message(HWND hwnd) { __super::on_final_message(hwnd); delete this; }
 
-#ifndef __MSG_C__
-	extern struct msg_s msg;
-#else
-#undef __MSG_C__
-LRESULT CALLBACK RecvEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-//消息处理函数声明
-int run_app(void);
-int on_create(HWND hWnd, HINSTANCE hInstance);
-int on_close(void);
-int on_destroy(void);
-int on_command(HWND hwhWndCtrl, int id, int codeNotify);
-int on_activateapp(BOOL bActivate);
-int on_device_change(WPARAM event, DEV_BROADCAST_HDR* pDBH);
-int on_setting_change(void);
-int on_timer(int id);
-int on_size(int width,int height);
-int on_sizing(WPARAM edge,RECT* pRect);
-int on_app(UINT uMsg,WPARAM wParam,LPARAM lParam);
+	protected:
+		bool _bchar;
+		DWORD* _dwAttr;
+	};
 
-typedef struct{
-	HWND hWnd;
-	list_s entry;
-}WINDOW_ITEM;
+	class CComWnd 
+		: public CWnd
+		, public i_data_counter
+		, public i_timer
+	{
+		friend class c_send_data_format_dlg;
+	public:
+		CComWnd();
+		~CComWnd();
 
-#endif
+	private:
+		enum PrivateMessage{
+			__kPrivateStart = WM_APP,
+			kUpdateCounter,
+			kUpdateStatus,
+			kUpdateTimer,
+		};
 
-#endif//!__MSG_H__
+		// 发送方式只有两种: 16进制 + 文本字符, 由_b_send_data_frmat_hex决定; 调用函数来方便决定
+		// 这里是其它选项, 比如: 回车类型, 是否处理控制字符等
+		enum SendDataFormatHex{
+			sdfh_kNone		= 0x00000000,
+		};
+		enum SendDataFormatChar{
+			sdfc_kNone		= 0x00000000,
+			// 01两位决定换行符类型
+			sdfc_kNoCrlf	= 0x00000000,
+			sdfc_kCr		= 0x00000001,
+			sdfc_kLf		= 0x00000002,
+			sdfc_kCrlf		= 0x00000003,
+			// 第2位 决定是否使用转义字符
+			sdfc_kUseEscape = 0x00000004,
+		};
+
+	protected:
+		// interface Deal::i_data_counter
+		virtual void update_counter(long rd, long wr, long uw) override;
+		// interface i_com_timer
+		virtual void update_timer(int h, int m, int s);
+
+		void update_status(const char* fmt, ...);
+
+	protected:
+		virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+		virtual void OnFinalMessage(HWND hWnd);
+
+	private:
+		LRESULT on_create(HWND hWnd, HINSTANCE hInstance);
+		LRESULT on_scroll(UINT uMsg, WPARAM wParam, LPARAM lParam);
+		LRESULT on_size(int width,int height);
+		LRESULT on_close();
+		LRESULT on_destroy();
+		LRESULT on_command(HWND hWndCtrl, int id, int codeNotify);
+		LRESULT on_device_change(WPARAM event, DEV_BROADCAST_HDR* pDBH);
+		LRESULT on_setting_change();
+		LRESULT on_app(UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	private:
+		LRESULT on_command_menu(int id);
+		LRESULT on_command_acce(int id);
+		LRESULT on_command_ctrl(HWND hwnd, int id, int code);
+
+	private:
+		struct list_callback_ud{
+			enum e_type{
+				cp,br,pa,sb,db
+			}type;
+			CComWnd* that;
+			HWND hwnd;
+		};
+		static void com_udpate_list_callback(void* ud, const t_com_item* t);
+		void com_update_item_list();
+		void com_update_comport_list();
+		bool com_flush_settings_from_combobox();
+		bool com_try_close(bool b_thread_started);
+		bool com_try_open();
+		void com_lock_ui_panel(bool lock);
+		void com_add_prompt_if_no_cp_presents();
+		void com_update_open_btn_text();
+		void com_copy_text_data_to_clipboard(HWND hwnd);
+		void com_load_file();
+		bool _com_load_file_prompt_size(SdkLayout::CTinyString& selected, c_binary_file& bf);
+		void com_do_send();
+
+		// 一些相关配置
+		void switch_window_top_most(bool manual=false, bool topmost = true);
+		void switch_simple_ui(bool manual=false, bool bsimple=false);
+		void switch_send_data_format(bool manual=false, bool bhex=false, DWORD fmthex=0,DWORD fmtchar=0);
+		void switch_recv_data_format(bool manual = false, bool bhex = false, DWORD fmthex = 0, DWORD fmtchar = 0);
+		bool is_send_data_format_hex() { return _b_send_data_format_hex; }
+		bool is_send_data_format_char(){ return !is_send_data_format_hex(); }
+		bool is_recv_data_format_hex() { return _b_recv_data_format_hex; }
+		bool is_recv_data_format_char(){ return !is_recv_data_format_hex(); }
+		
+
+	public:
+		Window::c_edit*			editor_send()		{return &_send_edit;}
+		Window::c_edit*			editor_recv_hex()	{return &_recv_hex_edit;}
+		Window::c_rich_edit*	editor_recv_char()	{return &_recv_char_edit;}
+
+	private:
+		HWND _hCP, _hBR, _hPA, _hSB, _hDB;
+		HWND _hStatus, _hOpen;
+		Window::c_rich_edit	_recv_char_edit;
+		Window::c_edit		_recv_hex_edit;
+		Window::c_edit		_send_edit;
+		sdklayout*			m_layout;
+		HACCEL				m_hAccel;
+
+		CComm				_comm;
+		c_timer				_timer;
+
+		char				_send_buffer[10240];	//用于默认取发送数据框的数据
+		Window::c_edit*		_recv_cur_edit;			// 当前接收数据格式文本控件
+		bool				_b_send_data_format_hex;
+		bool				_b_recv_data_format_hex;
+		DWORD				_send_data_format_hex;
+		DWORD				_send_data_format_char;
+
+		c_hex_data_receiver		_hex_data_receiver;
+		c_text_data_receiver	_text_data_receiver;
+	};
+}

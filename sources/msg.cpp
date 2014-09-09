@@ -1,45 +1,22 @@
 #include "stdafx.h"
 
-#include <stdio.h>
-#include <ctype.h>
-#include <process.h>
-
-#define __MSG_C__
-#include "msg.h"
-#include "utils.h"
-#include "deal.h"
-#include "about.h"
-#include "comm.h"
-#include "asctable.h"
-#include "str2hex.h"
-#include "debug.h"
-#include "struct/memory.h"
-#include "struct/list.h"
 #include "../res/resource.h"
 
-#include <SdkLayout.h>
-#include <Richedit.h>
-
-static sdklayout* layout;
-
-struct msg_s msg;
-
-static list_s list_head;
-CRITICAL_SECTION window_critical_section;
 
 static char* __THIS_FILE__  = __FILE__;
 
-static int set_ctrl_font(const char* name, const char* fs)
+
+static int set_ctrl_font(sdklayout* layout, const char* name, const char* fs)
 {
 	int id;
 	char* c = strchr((char*)fs,',');
 	*c = '\0';
-	id = layout_newfont(msg.layout, fs, strtol(c+1, NULL, 10));
-	layout_setfont(layout_control(msg.layout, name), id);
+	id = layout_newfont(layout, fs, strtol(c+1, NULL, 10));
+	layout_setfont(layout_control(layout, name), id);
 	return 0;
 }
 
-static void com_init_from_config(void)
+static void com_init_from_config(HWND hwnd, sdklayout* layout)
 {
 	if(g_cfg){
 		char* v;
@@ -47,7 +24,7 @@ static void com_init_from_config(void)
 		k = "app.title";
 		if(config_has(g_cfg, k)){
 			v = config_getstr(g_cfg, k, "");
-			SetWindowText(msg.hWndMain, v);
+			SetWindowText(hwnd, v);
 			free(v);
 		}
 
@@ -57,7 +34,7 @@ static void com_init_from_config(void)
 			v = config_getstr(g_cfg, k, "");
 			comma = strchr(v, ',');
 			*comma='\0';
-			layout_deffont(msg.layout, v, strtol(comma+1, NULL, 10));
+			layout_deffont(layout, v, strtol(comma+1, NULL, 10));
 			free(v);
 		}
 
@@ -67,8 +44,8 @@ static void com_init_from_config(void)
 			v = config_getstr(g_cfg, k, "");
 			hIcon = (HICON)LoadImage(NULL, v, IMAGE_ICON, 48, 48, LR_LOADFROMFILE);
 			if(hIcon){
-				SendMessage(msg.hWndMain, WM_SETICON, ICON_SMALL, (LPARAM)(hIcon));
-				SendMessage(msg.hWndMain, WM_SETICON, ICON_BIG,   (LPARAM)(hIcon));
+				SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)(hIcon));
+				SendMessage(hwnd, WM_SETICON, ICON_BIG,   (LPARAM)(hIcon));
 			}
 			free(v);
 		}
@@ -76,14 +53,14 @@ static void com_init_from_config(void)
 		k = "ui.recv.edit_char.font";
 		if(config_has(g_cfg, k)){
 			v = config_getstr(g_cfg, k, "");
-			set_ctrl_font("edit_recv_char", v);
+			set_ctrl_font(layout, "edit_recv_char", v);
 			free(v);
 		}
 
 		k = "ui.recv.edit_hex.font";
 		if(config_has(g_cfg, k)){
 			v = config_getstr(g_cfg, k, "");
-			set_ctrl_font("edit_recv_hex", v);
+			set_ctrl_font(layout, "edit_recv_hex", v);
 			free(v);
 		}
 	}
@@ -91,21 +68,7 @@ static void com_init_from_config(void)
 
 
 //消息结构体初始化, 构造函数
-int init_msg(void)
-{
-	memset(&msg, 0, sizeof(msg));
-	msg.run_app           = run_app;
-	msg.on_create         = on_create;
-	msg.on_close          = on_close;
-	msg.on_destroy        = on_destroy;
-	msg.on_command        = on_command;
-	msg.on_timer          = on_timer;
-	msg.on_device_change  = on_device_change;
-	msg.on_setting_change = on_setting_change;
-	msg.on_size           = on_size;
-	msg.on_app			  = on_app;
-	return 1;
-}
+
 
 /**************************************************
 函  数:RecvEditWndProc@16
@@ -114,6 +77,7 @@ int init_msg(void)
 返回值:
 说  明:由EM_SETSEL 到 EM_REPLACESEL这其间不允许选中
 **************************************************/
+/*
 WNDPROC OldRecvEditWndProc = NULL;
 LRESULT CALLBACK RecvEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -204,196 +168,13 @@ LRESULT CALLBACK Recv2EditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 _def_proc:
 	return CallWindowProc(OldRecv2EditWndProc, hWnd, uMsg, wParam, lParam);
 }
-
-#define _SETRESULT(_msg,_result,_msgret) \
-	case _msg:SetDlgMsgResult(hWnd,_msg,_result);return _msgret
-LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	switch(uMsg)
-	{
-		//---
-		_SETRESULT(WM_CLOSE,msg.on_close(),1);
-		_SETRESULT(WM_DESTROY,msg.on_destroy(),1);
-		_SETRESULT(WM_COMMAND,msg.on_command((HWND)lParam, LOWORD(wParam), HIWORD(wParam)),1);
-		_SETRESULT(WM_DEVICECHANGE,msg.on_device_change(wParam,(DEV_BROADCAST_HDR*)lParam),1);
-		_SETRESULT(WM_TIMER,msg.on_timer((int)wParam),1);
-		_SETRESULT(WM_SETTINGCHANGE,msg.on_setting_change(),1);
-		_SETRESULT(WM_SIZE,msg.on_size(LOWORD(lParam),HIWORD(lParam)),1);
-		_SETRESULT(WM_APP,msg.on_app(uMsg,wParam,lParam),1);
-		//---
-	case WM_LBUTTONDOWN:
-		SendMessage(msg.hWndMain,WM_NCLBUTTONDOWN,HTCAPTION,0);
-		return 0;
-	case WM_INITDIALOG:
-		msg.on_create(hWnd,(HINSTANCE)GetModuleHandle(NULL));
-		return FALSE;
-	case WM_VSCROLL:
-	case WM_HSCROLL:
-		layout_scroll(layout, uMsg, wParam, lParam);
-		return 0;
-
-	default:return 0;
-	}
 }
-#undef _SETRESULT
-
-//!!!一开始就不应该使用DialogBoxParam的,使用DialogBoxParam却又使用了DestroyWindow,呵呵,我错了
-int run_app(void)
-{
-	HINSTANCE hInstance = GetModuleHandle(NULL);
-	//return DialogBoxParam(hInstance,MAKEINTRESOURCE(IDD_DLG_MAIN),NULL,(DLGPROC)MainWndProc,(LPARAM)hInstance);
-	return (int)CreateDialogA(hInstance,MAKEINTRESOURCE(IDD_DLG_MAIN),NULL,(DLGPROC)MainWndProc);
-}
-
-int on_timer(int id)
-{
-	if(id==TIMER_ID_THREAD){
-		debug_out(("进入on_timer\n"));
-		comm.close(1);
-		comm.update((int*)-1);
-	}
-	KillTimer(msg.hWndMain,TIMER_ID_THREAD);
-	return 0;
-}
-int on_create(HWND hWnd, HINSTANCE hInstance)
-{
-	HICON hIcon = NULL;
-	LOGFONT lf={0};
-
-	//初始化句柄
-	msg.hWndMain = hWnd;
-	msg.hInstance = hInstance;
-	msg.hEditRecv = GetDlgItem(hWnd, IDC_EDIT_RECV);
-	//msg.hEditRecv2 = GetDlgItem(hWnd, IDC_EDIT_RECV2);
-	msg.hEditSend = GetDlgItem(hWnd, IDC_EDIT_SEND);
-	msg.hComPort = NULL;
-
-	msg.hEditRecv2 = CreateWindowEx(0, RICHEDIT_CLASS, NULL, 
-		WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL |
-		ES_MULTILINE | ES_WANTRETURN | ES_AUTOHSCROLL | ES_AUTOVSCROLL |
-		ES_READONLY,
-		0, 0, 100, 100, hWnd, (HMENU)IDC_EDIT_RECV2, hInstance, 0);
-
-	//把窗体移动到屏幕中央
-	utils.center_window(hWnd,NULL);
-	//标题栏图标
-	hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-	SendMessage(msg.hWndMain, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-	SetWindowText(hWnd,COMMON_NAME_AND_VERSION);
-	SetFocus(GetDlgItem(hWnd,IDC_BTN_OPEN));
-	//SetClassLong(hWnd,gcl_)
-
-	//加载快捷键表
-	msg.hAccel = LoadAccelerators(msg.hInstance,MAKEINTRESOURCE(IDR_ACCELERATOR1));
-	
-	//文本显示区接收与发送缓冲大小
-	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_RECV, EM_SETLIMITTEXT, (WPARAM)COMMON_RECV_BUF_SIZE, 0);
-	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_SEND, EM_SETLIMITTEXT, (WPARAM)COMMON_SEND_BUF_SIZE, 0);
-	SendDlgItemMessage(msg.hWndMain, IDC_EDIT_RECV2,EM_SETLIMITTEXT, (WPARAM)COMMON_RECV_BUF_SIZE, 0);
-	OldRecvEditWndProc=(WNDPROC)SetWindowLongPtr(GetDlgItem(msg.hWndMain, IDC_EDIT_RECV), GWL_WNDPROC, (LONG)RecvEditWndProc);
-	OldRecv2EditWndProc=(WNDPROC)SetWindowLongPtr(GetDlgItem(msg.hWndMain, IDC_EDIT_RECV2), GWL_WNDPROC, (LONG)Recv2EditWndProc);
-	//ShowWindow(msg.hEditRecv2,FALSE);
-	//TODO:
-	comm.init();
-	comm.update((int*)-1);
-	if(ComboBox_GetCount(GetDlgItem(hWnd,IDC_CBO_CP))==0)
-		deal.update_status("没有任何可用的串口!");
-
-	memory.manage_mem(MANMEM_INITIALIZE,NULL);//内存管理必须放在所有我自己的内存分配get_mem被调用之前初始化
-	list->init(&list_head);
-	InitializeCriticalSection(&window_critical_section);
-	deal.do_buf_send(SEND_DATA_ACTION_INIT,NULL);
-
-	do{
-		layout = layout_new(hWnd, MAKEINTRESOURCE(IDR_RCDATA2),hInstance);
-		msg.layout = layout;
-		layout_visible(layout_control(layout, "recv_wnd_recv"), FALSE);
-		layout_resize(layout,NULL);
-	}while(0);
-
-	com_init_from_config();
-
-	ShowWindow(hWnd,SW_SHOWNORMAL);
-
-	return 0;
-}
-
-int on_close(void)
-{
-	if(msg.hComPort!=NULL){
-		int ret;
-		ret = utils.msgbox(msg.hWndMain,MB_ICONEXCLAMATION|MB_OKCANCEL, "提示",
-			"当前正处于调试状态, 您确定要退出吗?");
-		if(ret != IDOK)
-			return 0;
-		if(comm.close(0)==0)
-			return 0;
-	}
-	deal.do_buf_send(SEND_DATA_ACTION_FREE,NULL);
-	deal.do_buf_recv(NULL, 0,3);
-	SendMessage(msg.hWndMain,WM_APP+0,2,0);
-	memory.manage_mem(MANMEM_FREE,NULL);
-	DeleteCriticalSection(&window_critical_section);
-	DestroyWindow(msg.hWndMain);
-	return 0;
-}
-
-int on_destroy(void)
-{
-	msg.hWndMain = NULL;
-
-	PostQuitMessage(0);
-	return 0;
-}
-
+}*/
+/*
 int on_command(HWND hWndCtrl, int id, int codeNotify)
 {
-	if(!hWndCtrl && !codeNotify){//Menu
-		switch(id)
-		{
-		//Menu - Other
-		case MENU_OTHER_HELP:about.show();break;
-		case MENU_OTHER_NEWVERSION:about.update();break;
-		case MENU_OTHER_ASCII:ShowAsciiTable();break;
-		case MENU_OTHER_CALC:MessageBox(msg.hWndMain, "not implemented!","",0);break;
-		case MENU_OTHER_NOTEPAD:ShellExecute(NULL,"open","notepad",NULL,NULL,SW_SHOWNORMAL);break;
-		case MENU_OTHER_DEVICEMGR:ShellExecute(NULL,"open","devmgmt.msc",NULL,NULL,SW_SHOWNORMAL);break;
-		case MENU_OTHER_MONITOR:MessageBox(msg.hWndMain, "not implemented!","",0);break;
-		case MENU_OTHER_DRAW:MessageBox(msg.hWndMain, "not implemented!","",0);break;
-		//Menu - More Settings
-		case MENU_MORE_TIMEOUTS:comm.show_timeouts();break;
-		case MENU_MORE_DRIVER:comm.hardware_config();break;
-		case MENU_MORE_PINCTRL:comm.show_pin_ctrl();break;
-		case MENU_OTHER_STR2HEX:ShowStr2Hex();break;
-		//Menu - EditBox
-		case MENU_EDIT_CHINESE:comm.switch_disp();break;
-		case MENU_EDIT_SEND_INPUT_CHAR:comm.switch_send_input_char();break;
-		case MENU_EDIT_EMPTY: SetWindowText(msg.hEditRecv2, "");break; //可能导致与add_text冲突
-		}
-		return 0;
-	}
-	if(!hWndCtrl && codeNotify==1)
-	{
-		switch(id)
-		{
-		case IDACC_SEND:		SendMessage(msg.hWndMain,WM_COMMAND,MAKEWPARAM(IDC_BTN_SEND,BN_CLICKED),(LPARAM)GetDlgItem(msg.hWndMain,IDC_BTN_SEND));break;
-		case IDACC_OPEN:		SendMessage(msg.hWndMain,WM_COMMAND,MAKEWPARAM(IDC_BTN_OPEN,BN_CLICKED),(LPARAM)GetDlgItem(msg.hWndMain,IDC_BTN_OPEN));break;
-		case IDACC_CLRCOUNTER:	SendMessage(msg.hWndMain,WM_COMMAND,MAKEWPARAM(IDC_BTN_CLR_COUNTER,BN_CLICKED),(LPARAM)GetDlgItem(msg.hWndMain,IDC_BTN_CLR_COUNTER));break;
-		case IDACC_STOPDISP:	SendMessage(msg.hWndMain,WM_COMMAND,MAKEWPARAM(IDC_BTN_STOPDISP,BN_CLICKED),(LPARAM)GetDlgItem(msg.hWndMain,IDC_BTN_STOPDISP));break;
-		}
-		return 0;
-	}
-
 	switch(id)
 	{
-	case IDC_RADIO_SEND_CHAR:
-	case IDC_RADIO_SEND_HEX:
-	case IDC_RADIO_RECV_CHAR:
-	case IDC_RADIO_RECV_HEX:
-	case IDC_CHECK_IGNORE_RETURN:
-	case IDC_CHECK_USE_ESCAPE_CHAR:
-		comm.set_data_fmt();
-		return 0;
 	case IDC_BTN_STOPDISP:
 		{
 			if(comm.fShowDataReceived){//点击了暂停显示,进入到暂停模式
@@ -417,38 +198,6 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 			deal.update_savebtn_status();
 			return 0;
 		}
-	case IDC_BTN_COPY_RECV:
-	case IDC_BTN_COPY_SEND:
-		{
-			char* buffer = NULL;
-			int length = 0;
-			if(id==IDC_BTN_COPY_RECV&&comm.fShowDataReceived&&msg.hComPort!=NULL){
-				utils.msgbox(msg.hWndMain,MB_ICONEXCLAMATION,COMMON_NAME,
-					"在显示模式下不允许复制接收区数据!\n"
-					"请点击 停止显示 切换到暂停显示模式.");
-				return 0;
-			}
-			length = GetWindowTextLength(GetDlgItem(msg.hWndMain, id==IDC_BTN_COPY_RECV?(comm.data_fmt_recv==DATA_FMT_HEX?IDC_EDIT_RECV:IDC_EDIT_RECV2):IDC_EDIT_SEND));
-			if(length == 0){
-				MessageBeep(MB_ICONINFORMATION);
-				//应lin0119要求, 取消复制成功的提示
-				//utils.msgbox(msg.hWndMain,MB_ICONQUESTION,COMMON_NAME,"什么都没有,你想复制啥?");
-				return 0;
-			}
-			buffer = (char*)GET_MEM(length+1);
-			if(buffer==NULL) return 0;
-
-			GetDlgItemText(msg.hWndMain, id==IDC_BTN_COPY_RECV?(comm.data_fmt_recv==DATA_FMT_HEX?IDC_EDIT_RECV:IDC_EDIT_RECV2):IDC_EDIT_SEND, buffer, length+1);
-			if(!utils.set_clip_data(buffer)){
-				utils.msgbox(msg.hWndMain,MB_ICONHAND, NULL, "操作失败!");
-			}else{
-				//应lin0119要求, 取消复制成功的提示
- 				//utils.msgbox(msg.hWndMain,MB_ICONINFORMATION, COMMON_NAME, 
- 				//	"已复制 %s区 数据到剪贴板!", id==IDC_BTN_COPY_RECV?"接收":"发送");
-			}
-			memory.free_mem((void**)&buffer,NULL);
-			return 0;
-		}
 	case IDC_BTN_LOADFILE:
 		{
 			RECT rc;
@@ -463,15 +212,7 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 	case IDC_BTN_SAVEFILE:
 		comm.save_to_file();
 		return 0;
-	case IDC_BTN_HELP:
-		{
-			HMENU hMenu;
-			POINT pt;
-			hMenu=GetSubMenu(LoadMenu(msg.hInstance,MAKEINTRESOURCE(IDR_MENU_OTHER)),0);
-			GetCursorPos(&pt);
-			TrackPopupMenu(hMenu,TPM_LEFTALIGN,pt.x,pt.y,0,msg.hWndMain,NULL);
-			return 0;
-		}
+
 	case IDC_EDIT_RECV:
 		if(codeNotify==EN_ERRSPACE || codeNotify==EN_MAXTEXT){
 			int ret;
@@ -511,160 +252,20 @@ int on_command(HWND hWndCtrl, int id, int codeNotify)
 	case IDC_BTN_SEND:
 		deal.do_send(0);
 		return 0;
-	case IDC_BTN_CLR_COUNTER:
-		//未发送计数不需要清零
-		InterlockedExchange((long volatile*)&comm.cchSent, 0);
-		InterlockedExchange((long volatile*)&comm.cchReceived, 0);
-		deal.update_status(NULL);
-		return 0;
-	case IDC_BTN_CLR_SEND:
-		deal.cancel_auto_send(0);
-		SetDlgItemText(msg.hWndMain,IDC_EDIT_SEND,"");
-		return 0;
-	case IDC_BTN_CLR_RECV:
-		{
-			//我觉得同时清除16进制数据和字符数据是有必要的, 不管了, 提醒下再说~
-			int r = utils.msgbox(msg.hWndMain, MB_ICONQUESTION|MB_YESNOCANCEL, 
-				"提示",
-				"您选择了清除接收区的数据!\n\n"
-				"是\t仅清除 %s 数据\n"
-				"否\t清除十六进制数据和字符数据\n"
-				"取消\t取消本次操作",
-				comm.data_fmt_recv?"十六进制":"字符"
-				);
-			switch(r)
-			{
-			case IDCANCEL:
-				return 0;
-				break;
-			case IDNO:
-				SetDlgItemText(msg.hWndMain,IDC_EDIT_RECV,"");
-				SetDlgItemText(msg.hWndMain,IDC_EDIT_RECV2,"");
-				break;
-			case IDYES:
-				SetDlgItemText(msg.hWndMain,comm.data_fmt_recv==DATA_FMT_HEX?IDC_EDIT_RECV:IDC_EDIT_RECV2,"");
-				break;
-			}
-			//
-			if(comm.data_fmt_recv==DATA_FMT_HEX) InterlockedExchange((long volatile*)&comm.data_count,0);
-			return 0;
-		}
-	case IDC_CHK_TOP:
-		{
-			int flag = IsDlgButtonChecked(msg.hWndMain, IDC_CHK_TOP);
-			SetWindowPos(msg.hWndMain,flag?HWND_TOPMOST:HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
-			BringWindowToTop(msg.hWndMain);
-			return 0;
-		}
-	case IDC_CHECK_SIMPLE:
-		{
-			int flag = !IsDlgButtonChecked(msg.hWndMain, IDC_CHECK_SIMPLE);
-
-			if(!flag){ // 简洁模式
-				layout_visible(layout_control(layout, "recv_btns"), FALSE);
-				layout_visible(layout_control(layout, "simple_mode_help_btn"), TRUE);
-				layout_visible(layout_control(layout, "simple_mode_panel"), TRUE);
-			}
-			else{
-				layout_visible(layout_control(layout, "simple_mode_panel"), FALSE);
-				layout_visible(layout_control(layout, "recv_btns"), TRUE);
-			}
-
-			layout_visible(layout_control(layout, "send_wnd"), flag);
-			layout_visible(layout_control(layout, "send_btns"), flag);
-			layout_visible(layout_control(layout, "auto_send"), flag);
-			layout_visible(layout_control(layout, "send_fmt"), flag);
-
-			SendMessage(msg.hWndMain, WM_SIZE, 0, 0);
-			return 0;
-		}
 	case IDC_CHK_AUTO_SEND:
 		deal.check_auto_send();
 		return 0;
 	case IDC_BTN_OPEN:
 		{
-			if(comm.fCommOpened){
-				if(comm.close(0)){
-					comm.update((int*)-1);
-				}
-			}else{
-				comm.open();
-			}
 			deal.update_savebtn_status();
 			return 0;
 		}
-	case IDC_BTN_MORE_SETTINGS:
-		{
-			POINT pt;
-			HMENU hMenu;
-			GetCursorPos(&pt);
-			hMenu=GetSubMenu(LoadMenu(msg.hInstance,MAKEINTRESOURCE(IDR_MENU_MORE)),0);
-			TrackPopupMenu(hMenu,TPM_LEFTALIGN,pt.x,pt.y,0,msg.hWndMain,NULL);
-			return 0;
-		}
-	case IDC_CBO_CP:
-		{
-			static RECT rc;
-			static char is_there_any_item;
-			if(codeNotify == CBN_DROPDOWN){
-				GetWindowRect(hWndCtrl,&rc);
-				ShowWindow(msg.hEditRecv,FALSE);
-				ShowWindow(msg.hEditRecv2,FALSE);
-				ShowWindow(GetDlgItem(msg.hWndMain,IDC_STATIC_RECV),FALSE);
-				SetWindowPos(hWndCtrl,0,0,0,rc.right-rc.left+300,rc.bottom-rc.top,SWP_NOMOVE|SWP_NOZORDER);
-				if(ComboBox_GetCount(hWndCtrl)==0){
-					ComboBox_AddString(hWndCtrl,"< 没 有 找 到 任 何 可 用 的 串 口 ! >  点 击 刷 新 列 表");
-					is_there_any_item = 0;
-				}else{
-					is_there_any_item = 1;
-				}
-				//utils.msgbox(0,NULL,(char*)comm.update((int*)(16+ComboBox_GetCurSel(hWndCtrl))));
-				return 0;
-			}else if(codeNotify == CBN_SELENDOK || codeNotify==CBN_SELENDCANCEL){
-				SetWindowPos(hWndCtrl,0,0,0,rc.right-rc.left,rc.bottom-rc.top,SWP_NOMOVE|SWP_NOZORDER);
-				ShowWindow(comm.data_fmt_recv==DATA_FMT_HEX?msg.hEditRecv:msg.hEditRecv2,TRUE);
-				ShowWindow(GetDlgItem(msg.hWndMain,IDC_STATIC_RECV),TRUE);
-				if(is_there_any_item==0){
-					ComboBox_ResetContent(hWndCtrl);
-					comm.update((int*)-1);
-				}
-				return 0;
-			}
-			break;
-		}
-	case IDC_CBO_BR:
-		{
-			if(codeNotify == CBN_SELCHANGE){
-				int count=ComboBox_GetCount(hWndCtrl);
-				if(ComboBox_GetCurSel(hWndCtrl)==count-1){
-					int value;
-					extern BOOL GetNewBR(HWND hParent,int* value);
 
-					if(GetNewBR(msg.hWndMain,&value))
-					{
-						char s[128];
-						sprintf(s,"%d",value);
-						ComboBox_InsertString(hWndCtrl,count-1,s);
-						ComboBox_SetCurSel(hWndCtrl,count-1);
-					}else{
-						ComboBox_SetCurSel(hWndCtrl,0);
-					}
-					return 0;
-				}
-			}
-			return 0;
-		}
 	}
 	return 0;
 }
-/**************************************************
-函  数:on_device_change@8
-功  能:在设备发生改变检测串口设备的改动
-参  数:	event - 设备事件
-		pDBH - DEV_BROADCAST_HDR*
-返回值:见MSDN
-说  明:有没有看到大量重复的代码, 有木有!!!
-**************************************************/
+*/
+/*
 #if _MSC_VER > 1200			//compatible with vc6.0
 #define  strnicmp _strnicmp
 #endif
@@ -705,54 +306,955 @@ int on_device_change(WPARAM event, DEV_BROADCAST_HDR* pDBH)
 	}
 	return TRUE;
 }
+*/
+// int on_setting_change(void)
+// {
+// 	if(msg.hComPort == NULL){
+// 		extern HWND hComPort;
+// 		comm.update((int*)-1);
+// 		if(ComboBox_GetCount(hComPort)){
+// 			ComboBox_SetCurSel(hComPort,0);
+// 		}
+// 	}
+// 	return 0;
+// }
 
-int on_setting_change(void)
-{
-	if(msg.hComPort == NULL){
-		extern HWND hComPort;
-		comm.update((int*)-1);
-		if(ComboBox_GetCount(hComPort)){
-			ComboBox_SetCurSel(hComPort,0);
-		}
-	}
-	return 0;
-}
-
-int on_size(int width,int height)
-{
-	layout_resize(layout, NULL);
-	return 0;
-}
-
-int on_app(UINT uMsg,WPARAM wParam,LPARAM lParam)
-{
-	switch(uMsg-WM_APP)
+namespace Common {
+	//////////////////////////////////////////////////////////////////////////
+	CComWnd::CComWnd()
+		: m_layout(0)
+		, m_hAccel(0)
 	{
-	case 0:
-		EnterCriticalSection(&window_critical_section);
-		if(wParam==0){
-			WINDOW_ITEM* pitem = (WINDOW_ITEM*)GET_MEM(sizeof(WINDOW_ITEM));
-			pitem->hWnd = (HWND)lParam;
-			list->insert_tail(&list_head,&pitem->entry);
-		}else if(wParam==1){
-			list_s* p = NULL;
-			for(p=list_head.next; p!=&list_head; p=p->next){
-				WINDOW_ITEM* pitem =  list_data(p,WINDOW_ITEM,entry);
-				if(pitem->hWnd == (HWND)lParam){
-					list->remove(&list_head,p);
-					memory.free_mem((void**)&pitem,NULL);
-					break;
-				}
-			}
-		}else if(wParam==2){
-			while(!list->is_empty(&list_head)){
-				WINDOW_ITEM* pitem = list_data(list->remove_head(&list_head),WINDOW_ITEM,entry);
-				DestroyWindow(pitem->hWnd);
-				memory.free_mem((void**)&pitem,NULL);
-			}
+		_b_send_data_format_hex = false; // 字符
+		_send_data_format_hex   = SendDataFormatHex::sdfh_kNone;
+		_send_data_format_char  = SendDataFormatChar::sdfc_kNone;
+		_recv_cur_edit          = NULL;
+	}
+
+	CComWnd::~CComWnd()
+	{
+
+	}
+
+	LRESULT CComWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+	{
+		switch(uMsg)
+		{
+		case WM_INITDIALOG:		return on_create(m_hWnd, GetModuleHandle(0));
+		case WM_VSCROLL: case WM_HSCROLL: return on_scroll(uMsg, wParam, lParam);
+		case WM_SIZE:			
+			__super::HandleMessage(uMsg, wParam, lParam, bHandled);
+			return on_size(LOWORD(lParam), HIWORD(lParam));
+		case WM_CLOSE:			return on_close();
+		case WM_COMMAND:		return on_command(HWND(lParam), LOWORD(wParam), HIWORD(wParam));
+		case WM_DEVICECHANGE:	return on_device_change(wParam, (DEV_BROADCAST_HDR*)lParam);
 		}
-		LeaveCriticalSection(&window_critical_section);
+		if (uMsg >= WM_APP && uMsg <= 0xBFFF)
+			return on_app(uMsg, wParam, lParam);
+
+		return __super::HandleMessage(uMsg, wParam, lParam, bHandled);
+	}
+
+	void CComWnd::OnFinalMessage( HWND hWnd )
+	{
+		__super::OnFinalMessage(hWnd);
+		PostQuitMessage(0);
+	}
+
+	LRESULT CComWnd::on_create( HWND hWnd, HINSTANCE hInstance )
+	{
+		SetWindowText(hWnd, COMMON_NAME_AND_VERSION);
+
+		memory.set_notifier(this);
+
+		struct {HWND* phwnd; UINT  id;}hwndlist[] = {
+				{&_hCP,		IDC_CBO_CP},
+				{&_hBR,		IDC_CBO_BR},
+				{&_hPA,		IDC_CBO_CHK},
+				{&_hSB,		IDC_CBO_STOP},
+				{&_hDB,		IDC_CBO_DATA},
+				{&_hStatus,	IDC_STATIC_STATUS},
+				{&_hOpen,	IDC_BTN_OPEN},
+		};
+
+		for (int i = 0; i < sizeof(hwndlist) / sizeof(hwndlist[0]); i++){
+			SMART_ENSURE(*hwndlist[i].phwnd = ::GetDlgItem(m_hWnd, hwndlist[i].id), !=NULL)(i).Fatal();
+		}
+
+		editor_recv_char()->Create(hWnd, "", WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | ES_READONLY |
+			ES_MULTILINE | ES_WANTRETURN | ES_AUTOHSCROLL | ES_AUTOVSCROLL ,
+			0, 0,0,0,0, (HMENU)IDC_EDIT_RECV2);
+		editor_recv_hex()->Attach(::GetDlgItem(hWnd, IDC_EDIT_RECV));
+		editor_send()->Attach(::GetDlgItem(hWnd, IDC_EDIT_SEND));
+
+		editor_recv_hex()->limit_text(COMMON_RECV_BUF_SIZE);
+		editor_recv_char()->limit_text(COMMON_RECV_BUF_SIZE);
+		editor_send()->limit_text(COMMON_SEND_BUF_SIZE);
+
+		SendMessage(WM_SETICON, ICON_SMALL, LPARAM(LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1))));
+
+		m_hAccel = ::LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
+
+		m_layout = ::layout_new(hWnd, MAKEINTRESOURCE(IDR_RCDATA2), hInstance);
+		layout_visible(layout_control(m_layout, "recv_wnd_recv"), FALSE);
+		layout_resize(m_layout, NULL);
+
+		// 界面元素
+		::SendMessage(_hCP, CB_SETDROPPEDWIDTH, 350, 0);
+		::SetDlgItemText(m_hWnd, IDC_STATIC_TIMER, "00:00:00");
+		
+		// 界面预定义
+		switch_simple_ui(true, false);
+		switch_window_top_most(true, false);
+		switch_send_data_format(true, false);
+		switch_recv_data_format(true, false);
+
+		// 相关接口
+		_comm.set_notifier(this);
+		_comm.counter()->set_updater(this);
+		_timer.set_timer(this);
+		_timer.set_notifier(this);
+
+		// 接收器
+		_hex_data_receiver.set_editor(&_recv_hex_edit);
+		_text_data_receiver.set_editor(&_recv_char_edit);
+		_comm.add_data_recerver(&_hex_data_receiver);
+		_comm.add_data_recerver(&_text_data_receiver);
+
+		com_init_from_config(hWnd, m_layout);
+
+		com_update_item_list();
+		com_add_prompt_if_no_cp_presents();
+
+
+
+		// 欢迎语
+		update_status("欢迎使用 Common串口调试工具! Enjoy! :-)");
+
 		return 0;
 	}
-	return 0;
+
+	LRESULT CComWnd::on_scroll( UINT uMsg, WPARAM wParam, LPARAM lParam )
+	{
+		layout_scroll(m_layout, uMsg, wParam, lParam);
+		return 0;
+	}
+
+	LRESULT CComWnd::on_size( int width,int height )
+	{
+		layout_resize(m_layout, NULL);
+		return 0;
+	}
+
+	LRESULT CComWnd::on_close()
+	{
+
+		if (_comm.is_opened()){
+			com_try_close(true);
+		}
+
+		::DestroyWindow(*this);
+		return 0;
+	}
+
+	LRESULT CComWnd::on_destroy()
+	{
+		return 0;
+	}
+
+	LRESULT CComWnd::on_command( HWND hWndCtrl, int id, int codeNotify )
+	{
+		if (!hWndCtrl){
+			if (codeNotify == 0)
+				return on_command_menu(id);
+			else
+				return on_command_acce(id);
+		}
+		else{
+			return on_command_ctrl(hWndCtrl, id, codeNotify);
+		}
+	}
+
+	LRESULT CComWnd::on_device_change( WPARAM event, DEV_BROADCAST_HDR* pDBH )
+	{
+		return 0;
+	}
+
+	LRESULT CComWnd::on_setting_change()
+	{
+		return 0;
+	}
+
+	LRESULT CComWnd::on_app(UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		PrivateMessage pm = (PrivateMessage)uMsg;
+		switch (pm)
+		{
+		case kUpdateCounter:
+		{
+			long* a = (long*)lParam;
+			char status[128] = { "状态: " };
+			sprintf(status + 6, "接收计数:%u,发送计数:%u,等待发送:%u", a[0],a[1],a[2]);
+			SetWindowText(_hStatus, status);
+			return 0;
+		}
+		case kUpdateStatus:
+		{
+			::SetWindowText(_hStatus, (LPCTSTR)lParam);
+			return 0;
+		}
+		case kUpdateTimer:
+		{
+			const char* tstr = (const char*)lParam;
+			::SetDlgItemText(m_hWnd, IDC_STATIC_TIMER, tstr);
+			return 0;
+		}
+		}
+		return 0;
+	}
+
+	void CComWnd::com_update_item_list()
+	{
+		list_callback_ud ud;
+		ud.that = this;
+
+		struct {
+			list_callback_ud::e_type type;
+			i_com_list* plist;
+			HWND hwnd;
+		} ups[] = {
+			{list_callback_ud::e_type::cp, _comm.comports()->update_list() , _hCP},
+			{list_callback_ud::e_type::br, _comm.baudrates()->update_list() , _hBR},
+			{list_callback_ud::e_type::pa, _comm.parities()->update_list() , _hPA},
+			{list_callback_ud::e_type::sb, _comm.stopbits()->update_list() , _hSB},
+			{list_callback_ud::e_type::db, _comm.databits()->update_list() , _hDB},
+		};
+
+		for(int i=0; i<sizeof(ups)/sizeof(*ups); i++){
+			ud.type = ups[i].type;
+			ud.hwnd = ups[i].hwnd;
+			ComboBox_ResetContent(ud.hwnd);
+			ups[i].plist->callback(&CComWnd::com_udpate_list_callback, &ud);
+			if (ComboBox_GetCount(ud.hwnd) > 0){
+				ComboBox_SetCurSel(ud.hwnd, 0);
+			}
+		}
+	}
+
+	void CComWnd::com_udpate_list_callback( void* ud, const t_com_item* t )
+	{
+		list_callback_ud* pud = (list_callback_ud*)ud;
+		CComWnd* that = pud->that;
+		int index = -1;
+
+		if(pud->type == list_callback_ud::e_type::cp){
+			c_comport* d = (c_comport*)t;
+			SMART_ENSURE(index = ComboBox_InsertString(pud->hwnd, -1, d->get_id_and_name().c_str()), >= 0).Warning();
+		}
+		else{
+			SMART_ENSURE(index=ComboBox_InsertString(pud->hwnd, -1, t->get_s().c_str()), >= 0).Warning();
+		}
+		if (index >= 0){
+			ComboBox_SetItemData(pud->hwnd, index, t);
+		}
+	}
+
+	bool CComWnd::com_flush_settings_from_combobox()
+	{
+		CComm::s_setting_comm ssc;
+
+		// baudrate
+		t_com_item*  item = (t_com_item*)ComboBox_GetItemData(_hBR, ComboBox_GetCurSel(_hBR));
+		ssc.baud_rate = item->get_i();
+
+		// parity
+		item = (t_com_item*)ComboBox_GetItemData(_hPA, ComboBox_GetCurSel(_hPA));
+		ssc.parity = item->get_i();
+
+		// databit
+		item = (t_com_item*)ComboBox_GetItemData(_hDB, ComboBox_GetCurSel(_hDB));
+		ssc.databit = item->get_i();
+
+		// stopbit
+		item = (t_com_item*)ComboBox_GetItemData(_hSB, ComboBox_GetCurSel(_hSB));
+		ssc.stopbit = item->get_i();
+
+		return _comm.setting_comm(&ssc);
+	}
+
+	void CComWnd::com_update_comport_list()
+	{
+		i_com_list* list = _comm.comports()->update_list();
+		list_callback_ud ud;
+		ud.that = this;
+		ud.type = list_callback_ud::e_type::cp;
+		ud.hwnd = _hCP;
+		ComboBox_ResetContent(ud.hwnd);
+		list->callback(&CComWnd::com_udpate_list_callback, &ud);
+		if (ComboBox_GetCount(ud.hwnd) > 0){
+			ComboBox_SetCurSel(ud.hwnd, 0);
+		}
+	}
+
+	LRESULT CComWnd::on_command_menu(int id)
+	{
+		// 工具箱/帮助菜单
+		switch (id)
+		{
+		case MENU_OTHER_HELP:		(new c_about_dlg)->do_modal(this); break;
+		case MENU_OTHER_STR2HEX:	(new c_str2hex_dlg)->do_modeless(this); break;
+		case MENU_OTHER_ASCII:		(new c_asctable_dlg)->do_modeless(this);break;
+		case MENU_OTHER_CALC:		::ShellExecute(m_hWnd, "open", "calc", NULL, NULL, SW_SHOWNORMAL);	break;
+		case MENU_OTHER_NOTEPAD:	::ShellExecute(m_hWnd, "open", "notepad", NULL, NULL, SW_SHOWNORMAL); break;
+		case MENU_OTHER_DEVICEMGR:	::ShellExecute(m_hWnd, "open", "devmgmt.msc", NULL, NULL, SW_SHOWNORMAL); break;
+
+		case MENU_OTHER_MONITOR:
+		case MENU_OTHER_DRAW:
+			msgbox(MB_ICONINFORMATION,0,"not implemented!"); break;
+		case MENU_OTHER_NEWVERSION:break;
+
+		}
+		return 0;
+	}
+
+	LRESULT CComWnd::on_command_acce(int id)
+	{
+		switch (id)
+		{
+		case IDACC_SEND:		return on_command_ctrl(GetDlgItem(m_hWnd, IDC_BTN_SEND), IDC_BTN_SEND, BN_CLICKED);
+		case IDACC_OPEN:		return on_command_ctrl(GetDlgItem(m_hWnd, IDC_BTN_OPEN), IDC_BTN_OPEN, BN_CLICKED);
+		case IDACC_CLRCOUNTER:	return on_command_ctrl(GetDlgItem(m_hWnd, IDC_BTN_CLR_COUNTER), IDC_BTN_CLR_COUNTER, BN_CLICKED);
+		case IDACC_STOPDISP:	return on_command_ctrl(GetDlgItem(m_hWnd, IDC_BTN_STOPDISP), IDC_BTN_STOPDISP, BN_CLICKED);
+		}
+		return 0;
+	}
+
+	LRESULT CComWnd::on_command_ctrl(HWND hwnd, int id, int code)
+	{
+		switch (id)
+		{
+		case IDC_BTN_SEND:
+			if (code == BN_CLICKED){
+				com_do_send();
+				return 0;
+			}
+			break;
+		case IDC_BTN_OPEN:
+			if (code == BN_CLICKED){
+				if (_comm.is_opened()){
+					if (com_try_close(true)){
+						com_lock_ui_panel(false);
+						com_update_comport_list();
+						com_add_prompt_if_no_cp_presents();
+						com_update_open_btn_text();
+						_timer.stop();
+						return 0;
+					}
+				}
+				else{
+					if (com_try_open()){
+						if (!com_flush_settings_from_combobox()){
+							com_try_close(false);
+							return 0;
+						}
+						_comm.begin_threads();
+						com_lock_ui_panel(true);
+						com_update_open_btn_text();
+						update_status("串口已打开!");
+						_timer.start();
+						return 0;
+					}
+				}
+			}
+			break;
+		case IDC_BTN_MORE_SETTINGS:
+			if (code == BN_CLICKED){
+				POINT pt;
+				HMENU hMenu;
+				::GetCursorPos(&pt);
+				hMenu = ::GetSubMenu(::LoadMenu(theApp.instance(), MAKEINTRESOURCE(IDR_MENU_MORE)), 0);
+				::TrackPopupMenu(hMenu, TPM_LEFTALIGN|TPM_LEFTBUTTON, pt.x, pt.y, 0, *this, NULL);
+				return 0;
+			}
+			break;
+		case IDC_CBO_CP:
+			// todo: buggy, multi times update
+			if (code == CBN_SELENDOK || code == CBN_SELENDCANCEL){
+				if (ComboBox_GetCount(hwnd) == 1){
+					int itemdata = ComboBox_GetItemData(hwnd, 0);
+					if (itemdata == 0){
+						com_update_comport_list();
+						com_add_prompt_if_no_cp_presents();
+					}
+				}
+			}
+			break;
+
+		case IDC_RADIO_SEND_CHAR:
+		case IDC_RADIO_SEND_HEX:
+			if (code == BN_CLICKED){
+				switch_send_data_format();
+				return 0;
+			}
+			break;
+		case IDC_RADIO_RECV_CHAR:
+		case IDC_RADIO_RECV_HEX:
+			if (code == BN_CLICKED){
+				switch_recv_data_format();
+				return 0;
+			}
+			break;
+		case IDC_BTN_SEND_FMT_CONFIG:
+			if (code == BN_CLICKED){
+				bool bchar = is_send_data_format_char();
+				c_send_data_format_dlg* psdf = new c_send_data_format_dlg(
+					bchar, bchar ? &_send_data_format_char : &_send_data_format_hex);
+				psdf->do_modal(this);
+				return 0;
+			}
+			break;
+		// 接收数据中间的按钮
+		case IDC_BTN_HELP:
+			if(code==BN_CLICKED){
+				HMENU hMenu;
+				POINT pt;
+				hMenu = ::GetSubMenu(::LoadMenu(theApp.instance(), MAKEINTRESOURCE(IDR_MENU_OTHER)), 0);
+				::GetCursorPos(&pt);
+				::TrackPopupMenu(hMenu, TPM_LEFTALIGN, pt.x, pt.y, 0, *this, NULL);
+				return 0;
+			}
+			break;
+		// 发送数据按钮
+		case IDC_BTN_CLR_COUNTER:
+			if(code==BN_CLICKED){
+				//未发送计数不需要清零
+				c_data_counter* counter = _comm.counter();
+				counter->reset_wr_rd();
+				counter->call_updater();
+				return 0;
+			}
+			break;
+
+		// 数据复制按钮
+		case IDC_BTN_COPY_RECV:
+			if (code == BN_CLICKED){
+				if (_recv_cur_edit && ::IsWindow(*_recv_cur_edit)){
+					com_copy_text_data_to_clipboard(*_recv_cur_edit);
+					return 0;
+				}
+				else{
+					msgbox(MB_ICONINFORMATION, "", "当前没有数据显示控件!");
+					return 0;
+				}
+			}
+			break;
+		case IDC_BTN_COPY_SEND:
+			if(code==BN_CLICKED){
+				com_copy_text_data_to_clipboard(_send_edit);
+				return 0;
+			}
+			break;
+
+		// 数据清除按钮
+		case IDC_BTN_CLR_RECV:
+		case IDC_BTN_CLR_SEND:
+			if (code == BN_CLICKED){
+				if (id == IDC_BTN_CLR_SEND){
+					editor_send()->clear();
+				}
+				else if (id == IDC_BTN_CLR_RECV){
+					editor_recv_hex()->clear();
+					editor_recv_char()->clear();
+					_hex_data_receiver.set_count(0);
+				}
+				return 0;
+			}
+			break;
+		// 置顶 && 简洁模式
+		case IDC_CHK_TOP:
+			if (code == BN_CLICKED){
+				switch_window_top_most();
+				return 0;
+			}
+			break;
+		case IDC_CHECK_SIMPLE:
+			if (code == BN_CLICKED){
+				switch_simple_ui();
+				return 0;
+			}
+			break;
+
+		// 从文件加载
+		case IDC_BTN_LOADFILE:
+			if (code == BN_CLICKED){
+				com_load_file();
+				return 0;
+			}
+			break;
+		}
+
+		return 0;
+	}
+	  
+	void CComWnd::com_lock_ui_panel(bool lock)
+	{
+		HWND ids[] = { _hCP,_hBR,_hPA,_hSB,_hDB};
+		for (int i = 0; i < sizeof(ids) / sizeof(ids[0]); i++){
+			::EnableWindow(ids[i], lock ? FALSE : TRUE);
+		}
+	}
+
+	bool CComWnd::com_try_close(bool b_thread_started)
+	{
+		if (!_comm.is_opened())
+			return true;
+
+		if(b_thread_started){
+			c_send_data_packet* psdp = _comm.alloc_packet(0);
+			psdp->type = csdp_type::csdp_exit;
+			_comm.put_packet(psdp, true);
+			_comm.end_threads();
+		}
+
+		_comm.close();
+		return true;
+	}
+
+	bool CComWnd::com_try_open()
+	{
+		int cursel = ComboBox_GetCurSel(_hCP);
+		t_com_item* pi = (t_com_item*)(cursel == -1 ? 0 : ComboBox_GetItemData(_hCP,cursel));
+		if (!pi){
+			msgbox(MB_ICONEXCLAMATION, NULL, "没有可用的串口, 请点击串口列表刷新!");
+			return false;
+		}
+
+		return _comm.open(pi->get_i());
+	}
+
+	void CComWnd::com_add_prompt_if_no_cp_presents()
+	{
+		int count = ComboBox_GetCount(_hCP);
+		if (count == 0){
+			ComboBox_InsertString(_hCP, -1, "< 没 有 找 到 任 何 可 用 的 串 口 ! >  点 击 刷 新 列 表");
+			ComboBox_SetItemData(_hCP, 0, 0);
+			update_status("没有找到可用的串口!");
+		}
+		else{
+			update_status("共找到 %d 个串口设备!", count);
+		}
+	}
+
+	void CComWnd::update_counter(long rd, long wr, long uw)
+	{
+		long a[3] = { rd, wr, uw };
+		SendMessage(kUpdateCounter, 0, LPARAM(&a[0]));
+	}
+
+	void CComWnd::update_status(const char* fmt, ...)
+	{
+		va_list va;
+		char smsg[1024] = { 0 };
+		va_start(va, fmt);
+		_vsnprintf(smsg, sizeof(smsg), fmt, va);
+		va_end(va);
+		SendMessage(kUpdateStatus, 0, LPARAM(smsg));
+	}
+
+	void CComWnd::com_update_open_btn_text()
+	{
+		::SetWindowText(_hOpen, _comm.is_opened() ? "关闭串口(&W)" : "打开串口(&W)");
+	}
+
+	void CComWnd::update_timer(int h, int m, int s)
+	{
+		char tstr[9];
+		sprintf(tstr, "%02d:%02d:%02d", h, m, s);
+		SendMessage(kUpdateTimer, 0, LPARAM(tstr));
+	}
+
+	void CComWnd::switch_simple_ui(bool manual/* = false*/, bool bsimple/* = false*/)
+	{
+		if (manual){
+			::CheckDlgButton(m_hWnd, IDC_CHECK_SIMPLE, bsimple ? BST_CHECKED : BST_UNCHECKED);
+		}
+		else{
+			bsimple = !!::IsDlgButtonChecked(m_hWnd, IDC_CHECK_SIMPLE);
+		}
+
+		// 因为有些布局共用了相同的控件, 所以设置隐藏有先后顺序
+		if (bsimple){ // 简洁模式
+			layout_visible(layout_control(m_layout, "recv_btns"), FALSE);
+			layout_visible(layout_control(m_layout, "simple_mode_help_btn"), TRUE);
+			layout_visible(layout_control(m_layout, "simple_mode_panel"), TRUE);
+		}
+		else{
+			layout_visible(layout_control(m_layout, "simple_mode_panel"), FALSE);
+			layout_visible(layout_control(m_layout, "recv_btns"), TRUE);
+		}
+
+		layout_visible(layout_control(m_layout, "send_wnd"), !bsimple);
+		layout_visible(layout_control(m_layout, "send_btns"), !bsimple);
+		//layout_visible(layout_control(m_layout, "auto_send"), !bsimple);
+		layout_visible(layout_control(m_layout, "send_fmt"), !bsimple);
+
+		layout_resize(m_layout, 0);
+		return;
+	}
+
+	void CComWnd::switch_window_top_most(bool manual/*=false*/, bool topmost /*= true*/)
+	{
+		if (manual){
+			::CheckDlgButton(m_hWnd, IDC_CHK_TOP, topmost ? BST_CHECKED : BST_UNCHECKED);
+		}
+		else{
+			topmost = !!::IsDlgButtonChecked(m_hWnd, IDC_CHK_TOP);
+		}
+
+		::SetWindowPos(m_hWnd, topmost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	}
+
+	void CComWnd::switch_send_data_format(bool manual/*=false*/, bool bhex/*=false*/, DWORD fmthex/*=0*/, DWORD fmtchar/*=0*/)
+	{
+		if (manual){
+			_b_send_data_format_hex = bhex;
+			::CheckRadioButton(m_hWnd, IDC_RADIO_SEND_HEX, IDC_RADIO_SEND_CHAR,
+				_b_send_data_format_hex ? IDC_RADIO_SEND_HEX : IDC_RADIO_SEND_CHAR);
+		}
+		else{
+			_b_send_data_format_hex = !!::IsDlgButtonChecked(m_hWnd, IDC_RADIO_SEND_HEX);
+		}
+	}
+
+
+	void CComWnd::switch_recv_data_format(bool manual /*= false*/, bool bhex /*= false*/, DWORD fmthex /*= 0*/, DWORD fmtchar /*= 0*/)
+	{
+		if (manual){
+			_b_recv_data_format_hex = bhex;
+			::CheckRadioButton(m_hWnd, IDC_RADIO_RECV_HEX, IDC_RADIO_RECV_CHAR,
+				_b_recv_data_format_hex ? IDC_RADIO_RECV_HEX : IDC_RADIO_RECV_CHAR);
+		}
+		else{
+			_b_recv_data_format_hex = !!::IsDlgButtonChecked(m_hWnd, IDC_RADIO_RECV_HEX);
+		}
+
+		_recv_cur_edit = is_recv_data_format_hex() ? &_recv_hex_edit : &_recv_char_edit;
+
+		m_layout->FindControl("edit_recv_hex")->SetVisible(is_recv_data_format_hex());
+		m_layout->FindControl("edit_recv_char")->SetVisible(is_recv_data_format_char());
+	}
+
+
+	void CComWnd::com_copy_text_data_to_clipboard(HWND hwnd)
+	{
+		int len = ::GetWindowTextLength(hwnd)+1;
+		char* pchar = new char[len];
+		GetWindowText(hwnd, pchar, len);
+		pchar[len - 1] = '\0';
+		set_clipboard_data(pchar);
+		delete[] pchar;
+	}
+
+	void CComWnd::com_load_file()
+	{
+		c_send_file_format_dlg sffdlg;
+		c_binary_file bf;
+		int file_size;
+
+		sffdlg.do_modal(this);
+		SdkLayout::CTinyString selected = sffdlg.get_selected_type();
+		if (selected.size()==0 || selected=="nothing")
+			return;
+
+
+		if (!_com_load_file_prompt_size(sffdlg.get_selected_type(), bf))
+		{
+			return;
+		}
+
+		bf.seek(0, SEEK_END);
+		file_size = bf.tell();
+		bf.seek(0, SEEK_SET);
+
+		unsigned char* buffer = new unsigned char[file_size+1];
+		buffer[file_size + 1 - 1] = '\0';
+		if (!bf.read(buffer, file_size)){
+			delete[] buffer;
+			return;
+		}
+
+		if (selected == "hexseq"){
+			editor_send()->set_text((char*)buffer);
+			switch_send_data_format(true, true);
+		}
+		else if (selected == "text"){
+			editor_send()->set_text((char*)buffer);
+			switch_send_data_format(true, false);
+		}
+		else if (selected == "any"){
+			int length = file_size;
+			char* hexstr = c_text_formatting::hex2str(
+				buffer, &length, COMMON_LINE_CCH_SEND, 0, NULL, 0, c_text_formatting::newline_type::NLT_CRLF);
+			if (hexstr){
+				editor_send()->set_text(hexstr);
+				switch_send_data_format(true, true);
+				memory.free((void**)&hexstr, "");
+				switch_send_data_format(true, true);
+			}
+		}
+		else if (selected == "cmd"){
+
+		}
+
+		delete[] buffer;
+	}
+
+	bool CComWnd::_com_load_file_prompt_size(SdkLayout::CTinyString& selected, c_binary_file& bf)
+	{
+		c_file_open_dlg fodlg;
+		if (selected == "text"){
+			fodlg.set_title("选择一个纯文本文件...");
+			fodlg.set_filter("文本文件(*.txt)\0*.txt\0所有文件(*.*)\0*.*\0");
+		}
+		else if (selected == "any"){
+			fodlg.set_title("任意选择一个文件, 但不要太大...");
+			fodlg.set_filter("所有文件(*.*)\0*.*\0");
+		}
+		else if (selected == "hexseq"){
+			fodlg.set_title("选择一个包含16进制序列的文本, 内容应该是: XX XX XX XX ...");
+			fodlg.set_filter("十六进制序列文本文件(*.txt)\0*.txt\0所有文件(*.*)\0*.*\0");
+		}
+		else if (selected == "cmd"){
+			fodlg.set_title("命令文件能方便地发送一组相关的命令, 选择一个吧~");
+			fodlg.set_filter("文本文件(*.txt)\0 * .txt\0所有文件(*.*)\0 * .*\0");
+		}
+
+		if (!fodlg.do_modal(*this) || !bf.open(fodlg.get_buffer(), "rb"))
+			return false;
+
+		const int max_load_size = 1 << 20;
+		int load_size;
+		bf.seek(0, SEEK_END);
+		load_size = bf.tell();
+		bf.seek(0, SEEK_SET);
+		if (load_size > max_load_size)
+			return msgbox(MB_ICONQUESTION | MB_YESNO,
+			"文件太大",
+			"文件: %s\n"
+			"已经超过最大打开文件大小: %d 字节\n"
+			"\n要继续吗?"
+			, bf.get_fn().c_str()
+			, max_load_size) == IDYES;
+		else
+			return true;
+	}
+
+	void CComWnd::com_do_send()
+	{
+		int len = ::GetWindowTextLength(_send_edit);
+		if (len <= 0) return;
+
+		char* text = NULL;
+		if (len+1 > sizeof(_send_buffer))
+			text = new char[len+1];
+		else
+			text = _send_buffer;
+
+		*text = '\0';
+		::GetWindowText(_send_edit, text, len+1);
+
+		if (is_send_data_format_char()){
+			switch (_send_data_format_char & 0x03)
+			{
+			case SendDataFormatChar::sdfc_kNoCrlf:
+				len = c_text_formatting::remove_string_crlf(text);
+				break;
+			case SendDataFormatChar::sdfc_kCr:
+				len = c_text_formatting::remove_string_lf(text);
+				break;
+			case SendDataFormatChar::sdfc_kLf:
+				len = c_text_formatting::remove_string_cr(text);
+				break;
+			case SendDataFormatChar::sdfc_kCrlf:
+				// 当前是 Edit 控件, 以 '\r\n' 换行, 无需作转换
+				break;
+			}
+
+			if (_send_data_format_char & SendDataFormatChar::sdfc_kUseEscape){
+				unsigned int n = c_text_formatting::parse_string_escape_char(text);
+				len = n & 0x7FFFFFFF;
+				if ((n & 0x80000000) == 0){
+					msgbox(MB_ICONEXCLAMATION, NULL,
+						"解析转义字符串时遇到错误!\n\n"
+						"在第 %d 个字符附近出现语法解析错误!",
+						len
+						);
+					return;
+				}
+			}
+		}
+		else{
+			unsigned int n = c_text_formatting::str2hex(text, (unsigned char**)&text, len);
+			len = n & 0x7FFFFFFF;
+			if ((n & 0x80000000) == 0){
+				msgbox(MB_ICONEXCLAMATION, NULL, "发送区的数据解析错误, 请检查!\n\n是不是选错了发送数据的格式\?\n\n"
+					"在第 %d 个字符附近出现语法解析错误!", len);
+				return;
+			}
+		}
+
+		c_send_data_packet* packet = _comm.alloc_packet(len);
+		::memcpy(&packet->data[0], text, len);
+		if (!_comm.put_packet(packet))
+			_comm.release_packet(packet);
+
+		if (text != _send_buffer)
+			delete[] text;
+
+		return;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	LPCTSTR c_send_file_format_dlg::get_skin_xml() const
+	{
+		return 
+			R"(
+			<Window size="420,330">
+				<Font name = "微软雅黑" size = "16" default = "true" />
+				<Font name = "微软雅黑" size = "12"/>
+				<Vertical>
+					<Vertical inset = "5,5,5,5">
+						<Container minheight="180" minwidth="180">
+							<Group text="选择类型" />
+							<Vertical inset="5,20,5,5">
+								<Option name="text" text="纯文本文件"/>
+								<Static text="即普通的纯ASCII码文件, 按原文内容显示在文本框中!" font="1" inset="20,0,0,0"/>
+								<Option name="any" text="任意数据文件"/>
+								<Static text="常说的二进制文件(直接打开有乱码), 将以16进制序列方式显示!" font="1" inset="20,0,0,0"/>
+								<Option name="hexseq" text="包含16进制序列的文本文件"/>
+								<Static text="两个字符一组的16进制序列文件, 比如: 12 AB FF" font="1" inset="20,0,0,0"/>
+								<Option name="cmd" text="命令列表文件"/>
+								<Static text="包含在文本文件中的命令列表索引!" font="1" inset="20,0,0,0"/>
+								<Option name="nothing" text="取消" />
+							</Vertical>
+						</Container>
+					</Vertical>
+				</Vertical>
+			</Window>
+			)";
+	}
+
+	LRESULT c_send_file_format_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		switch (uMsg)
+		{
+		case WM_CREATE:
+			CenterWindow();
+			return 0;
+		}
+
+		return __super::handle_message(uMsg, wParam, lParam);
+	}
+
+	LRESULT c_send_file_format_dlg::on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code)
+	{
+		if (name == "text" || name == "any" || name == "hexseq" || name == "cmd" || name == "nothing"){
+			if (code == BN_CLICKED){
+				_selected = name;
+				Close();
+				return 0;
+			}
+		}
+		return 0;
+	}
+
+
+	//////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
+	LPCTSTR c_send_data_format_dlg::get_skin_xml() const
+	{
+		return 			
+			R"feifei(
+			<Window size="420,330">
+				<Font name = "微软雅黑" size = "12" default = "true" />
+				<Font name = "微软雅黑" size = "12"/>
+				<Vertical>
+					<Horizontal>
+						<Container inset="5,5,5,5" height="110" width="130">
+							<Group text="换行符类型"/>
+							<Vertical inset="15,20,5,5">
+								<Option name="nlt_crlf" text="回车换行(\r\n)" group="true"/>
+								<Option name = "nlt_cr" text = "回车(\r)" />
+								<Option name = "nlt_lf" text = "换行(\n)" />
+								<Option name = "nlt_none" text = "忽略" />
+							</Vertical>
+						</Container>
+						<Container inset="5,5,5,5" height="110" width="130">
+							<Group text="转义字符"/>
+							<Vertical inset="15,20,5,5">
+								<Check name="escape_use" text="使用转义字符" />
+							</Vertical>
+						</Container>
+					</Horizontal>
+				</Vertical>
+			</Window>
+			)feifei";
+	}
+
+	LRESULT c_send_data_format_dlg::on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code)
+	{
+		if (code == BN_CLICKED){
+			if (name == "nlt_crlf"){
+				*_dwAttr &= ~0x00000003;
+				*_dwAttr |= CComWnd::SendDataFormatChar::sdfc_kCrlf;
+			}
+			else if (name == "nlt_cr"){
+				*_dwAttr &= ~0x00000003;
+				*_dwAttr |= CComWnd::SendDataFormatChar::sdfc_kCr;
+			}
+			else if (name == "nlt_lf"){
+				*_dwAttr &= ~0x00000003;
+				*_dwAttr |= CComWnd::SendDataFormatChar::sdfc_kLf;
+			}
+			else if (name == "nlt_none"){
+				*_dwAttr &= ~0x00000003;
+				*_dwAttr |= CComWnd::SendDataFormatChar::sdfc_kNoCrlf;
+			}
+
+			else if (name == "escape_use"){
+				*_dwAttr &= ~0x00000004;
+				*_dwAttr |= ::SendMessage(hwnd, BM_GETCHECK,0,0)==BST_CHECKED 
+					? CComWnd::SendDataFormatChar::sdfc_kUseEscape : 0;
+			}
+		}
+		return 0;
+	}
+
+	LRESULT c_send_data_format_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		switch (uMsg)
+		{
+		case WM_CREATE:
+		{
+			::SetWindowText(m_hWnd, _bchar ? "设置字符发送格式" : "设置十六进制发送格式");
+			CenterWindow();
+
+			if (_bchar){
+				SdkLayout::CTinyString nlt;
+				LPCTSTR nlt_names[] = { "nlt_none", "nlt_cr", "nlt_lf", "nlt_crlf" };
+				SdkLayout::CControlUI* pNlt = _layout.FindControl(nlt_names[*_dwAttr & 0x00000003]);
+				if (pNlt) ::SendMessage(*pNlt, BM_SETCHECK, BST_CHECKED, 0);
+
+				::SendMessage(_layout.FindControl("escape_use")->GetHWND(), BM_SETCHECK,
+					*_dwAttr & CComWnd::SendDataFormatChar::sdfc_kUseEscape ? BST_CHECKED : BST_UNCHECKED, 0);
+
+			}
+			return 0;
+		}
+		}
+		return __super::handle_message(uMsg, wParam, lParam);
+	}
+
 }
+
