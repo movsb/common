@@ -175,62 +175,35 @@ const char* Common::c_about_dlg::about_str =
 		""
 		;
 
-struct control_id{
-	UINT id;
-	const char* name;
-};
-
-#define IDC_EDIT_HELP		2
-#define IDC_BTN_OK			3
-#define IDC_STK_NAME		4
-#define IDC_BTN_WEBSITE		5
-
-static control_id cids[] = {
-		{ IDC_EDIT_HELP,	"edit_help" },
-		{ IDC_BTN_OK,		"btn_ok" },
-		{ IDC_STK_NAME,		"stk_name" },
-		{ IDC_BTN_WEBSITE,	"btn_website" },
-};
-
 namespace Common{
-	LRESULT c_about_dlg::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+	LRESULT c_about_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		switch(uMsg)
+		switch (uMsg)
 		{
 		case WM_CREATE:
-			{
-				__super::HandleMessage(uMsg, wParam, lParam, bHandled);
-				SetWindowText(m_hWnd, "关于 "COMMON_NAME_AND_VERSION);
-				SetDlgItemText(m_hWnd,IDC_STK_NAME,COMMON_NAME_AND_VERSION"  编译时间:"__DATE__" - "__TIME__);
-				SetDlgItemText(m_hWnd, IDC_EDIT_HELP, about_str);
-				SetFocus(GetDlgItem(m_hWnd, IDC_BTN_OK));
-				return 0;
-			}
-		case WM_PAINT:
-			{
-				PAINTSTRUCT ps;
-				HICON hIcon;
-				HDC hDC = BeginPaint(m_hWnd, &ps);
-				hIcon = LoadIcon(theApp.instance(), MAKEINTRESOURCE(IDI_ICON1));
-				DrawIcon(hDC, 10, 10 ,hIcon);
-				EndPaint(m_hWnd, &ps);
-				DestroyIcon(hIcon);
-				return 0;
-			}
-		case WM_CLOSE:
-			break;
-		case WM_COMMAND:
-			if(LOWORD(wParam) == IDC_BTN_OK && HIWORD(wParam)==BN_CLICKED){
-				Close();
-				return 0;
-			}else if((LOWORD(wParam)==IDC_BTN_WEBSITE) && HIWORD(wParam) == BN_CLICKED){
-				char* web = "http://www.cnblogs.com/nbsofer/archive/2012/12/24/2831700.html";
-				ShellExecute(NULL, "open", web, NULL, NULL, SW_SHOWNORMAL);
-				return 0;
-			}
+		{
+			SetWindowText(m_hWnd, "关于 "COMMON_NAME_AND_VERSION);
+			SetWindowText(*_layout.FindControl("stk_name"), COMMON_NAME_AND_VERSION"  编译时间:"__DATE__" - "__TIME__);
+			SetWindowText(*_layout.FindControl("edit_help"), about_str);
+			SetFocus(*_layout.FindControl("btn_ok"));
+			CenterWindow();
 			return 0;
 		}
-		return __super::HandleMessage(uMsg, wParam, lParam, bHandled);
+		case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			HICON hIcon;
+			HDC hDC = BeginPaint(m_hWnd, &ps);
+			hIcon = LoadIcon(theApp.instance(), MAKEINTRESOURCE(IDI_ICON1));
+			DrawIcon(hDC, 10, 10, hIcon);
+			EndPaint(m_hWnd, &ps);
+			DestroyIcon(hIcon);
+			return 0;
+		}
+		case WM_CLOSE:
+			break;
+		}
+		return __super::handle_message(uMsg, wParam, lParam);
 	}
 
 	LPCTSTR c_about_dlg::get_skin_xml() const
@@ -244,16 +217,16 @@ R"feifei(
 			<Horizontal height="50" inset="0,0,0,0">
 				<Control width="45" />
 				<Vertical inset="0,0,0,5">
-					<Static id="stk_name" height="20"/>
+					<Static name="stk_name" height="20"/>
 					<Static text="女孩不哭(QQ:191035066) 开始于 2012-12-24 平安夜" height="20"/>
 				</Vertical>
 			</Horizontal>
-			<Edit style="1076889860" exstyle="131072" id="edit_help" inset="0,5,0,5" minheight="300"/>
+			<Edit style="1076889860" exstyle="131072" name="edit_help" inset="0,5,0,5" minheight="300"/>
 			<Horizontal height="30" inset="0,5,0,0">
 				<Control />
-				<Button id="btn_website" text="官方网址" width="100" />
+				<Button name="btn_website" text="官方网址" width="100" />
 				<Control width="10" />
-				<Button id="btn_ok" text="确定" width="100" />
+				<Button name="btn_ok" text="确定" width="100" />
 				<Control />
 			</Horizontal>
 		</Vertical>
@@ -262,20 +235,29 @@ R"feifei(
 )feifei";
 	}
 
-	UINT c_about_dlg::GetDialogStyle() const
+	LRESULT c_about_dlg::on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code)
 	{
-		return WS_POPUPWINDOW | WS_SIZEBOX;
-	}
-
-	UINT c_about_dlg::get_ctrl_id(LPCTSTR name) const
-	{
-		for (int i = 0; i < sizeof(cids) / sizeof(cids[0]); i++){
-			if (strcmp(cids[i].name, name) == 0)
-				return cids[i].id;
+		if (name == "btn_website"){
+			if (code == BN_CLICKED){
+				char* web = "http://www.cnblogs.com/nbsofer/archive/2012/12/24/2831700.html";
+				ShellExecute(NULL, "open", web, NULL, NULL, SW_SHOWNORMAL);
+				return 0;
+			}
 		}
+		else if (name == "btn_ok"){
+			if (code == BN_CLICKED){
+				Close();
+				return 0;
+			}
+		}
+
 		return 0;
 	}
 
+	LPCTSTR c_about_dlg::get_window_name() const
+	{
+		return "关于" " " COMMON_NAME_AND_VERSION;
+	}
 
 	const char* c_about_dlg::soft_name = COMMON_NAME_AND_VERSION ;
 
