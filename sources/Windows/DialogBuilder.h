@@ -1,16 +1,33 @@
 #pragma once
 
 namespace Common{
-	class c_dialog_builder : public CWnd, public SdkLayout::IDialogBuilder_GetID
+	class c_dialog_builder : public CWnd
 	{
 	public:
-		void show(HWND hParent);
-		virtual LPCTSTR GetWindowClassName() const { return "c_dialog_builder"; };
-		virtual UINT GetClassStyle() const { return __super::GetClassStyle() & ~CS_DBLCLKS; }
-		virtual UINT GetDialogStyle() const { return WS_POPUPWINDOW | WS_SIZEBOX | WS_VISIBLE; }
-		virtual HBRUSH GetClassBrush() const override { return (HBRUSH)(COLOR_WINDOW); }
-		virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-		virtual LPCTSTR get_skin_xml() const;
+		c_dialog_builder();
+
+	private:
+		virtual LPCTSTR		GetWindowClassName() const { return get_class_name(); }
+		virtual LPCTSTR		GetWndName() const { return get_window_name(); }
+		virtual DWORD		GetWndExStyle() const { return get_window_ex_style(); }
+		virtual UINT		GetClassStyle() const { return get_class_style(); }
+		virtual DWORD		GetWndStyle() const { return get_window_style(); }
+		virtual HBRUSH		GetClassBrush() const override { return get_class_brush(); }
+		virtual LRESULT		HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+		virtual void		OnFinalMessage(HWND hWnd) { on_final_message(hWnd); }
+
+	protected:
+		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam);
+		virtual void		on_final_message(HWND hwnd) { CWnd::OnFinalMessage(hwnd); }
+		virtual LRESULT		on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code) { return 0; }
+		virtual LPCTSTR		get_class_name() const { return "c_dialog_builder"; }
+		virtual UINT		get_class_style() const { return 0; }
+		virtual HBRUSH		get_class_brush() const { return (HBRUSH)(COLOR_WINDOW); }
+		virtual LPCTSTR		get_window_name() const { return get_class_name(); }
+		virtual DWORD		get_window_style() const { return WS_OVERLAPPEDWINDOW; }
+		virtual DWORD		get_window_ex_style() const { return 0; }
+		virtual LPCTSTR		get_skin_xml() const = 0;
+
 
 	protected:
 		SdkLayout::CSdkLayout _layout;
