@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+#pragma comment(lib,"winmm")
+
 namespace Common{
 	void c_timer::start()
 	{
