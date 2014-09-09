@@ -216,4 +216,57 @@ namespace SdkLayout
 	{
 		return m_ppVoid[iIndex];
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	CTinyString::CTinyString()
+	{
+		clear();
+	}
+
+	CTinyString::CTinyString(LPCTSTR lpsz)
+	{
+		_tcsncpy(_szBuff, lpsz, _countof(_szBuff));
+	}
+
+	const CTinyString& CTinyString::operator=(LPCTSTR lpsz)
+	{
+		_tcsncpy(_szBuff, lpsz, _countof(_szBuff));
+		return *this;
+	}
+
+	CTinyString::operator LPCTSTR() const
+	{
+		return _szBuff;
+	}
+
+	void CTinyString::clear()
+	{
+		*_szBuff = _T('\0');
+	}
+
+	int CTinyString::size()
+	{
+		return _tcslen(_szBuff);
+	}
+
+	bool CTinyString::empty()
+	{
+		return _szBuff[0] == _T('\0');
+	}
+
+	bool operator==(const CTinyString& lhs, const CTinyString& rhs)
+	{
+		return _tcscmp(LPCTSTR(lhs), LPCTSTR(rhs)) == 0;
+	}
+
+	bool operator==(const CTinyString& lhs, LPCTSTR rhs)
+	{
+		return _tcscmp(LPCTSTR(lhs), LPCTSTR(rhs)) == 0;
+	}
+
+	bool operator==(LPCTSTR lhs, const CTinyString& rhs)
+	{
+		return _tcscmp(LPCTSTR(lhs), LPCTSTR(rhs)) == 0;
+	}
+
 } // namespace SdkLayout

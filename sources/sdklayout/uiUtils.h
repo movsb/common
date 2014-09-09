@@ -59,6 +59,31 @@ namespace SdkLayout
 		int m_nCount;
 		int m_nAllocated;
 	};
+
+	class CTinyString
+	{
+	public:
+		CTinyString();
+		CTinyString(LPCTSTR lpsz);
+		const CTinyString& operator=(LPCTSTR lpsz);
+		operator LPCTSTR() const;
+
+		void clear();
+		int size();
+		bool empty();
+
+		friend bool operator==(const CTinyString& lhs, const CTinyString& rhs);
+		friend bool operator==(const CTinyString& lhs, LPCTSTR rhs);
+		friend bool operator==(LPCTSTR lhs, const CTinyString& rhs);
+
+	protected:
+		TCHAR _szBuff[64];
+	};
+
+	bool operator==(const CTinyString& lhs, const CTinyString& rhs);
+	bool operator==(const CTinyString& lhs, LPCTSTR rhs);
+	bool operator==(LPCTSTR lhs, const CTinyString& rhs);
+
 }// namespace SdkLayout
 
 #endif // __UTILS_H__
