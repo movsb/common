@@ -57,33 +57,6 @@ namespace Common {
 		volatile long		_n_unwr;
 	};
 
-	// 数据处理器接口: 比如文本管理器 16进制管理器, 由下面的数据接收器调用
-	class i_data_processor
-	{
-	public:
-		virtual bool process_some(bool follow, const unsigned char* ba, int cb, int* pn) = 0;
-		virtual operator i_data_processor*() = 0;
-	};
-
-	// 数据接收器接口: 串口在接收到数据后调用所有的接收器
-	class i_data_receiver
-	{
-	public:
-		virtual void receive(const unsigned char* ba, int cb) = 0;
-	protected:
-		virtual bool process(i_data_processor* proc, bool follow, const unsigned char** pba, int* pcb, i_data_processor** ppre)
-		{
-			int n;
-			bool c = proc->process_some(follow, *pba, *pcb, &n);
-			assert(n <= *pcb);
-			*pba += n;
-			*pcb -= n;
-			*ppre = c ? proc : NULL;
-			return c;
-		}
-	};
-
-
 	//////////////////////////////////////////////////////////////////////////
 	// 以下定义 发送数据封装相关类和结构
 
