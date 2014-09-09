@@ -1,15 +1,15 @@
 #pragma once
 
 namespace Common{
-	class c_asctable_dlg : public CWnd
+	class c_asctable_dlg : public c_dialog_builder
 	{
 	public:
 		c_asctable_dlg();
-		void show(HWND hParent);
-		virtual LPCTSTR GetWindowClassName() const {return "asctable";};
-		virtual UINT GetClassStyle() const { return __super::GetClassStyle() & ~CS_DBLCLKS; }
-		virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-		virtual void OnFinalMessage(HWND hWnd) override { __super::OnFinalMessage(hWnd); delete this; }
+		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam);
+		virtual void		on_final_message(HWND hwnd) { __super::on_final_message(hwnd); delete this;}
+		virtual LPCTSTR		get_skin_xml() const override;
+		virtual LPCTSTR		get_window_name() const override { return "ASCIIÂë±í: ×ó¼ü: Ç°¾°É«, ÓÒ¼ü: ±³¾°É«"; }
+		virtual DWORD		get_window_style() const override;
 
 	protected:
 		static int axisx, axisy;

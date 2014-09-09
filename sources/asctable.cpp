@@ -68,10 +68,13 @@ namespace Common{
 	int c_asctable_dlg::_fgcolor = 0;
 	int c_asctable_dlg::_bgcolor = 6;
 
-	LRESULT c_asctable_dlg::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+	LRESULT c_asctable_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		switch(uMsg)
 		{
+		case WM_ERASEBKGND:
+			return TRUE;
+
 		case WM_LBUTTONDOWN:
 			_fgcolor = (++_fgcolor) % __ARRAY_SIZE(cr_table);
 			::InvalidateRect(m_hWnd, NULL, TRUE);
@@ -231,6 +234,9 @@ namespace Common{
 					break;
 				}
 
+				if (axisx == -1 && axisy == -1)
+					CenterWindow();
+
 				return 0;
 			}
 		case WM_CLOSE:
@@ -240,11 +246,10 @@ namespace Common{
 				axisx=rc.left;
 				axisy=rc.top;
 				DeleteObject(_hFont);
-				DestroyWindow(m_hWnd);
-				return 0;
 			}
+			break;
 		}
-		return CWnd::HandleMessage(uMsg, wParam, lParam, bHandled);
+		return __super::handle_message(uMsg, wParam, lParam);
 	}
 
 	c_asctable_dlg::c_asctable_dlg()
@@ -253,14 +258,20 @@ namespace Common{
 
 	}
 
-	void c_asctable_dlg::show( HWND hParent )
+	LPCTSTR c_asctable_dlg::get_skin_xml() const
 	{
-		Create(hParent, "ASCII Âë±í(×ó¼ü:Ç°¾°É«,ÓÒ¼ü:±³¾°É«)", 
-			WS_OVERLAPPEDWINDOW & ~ WS_MAXIMIZEBOX & ~WS_SIZEBOX, 0,
-			0, 0, 0, 0);
-		if(axisx==-1 && axisy==-1){
-			CenterWindow();
-		}
-		ShowWindow();
+		return 
+			"<Window size=\"400,380\">"
+			"	<Vertical>"
+			"		<Vertical>"
+			"		</Vertical>"
+			"	</Vertical>"
+			"</Window>";
 	}
+
+	DWORD c_asctable_dlg::get_window_style() const
+	{
+		return WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX &~ WS_SIZEBOX;
+	}
+
 }
