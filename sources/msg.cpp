@@ -453,7 +453,6 @@ namespace Common {
 			com_try_close(true);
 		}
 
-		::DestroyWindow(*this);
 		return 0;
 	}
 
@@ -711,7 +710,7 @@ namespace Common {
 				bool bchar = is_send_data_format_char();
 				c_send_data_format_dlg* psdf = new c_send_data_format_dlg(
 					bchar, bchar ? &_send_data_format_char : &_send_data_format_hex);
-				psdf->do_modal(this);
+				psdf->do_modal(*this);
 				return 0;
 			}
 			break;
@@ -963,7 +962,7 @@ namespace Common {
 		c_binary_file bf;
 		int file_size;
 
-		sffdlg.do_modal(this);
+		sffdlg.do_modal(*this);
 		SdkLayout::CTinyString selected = sffdlg.get_selected_type();
 		if (selected.size()==0 || selected=="nothing")
 			return;
@@ -1146,16 +1145,16 @@ namespace Common {
 			)";
 	}
 
-	LRESULT c_send_file_format_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam)
+	LRESULT c_send_file_format_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 	{
 		switch (uMsg)
 		{
-		case WM_CREATE:
+		case WM_INITDIALOG:
 			CenterWindow();
 			return 0;
 		}
 
-		return __super::handle_message(uMsg, wParam, lParam);
+		return __super::handle_message(uMsg, wParam, lParam, bHandled);
 	}
 
 	LRESULT c_send_file_format_dlg::on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code)
@@ -1233,11 +1232,11 @@ namespace Common {
 		return 0;
 	}
 
-	LRESULT c_send_data_format_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam)
+	LRESULT c_send_data_format_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 	{
 		switch (uMsg)
 		{
-		case WM_CREATE:
+		case WM_INITDIALOG:
 		{
 			::SetWindowText(m_hWnd, _bchar ? "设置字符发送格式" : "设置十六进制发送格式");
 			CenterWindow();
@@ -1255,7 +1254,7 @@ namespace Common {
 			return 0;
 		}
 		}
-		return __super::handle_message(uMsg, wParam, lParam);
+		return __super::handle_message(uMsg, wParam, lParam, bHandled);
 	}
 
 }
