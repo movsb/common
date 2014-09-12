@@ -1,69 +1,65 @@
 #pragma once
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
-
-#ifdef __cplusplus
-
-#include <map>
-#include <string>
-#include <vector>
-#include <cstdio>
-
-class CComConfig
-{
-public:
-	CComConfig(){}
-	bool			Load(const char* str);
-	bool			LoadFile(const char* file);
-	int				GetInt(const char* name, int def);
-	bool			GetBool(const char* name, bool def);
-	std::string		GetString(const char* name, const char* def);
-	bool			Has(const char* name){return _has(name);}
-
-
-protected:
-	void _skip_ws(const char*& p);
-	void _skip_ln(const char*& p);
-	void _read_str(const char*& p, std::string* s, bool in_quot=false);
-
-	bool _has(const char* name)
+namespace Common{
+	class CComConfigItem
 	{
-		return _maps.count(name)>0;
-	}
-	std::string _get(const char* name)
+	public:
+		list_s list_entry;
+		CComConfigItem(const char* key, const char* val, const char* cmt)
+			: _key(key), _val(val), _cmt(cmt)
+		{}
+
+		const std::string& key() { return _key; }
+		const std::string& val() { return _val; }
+		const std::string& cmt() { return _cmt; }
+
+		void set_str(const char* val);
+		void set_int(int i);
+		void set_bool(bool b);
+		void set_cmt(const char* cmt);
+
+		const std::string&	get_str();
+		int					get_int();
+		bool				get_bool();
+
+	protected:
+		std::string _key;
+		std::string _val;
+		std::string _cmt;
+
+	};
+
+	class CComConfig
 	{
-		return _maps[name];
-	}
+	public:
+		CComConfig();
+		~CComConfig();
 
-protected:
-	std::map<std::string, std::string> _maps;
+		static std::string		int2str(int i);
+		static int				str2int(const std::string& s);
 
-private:
-	CComConfig operator=(const CComConfig&);
-	CComConfig(const CComConfig&);
-};
+		bool			Load(const char* str);
+		bool			LoadFile(const char* file);
+		bool			SaveFile(const char* file = nullptr);
 
-#endif // __cplusplus
+		CComConfigItem*	get_key(const char* key);
+		void			set_key(const char* key, const char* val);
+		void			set_key(const char* key, bool val);
+		void			set_key(const char* key, int val);
 
-#ifdef __cplusplus
-typedef CComConfig comconfig;
-#else
-typedef struct comconfig comconfig;
-#endif
+	protected:
+		void _skip_ws(const char*& p);
+		void _skip_ln(const char*& p);
+		void _read_str(const char*& p, std::string* s, bool in_quot = false);
+		void _read_cmt(const char*& p, std::string* cmt);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+	protected:
+		list_s _head;
 
-	comconfig*	config_create(const char* s, int bfile);
-	void		config_close(comconfig* cfg);
-	int			config_getint(comconfig* cfg, const char* name, int def);
-	int			config_getbool(comconfig* cfg, const char* naem, int def);
-	char*		config_getstr(comconfig* cfg, const char* name, const char* def);
-	int			config_has(comconfig* cfg, const char* name);
-#ifdef __cplusplus
+	private:
+		std::string _file;
+		CComConfig operator=(const CComConfig&);
+		CComConfig(const CComConfig&);
+	};
+
 }
-#endif
-
-#endif //!__CONFIG_H__
