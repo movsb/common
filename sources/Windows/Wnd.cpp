@@ -7,7 +7,8 @@ CWnd::CWnd()
 	: m_hWnd(NULL)
 	, m_OldWndProc(::DefWindowProc)
 	, m_bSubclassed(false)
-	, m_bIsDialog(false)
+	, m_bIsWindowsDialog(false)
+	, m_bIsWindowsDialogModeless(false)
 	, m_bHasMgr(true)
 {
 }
@@ -43,19 +44,19 @@ LPCTSTR CWnd::GetSuperClassName() const
     return NULL;
 }
 
-HWND CWnd::Create(HWND hwndParent, LPCTSTR pstrName, DWORD dwStyle, DWORD dwExStyle, int x, int y, int cx, int cy, HMENU hMenu)
+HWND CWnd::Create(HWND hParent, LPCTSTR pstrName, DWORD dwStyle, DWORD dwExStyle, int x, int y, int cx, int cy, HMENU hMenu)
 {
     if( GetSuperClassName() != NULL && !RegisterSuperclass() ) return NULL;
     if( GetSuperClassName() == NULL && !RegisterWindowClass() ) return NULL;
     m_hWnd = ::CreateWindowEx(dwExStyle, GetWindowClassName(), pstrName, dwStyle, 
-		x, y, cx, cy, hwndParent, hMenu, GetModuleHandle(0), this);
+		x, y, cx, cy, hParent, hMenu, GetModuleHandle(0), this);
     assert(m_hWnd!=NULL);
     return m_hWnd;
 }
 
-HWND CWnd::Create( HWND hParent, LPCTSTR lpTemplate )
+HWND CWnd::Create(HWND hParent, LPCTSTR lpTemplate)
 {
-	m_bIsDialog = true;
+	m_bIsWindowsDialog = true;
 	m_hWnd = ::CreateDialogParam(GetModuleHandle(0), lpTemplate, hParent, __DialogProc, LPARAM(this));
 	assert(m_hWnd != NULL);
 	return m_hWnd;
@@ -96,28 +97,6 @@ void CWnd::ShowWindow(bool bShow /*= true*/, bool bTakeFocus /*= false*/)
     assert(::IsWindow(m_hWnd));
     if( !::IsWindow(m_hWnd) ) return;
     ::ShowWindow(m_hWnd, bShow ? (bTakeFocus ? SW_SHOWNORMAL : SW_SHOWNOACTIVATE) : SW_HIDE);
-}
-
-UINT CWnd::ShowModal()
-{
-    assert(::IsWindow(m_hWnd));
-    UINT nRet = 0;
-    HWND hWndParent = GetWindowOwner(m_hWnd);
-    ::ShowWindow(m_hWnd, SW_SHOWNORMAL);
-    ::EnableWindow(hWndParent, FALSE);
-    MSG msg = { 0 };
-	HWND hWnd = m_hWnd;
-    while( ::IsWindow(hWnd) && ::GetMessage(&msg, NULL, 0, 0) ) {
-        if( !CWindowManager::TranslateMessage(&msg) ) {
-            ::TranslateMessage(&msg);
-            ::DispatchMessage(&msg);
-        }
-        if( msg.message == WM_QUIT ) break;
-    }
-    ::EnableWindow(hWndParent, TRUE);
-    ::SetFocus(hWndParent);
-    if( msg.message == WM_QUIT ) ::PostQuitMessage(msg.wParam);
-    return nRet;
 }
 
 void CWnd::Close(UINT nRet)
@@ -309,9 +288,12 @@ LRESULT CWnd::PostMessage(UINT uMsg, WPARAM wParam /*= 0*/, LPARAM lParam /*= 0*
 
 LRESULT CWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-	if(m_bIsDialog){
+	if (m_bIsWindowsDialog || m_bIsWindowsDialogModeless){
 		if (uMsg == WM_CLOSE){
-			::DestroyWindow(m_hWnd);
+			if (m_bIsWindowsDialog)
+				EndDialog(m_hWnd, 0);
+			else
+				DestroyWindow();
 			return 0;
 		}
 		else{
@@ -319,9 +301,7 @@ LRESULT CWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHand
 			return 0;
 		}
 	}
-	else{
-		return ::CallWindowProc(m_OldWndProc, m_hWnd, uMsg, wParam, lParam);
-	}
+	return ::CallWindowProc(m_OldWndProc, m_hWnd, uMsg, wParam, lParam);
 }
 
 void CWnd::OnFirstMessage(HWND hWnd)
@@ -398,5 +378,28 @@ void CWnd::ResizeClient(int cx /*= -1*/, int cy /*= -1*/)
 	if (!::AdjustWindowRectEx(&rc, GetWindowStyle(m_hWnd), (!(GetWindowStyle(m_hWnd) & WS_CHILD) && (::GetMenu(m_hWnd) != NULL)), GetWindowExStyle(m_hWnd))) return;
 	::SetWindowPos(m_hWnd, NULL, 0, 0, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+bool CWnd::do_modal(HWND owner)
+{
+	m_bIsWindowsDialog = true;
+	DialogBoxParam(GetModuleHandle(0), MAKEINTRESOURCE(139), owner, __DialogProc, LPARAM(this));
+	return true;
+}
+
+bool CWnd::do_modeless(HWND owner)
+{
+	m_hWnd = CreateDialogParam(GetModuleHandle(0), MAKEINTRESOURCE(139), owner,  __DialogProc, LPARAM(this));
+	ShowWindow();
+	return true;
+}
+
+void CWnd::DestroyWindow()
+{
+	::DestroyWindow(m_hWnd);
+}
+
 
 }
