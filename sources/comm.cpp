@@ -70,7 +70,7 @@ namespace Common{
 		static BYTE iDataSize[] = {8,7,6,5};
 
 		for(int i=0; aBaudRate[i]; i++)
-			_baudrate_list.add(t_com_item(iBaudRate[i],aBaudRate[i]));
+			_baudrate_list.add(c_baudrate(iBaudRate[i],aBaudRate[i], true));
 		for(int i=0; aParity[i]; i++)
 			_parity_list.add(t_com_item(iParity[i],aParity[i]));
 		for(int i=0; aStopBit[i]; i++)

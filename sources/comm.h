@@ -149,7 +149,7 @@ namespace Common {
 	{
 	public:
 		void empty() {_list.clear();}
-		void add(T t) {_list.push_back(t);}
+		const T& add(T t) { _list.push_back(t); return _list[_list.size() - 1]; }
 		int size() {return _list.size();}
 		const T& operator[](int i) {return _list[i];}
 
@@ -181,13 +181,26 @@ namespace Common {
 		std::string get_id_and_name() const;
 	};
 
-	// 串口端口容器: 要和系统取得列表, 所以重写
+	// 串口端口容器: 要向系统取得列表, 所以重写
 	class c_comport_list : public t_com_list<c_comport>
 	{
 	public:
 		virtual i_com_list* update_list();
 	};
 
+	// 由于波特率可由外部手动添加, 所以多加一个成员
+	class c_baudrate : public t_com_item
+	{
+	public:
+		c_baudrate(int id, const char* s, bool inner)
+			: t_com_item(id, s)
+			, _inner(inner)
+		{}
+
+		bool is_added_by_user() const { return !_inner; }
+	protected:
+		bool _inner;
+	};
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 	// 串口类
@@ -294,13 +307,13 @@ namespace Common {
 	// 串口对象列表
 	public:
 		c_comport_list*			comports()	{ return &_comport_list; }
-		t_com_list<t_com_item>*	baudrates()	{ return &_baudrate_list; }
+		t_com_list<c_baudrate>*	baudrates()	{ return &_baudrate_list; }
 		t_com_list<t_com_item>*	parities()	{ return &_parity_list; }
 		t_com_list<t_com_item>*	stopbits()	{ return &_stopbit_list; }
 		t_com_list<t_com_item>*	databits()	{ return &_databit_list; }
 	private:
 		c_comport_list			_comport_list;
-		t_com_list<t_com_item>	_baudrate_list;
+		t_com_list<c_baudrate>	_baudrate_list;
 		t_com_list<t_com_item>	_parity_list;
 		t_com_list<t_com_item>	_stopbit_list;
 		t_com_list<t_com_item>	_databit_list;
