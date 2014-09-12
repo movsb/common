@@ -83,6 +83,7 @@ namespace Common {
 		void update_status(const char* fmt, ...);
 
 	protected:
+		LRESULT CALLBACK RichEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 		virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 		virtual void OnFinalMessage(HWND hWnd);
 
@@ -161,5 +162,8 @@ namespace Common {
 
 		c_hex_data_receiver		_hex_data_receiver;
 		c_text_data_receiver	_text_data_receiver;
+
+		AThunk				_thunk_rich_edit;
+		WNDPROC				_thunk_rich_edit_old_proc;
 	};
 }

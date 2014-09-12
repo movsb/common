@@ -384,6 +384,9 @@ namespace Common {
 		editor_recv_char()->Create(hWnd, "", WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | ES_READONLY |
 			ES_MULTILINE | ES_WANTRETURN | ES_AUTOHSCROLL | ES_AUTOVSCROLL ,
 			0, 0,0,0,0, (HMENU)IDC_EDIT_RECV2);
+		WNDPROC new_rich_proc = static_cast<WNDPROC>(_thunk_rich_edit.Stdcall(this, &CComWnd::RichEditProc));
+		_thunk_rich_edit_old_proc = SubclassWindow(*editor_recv_char(), new_rich_proc);
+		::ImmAssociateContext(*editor_recv_char(), nullptr);
 		editor_recv_hex()->Attach(::GetDlgItem(hWnd, IDC_EDIT_RECV));
 		editor_send()->Attach(::GetDlgItem(hWnd, IDC_EDIT_SEND));
 
@@ -1113,6 +1116,30 @@ namespace Common {
 			delete[] text;
 
 		return;
+	}
+
+	LRESULT CALLBACK CComWnd::RichEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		if (uMsg == WM_CHAR){
+			if (_comm.is_opened()){
+				char ch = char(wParam);
+				c_send_data_packet* psdp = _comm.alloc_packet(1);
+				::memcpy(psdp->data, &ch, 1);
+				if (!_comm.put_packet(psdp)){
+					_comm.release_packet(psdp);
+				}
+				return 0;
+			}
+			return 0;
+		}
+		else if (uMsg == WM_KEYDOWN){
+			if (wParam == VK_F11){
+				_b_recv_char_edit_fullscreen = !_b_recv_char_edit_fullscreen;
+				switch_rich_edit_fullscreen(_b_recv_char_edit_fullscreen);
+				return 0;
+			}
+		}
+		return CallWindowProc(_thunk_rich_edit_old_proc, hWnd, uMsg, wParam, lParam);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
