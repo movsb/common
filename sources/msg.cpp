@@ -404,6 +404,8 @@ namespace Common {
 				ComboBox_SetCurSel(ud.hwnd, 0);
 			}
 		}
+		int ii = ComboBox_InsertString(_hBR, -1, "<输入>");
+		ComboBox_SetItemData(_hBR, ii, 1);	// 1 - 自定义
 	}
 
 	void CComWnd::com_udpate_list_callback( void* ud, const t_com_item* t )
@@ -1207,8 +1209,9 @@ namespace Common {
 			split_string(&brs, item->val().c_str(), '|');
 			if (brs.size() > 1){
 				for (int i = 0; i < (int)brs.size() - 1; i++){
-					_comm.baudrates()->add(c_baudrate(atoi(brs[i].c_str()), brs[i].c_str(), false));
-					ComboBox_InsertString(_hBR, ComboBox_GetCount(_hBR)-1, brs[i].c_str());
+					auto& b = _comm.baudrates()->add(c_baudrate(atoi(brs[i].c_str()), brs[i].c_str(), false));
+					int idx = ComboBox_InsertString(_hBR, ComboBox_GetCount(_hBR)-1, brs[i].c_str());
+					ComboBox_SetItemData(_hBR, idx, &b);
 				}
 			}
 
