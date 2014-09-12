@@ -130,6 +130,9 @@ namespace Common {
 		void com_do_send();
 
 		// 一些相关配置
+		void init_from_config_file();
+		void save_to_config_file();
+
 		void switch_rich_edit_fullscreen(bool full);
 		void switch_window_top_most(bool manual=false, bool topmost = true);
 		void switch_simple_ui(bool manual=false, bool bsimple=false);

@@ -5,171 +5,6 @@
 
 static char* __THIS_FILE__  = __FILE__;
 
-
-static int set_ctrl_font(sdklayout* layout, const char* name, const char* fs)
-{
-	int id;
-	char* c = strchr((char*)fs,',');
-	*c = '\0';
-	id = layout_newfont(layout, fs, strtol(c+1, NULL, 10));
-	layout_setfont(layout_control(layout, name), id);
-	return 0;
-}
-
-static void com_init_from_config(HWND hwnd, sdklayout* layout)
-{
-	if(g_cfg){
-		char* v;
-		char* k;
-		k = "app.title";
-		if(config_has(g_cfg, k)){
-			v = config_getstr(g_cfg, k, "");
-			SetWindowText(hwnd, v);
-			free(v);
-		}
-
-		k = "ui.font";
-		if(config_has(g_cfg, k)){
-			char* comma;
-			v = config_getstr(g_cfg, k, "");
-			comma = strchr(v, ',');
-			*comma='\0';
-			layout_deffont(layout, v, strtol(comma+1, NULL, 10));
-			free(v);
-		}
-
-		k = "app.icon";
-		if(config_has(g_cfg, k)){
-			HICON hIcon;
-			v = config_getstr(g_cfg, k, "");
-			hIcon = (HICON)LoadImage(NULL, v, IMAGE_ICON, 48, 48, LR_LOADFROMFILE);
-			if(hIcon){
-				SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)(hIcon));
-				SendMessage(hwnd, WM_SETICON, ICON_BIG,   (LPARAM)(hIcon));
-			}
-			free(v);
-		}
-
-		k = "ui.recv.edit_char.font";
-		if(config_has(g_cfg, k)){
-			v = config_getstr(g_cfg, k, "");
-			set_ctrl_font(layout, "edit_recv_char", v);
-			free(v);
-		}
-
-		k = "ui.recv.edit_hex.font";
-		if(config_has(g_cfg, k)){
-			v = config_getstr(g_cfg, k, "");
-			set_ctrl_font(layout, "edit_recv_hex", v);
-			free(v);
-		}
-	}
-}
-
-
-//消息结构体初始化, 构造函数
-
-
-/**************************************************
-函  数:RecvEditWndProc@16
-功  能:接收区EDIT的子类过程,取消鼠标选中文本时对插入的文本造成的干扰
-参  数:
-返回值:
-说  明:由EM_SETSEL 到 EM_REPLACESEL这其间不允许选中
-**************************************************/
-/*
-WNDPROC OldRecvEditWndProc = NULL;
-LRESULT CALLBACK RecvEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	static int fEnableSelect = 1;
-	switch(uMsg)
-	{
-	case EM_SETSEL:
-		fEnableSelect = 0;
-		return CallWindowProc(OldRecvEditWndProc, hWnd, uMsg, wParam, lParam);
-	case EM_REPLACESEL:
-		{
-			LRESULT ret;
-			ret = CallWindowProc(OldRecvEditWndProc, hWnd, uMsg, wParam, lParam);
-			fEnableSelect = 1;
-			return ret;
-		}
-	case WM_LBUTTONDBLCLK:
-	case WM_LBUTTONDOWN:
-	case WM_MOUSEMOVE:
-		if(fEnableSelect==0 || comm.fShowDataReceived&&msg.hComPort!=NULL){
-			if(uMsg==WM_LBUTTONDBLCLK || uMsg==WM_LBUTTONDOWN){
-				SetFocus(hWnd);
-			}
-			return 0;
-		}
-		break;
-	case WM_CONTEXTMENU:
-		if(comm.fShowDataReceived&&msg.hComPort!=NULL)
-			return 0;
-		else 
-			break;
-	}
-	return CallWindowProc(OldRecvEditWndProc, hWnd, uMsg, wParam, lParam);
-}
-
-WNDPROC OldRecv2EditWndProc = NULL;
-LRESULT CALLBACK Recv2EditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	static int fEnableSelect = 1;
-	switch(uMsg)
-	{
-	case EM_SETSEL:
-		fEnableSelect = 0;
-		return CallWindowProc(OldRecv2EditWndProc, hWnd, uMsg, wParam, lParam);
-	case EM_REPLACESEL:
-		{
-			LRESULT ret;
-			ret = CallWindowProc(OldRecv2EditWndProc, hWnd, uMsg, wParam, lParam);
-			fEnableSelect = 1;
-			return ret;
-		}
-	case WM_LBUTTONDBLCLK:
-	case WM_LBUTTONDOWN:
-	case WM_MOUSEMOVE:
-		if(fEnableSelect==0 || comm.fShowDataReceived&&msg.hComPort!=NULL){
-			if(uMsg==WM_LBUTTONDBLCLK || uMsg==WM_LBUTTONDOWN){
-				SetFocus(hWnd);
-			}
-			return 0;
-		}
-		break;
-	case WM_CONTEXTMENU:
-		if(msg.hComPort != NULL && comm.fShowDataReceived){
-			POINT pt;
-			HMENU hEditMenu;
-			hEditMenu = GetSubMenu(LoadMenu(msg.hInstance,MAKEINTRESOURCE(IDR_MENU_EDIT_RECV)),0);
-			GetCursorPos(&pt);
-			CheckMenuItem(hEditMenu,MENU_EDIT_CHINESE,MF_BYCOMMAND|(comm.fDisableChinese?MF_UNCHECKED:MF_CHECKED));
-			CheckMenuItem(hEditMenu,MENU_EDIT_SEND_INPUT_CHAR,MF_BYCOMMAND|(comm.fEnableCharInput?MF_CHECKED:MF_UNCHECKED));
-			TrackPopupMenu(hEditMenu,TPM_LEFTALIGN,pt.x,pt.y,0,msg.hWndMain,NULL);
-			return 0;
-		}else{
-			break;
-		}
-	case WM_CHAR:
-		{
-			if(comm.fEnableCharInput && comm.fShowDataReceived && msg.hComPort!=NULL){
-				int result;
-				result = deal.send_char_data((char)wParam);
-				if(result==0){
-					utils.msgbox(msg.hWndMain,MB_ICONERROR,"","发送字符数据失败!");
-				}
-				return 0;
-			}
-			goto _def_proc;
-		}
-	}
-_def_proc:
-	return CallWindowProc(OldRecv2EditWndProc, hWnd, uMsg, wParam, lParam);
-}
-}
-}*/
 /*
 int on_command(HWND hWndCtrl, int id, int codeNotify)
 {
@@ -427,11 +262,11 @@ namespace Common {
 		_comm.add_data_recerver(&_hex_data_receiver);
 		_comm.add_data_recerver(&_text_data_receiver);
 
-		com_init_from_config(hWnd, m_layout);
-
 		com_update_item_list();
 		com_add_prompt_if_no_cp_presents();
 
+		// 从配置文件加载配置
+		init_from_config_file();
 
 
 		// 欢迎语
@@ -463,6 +298,8 @@ namespace Common {
 		if (_comm.is_opened()){
 			com_try_close(true);
 		}
+
+		save_to_config_file();
 
 		return 0;
 	}
@@ -1187,6 +1024,227 @@ namespace Common {
 	bool CComWnd::TranslateAccelerator(MSG* pmsg)
 	{
 		return !!::TranslateAccelerator(m_hWnd, m_hAccel, pmsg);
+	}
+
+	void CComWnd::init_from_config_file()
+	{
+		auto get_font_info = [](const std::string& s, std::string* face, int* sz){
+			int pos = s.find(',');
+			*face = s.substr(0, pos);
+			*sz = atoi(&s[pos + 1]);
+		};
+
+		auto set_ctrl_font = [=](const char* ctrl, const std::string& face, int sz){
+			SdkLayout::CControlUI* pRE = m_layout->FindControl(ctrl);
+			HFONT hFont = m_layout->GetManager()->AddFont(face.c_str(), sz, false, false, false);
+			pRE->SetFont(m_layout->GetManager()->GetFont(hFont));
+		};
+
+		auto split_string = [](std::vector<std::string>* vec, const char* str, char delimiter){
+			const char* p = str;
+			std::string tmp;
+			for (;;){
+				if (*p){
+					if (*p != delimiter){
+						tmp += *p;
+						p++;
+						continue;
+					}
+					else{
+						vec->push_back(tmp);
+						tmp = "";
+						p++;
+						continue;
+					}
+				}
+				else{
+					if (tmp.size()) vec->push_back(tmp);
+					break;
+				}
+			}
+		};
+
+		if (auto item = comcfg->get_key("app.title")){
+			::SetWindowText(m_hWnd, item->val().c_str());
+		}
+		if (auto item = comcfg->get_key("app.icon")){
+			HICON hIcon = (HICON)LoadImage(NULL, item->val().c_str(), IMAGE_ICON, 48, 48, LR_LOADFROMFILE);
+			if(hIcon != nullptr){
+				SendMessage(WM_SETICON, ICON_SMALL, LPARAM(hIcon));
+				SendMessage(WM_SETICON, ICON_BIG, LPARAM(hIcon));
+			}
+		}
+		if (auto item = comcfg->get_key("gui.font")){
+			std::string face;
+			int sz;
+			get_font_info(item->val(), &face, &sz);
+			m_layout->SetDefFont(face.c_str(), sz);
+		}
+		if (auto item = comcfg->get_key("gui.recv.edit.char.font")){
+			std::string face;
+			int sz;
+			get_font_info(item->val(), &face, &sz);
+			set_ctrl_font("edit_recv_char", face, sz);
+		}
+		if (auto item = comcfg->get_key("gui.recv.edit.hex.font")){
+			std::string face;
+			int sz;
+			get_font_info(item->val(), &face, &sz);
+			set_ctrl_font("edit_recv_hex", face, sz);
+		}
+		if (auto item = comcfg->get_key("gui.fullscreen")){
+			_b_recv_char_edit_fullscreen = item->get_bool();
+			switch_rich_edit_fullscreen(_b_recv_char_edit_fullscreen);
+		}
+		if (auto item = comcfg->get_key("gui.simplemode")){
+			switch_simple_ui(true, item->get_bool());
+		}
+		if (auto item = comcfg->get_key("gui.topmost")){
+			switch_window_top_most(true, item->get_bool());
+		}
+
+		// 数据发送格式设置
+		if (auto item = comcfg->get_key("comm.send.format")){
+			switch_send_data_format(true, item->val() == "hex");
+		}
+		if (auto item = comcfg->get_key("comm.send.format.char.crlf")){
+			const char* crlftype[] = { "none", "cr", "lf", "crlf" };
+			if (item->val() == crlftype[0])  _send_data_format_char &= ~0x00000003; 
+			else if (item->val() == crlftype[1]) _send_data_format_char |= SendDataFormatChar::sdfc_kCr;
+			else if (item->val() == crlftype[2]) _send_data_format_char |= SendDataFormatChar::sdfc_kLf;
+			else if (item->val() == crlftype[3]) _send_data_format_char |= SendDataFormatChar::sdfc_kCrlf;
+		}
+		if (auto item = comcfg->get_key("comm.send.format.char.escape")){
+			if (item->get_bool()) _send_data_format_char |= SendDataFormatChar::sdfc_kUseEscape;
+			else _send_data_format_char &= ~SendDataFormatChar::sdfc_kUseEscape;
+		}
+
+		// 串口参数配置
+		if (auto item = comcfg->get_key("comm.config.comport")){
+			auto& cp = *_comm.comports();
+			if (cp.size()){
+				for (int i = 0; i < cp.size(); i++){
+					if (item->get_int() == cp[i].get_i()){
+						ComboBox_SetCurSel(_hCP, i);
+						break;
+					}
+				}
+			}
+		}
+		if (auto item = comcfg->get_key("comm.config.baudrate")){
+			std::vector<std::string> brs;
+			split_string(&brs, item->val().c_str(), '|');
+			if (brs.size() > 1){
+				for (int i = 0; i < (int)brs.size() - 1; i++){
+					_comm.baudrates()->add(c_baudrate(atoi(brs[i].c_str()), brs[i].c_str(), false));
+					ComboBox_InsertString(_hBR, ComboBox_GetCount(_hBR)-1, brs[i].c_str());
+				}
+			}
+
+			if (brs.size() > 0){
+				int index = -1;
+				auto li = _comm.baudrates();
+				for (int i = 0; i < li->size(); i++){
+					if (brs[brs.size()-1] == (*li)[i].get_s()){
+						index = i;
+						break;
+					}
+				}
+				if (index != -1){
+					ComboBox_SetCurSel(_hBR, index);
+				}
+			}
+		}
+		if (auto item = comcfg->get_key("comm.config.parity")){
+			int index = -1;
+			auto li = _comm.parities();
+			for (int i = 0; i < li->size(); i++){
+				if (item->get_int() == (*li)[i].get_i()){
+					index = i;
+					break;
+				}
+			}
+			if (index != -1){
+				ComboBox_SetCurSel(_hPA, index);
+			}
+		}
+		if (auto item = comcfg->get_key("comm.config.databit")){
+			int index = -1;
+			auto li = _comm.databits();
+			for (int i = 0; i < li->size(); i++){
+				if (item->get_int() == (*li)[i].get_i()){
+					index = i;
+					break;
+				}
+			}
+			if (index != -1){
+				ComboBox_SetCurSel(_hDB, index);
+			}
+		}
+		if (auto item = comcfg->get_key("comm.config.stopbit")){
+			int index = -1;
+			auto li = _comm.stopbits();
+			for (int i = 0; i < li->size(); i++){
+				if (item->get_int() == (*li)[i].get_i()){
+					index = i;
+					break;
+				}
+			}
+			if (index != -1){
+				ComboBox_SetCurSel(_hSB, index);
+			}
+		}
+	}
+
+	void CComWnd::save_to_config_file()
+	{
+		comcfg->set_key("gui.fullscreen", _b_recv_char_edit_fullscreen);
+		comcfg->set_key("gui.simplemode", !!::IsDlgButtonChecked(m_hWnd, IDC_CHECK_SIMPLE));
+		comcfg->set_key("gui.topmost", !!::IsDlgButtonChecked(m_hWnd, IDC_CHK_TOP));
+
+		// 数据发送格式设置
+		comcfg->set_key("comm.send.format", _b_send_data_format_hex ? "hex" : "char");
+
+		const char* crlftype[] = { "none", "cr", "lf", "crlf" };
+		comcfg->set_key("comm.send.format.char.crlf", crlftype[_send_data_format_char & 0x03]);
+
+		comcfg->set_key("comm.send.format.char.escape",
+			_send_data_format_char & SendDataFormatChar::sdfc_kUseEscape ? "true" : "false");
+
+		// 串口参数配置
+		auto get_cbo_item_data = [](HWND hcbo){
+			int i = ComboBox_GetCurSel(hcbo);
+			SMART_ASSERT(i >= 0)(i).Fatal();
+			return reinterpret_cast<t_com_item*>(ComboBox_GetItemData(hcbo, i));
+		};
+
+		// 当前串口号
+		int icp = ComboBox_GetCurSel(_hCP);
+		c_comport* cp = nullptr;
+		if (icp >= 0){
+			cp = reinterpret_cast<c_comport*>(ComboBox_GetItemData(_hCP, icp));
+			if ((int)cp <= 0xFFFF) cp = nullptr;
+		}
+		if (cp) {
+			comcfg->set_key("comm.config.comport", cp->get_i());
+		}
+
+		// 当前波特率
+		auto& brs = *_comm.baudrates();
+		std::string user_baudrates;
+		for (int i = 0; i < brs.size(); i++){
+			if (brs[i].is_added_by_user()){
+				user_baudrates += brs[i].get_s();
+				user_baudrates += "|";
+			}
+		}
+		user_baudrates += get_cbo_item_data(_hBR)->get_s();
+		comcfg->set_key("comm.config.baudrate", user_baudrates.c_str());
+
+		// 当前 校验位, 数据位, 停止位
+		comcfg->set_key("comm.config.parity", get_cbo_item_data(_hPA)->get_i());
+		comcfg->set_key("comm.config.databit", get_cbo_item_data(_hDB)->get_i());
+		comcfg->set_key("comm.config.stopbit", get_cbo_item_data(_hSB)->get_i());
 	}
 
 	//////////////////////////////////////////////////////////////////////////

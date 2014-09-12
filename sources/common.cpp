@@ -11,20 +11,25 @@
 #pragma warning(disable:4100) //unreferenced formal parameter(s)
 
 static char* __THIS_FILE__ = __FILE__;
-comconfig* g_cfg;
+
+Common::CComConfig* comcfg;
 
 void com_load_config(void)
 {
 	char mp[MAX_PATH]={0};
 	GetModuleFileName(NULL, mp, __ARRAY_SIZE(mp));
 	strcpy(strrchr(mp, '\\')+1, "common.ini");
-	g_cfg = config_create(mp, 1);
+	comcfg = new Common::CComConfig;
+	comcfg->LoadFile(mp);
 }
 
 void com_unload_config(void)
 {
-	config_close(g_cfg);
+	comcfg->SaveFile();
+	delete comcfg;
 }
+
+Common::c_the_app theApp;
 
 #if 1
 int CALLBACK WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nShowCmd)
