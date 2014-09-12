@@ -567,7 +567,67 @@ namespace Common {
 				}
 			}
 			break;
+		case IDC_CBO_BR:
+			if (code == CBN_SELENDOK){
+				int index = ComboBox_GetCurSel(_hBR);
+				int itemdata = ComboBox_GetItemData(_hBR, index);
+				if (itemdata == 1){ // for custom defined
+					class c_input_baudrate_dlg : public i_input_box
+					{
+					public:
+						virtual bool try_close()
+						{
+							return true;
+						}
+						virtual bool check_valid(const char* str)
+						{
+							if (!_that->test_get_int_value() || _that->get_int_value()<=0){
+								_notifier->msgbox(MB_ICONEXCLAMATION, nullptr, "请输入正整数值!");
+								return false;
 
+							}
+							return true;
+						}
+						virtual void set_notifier(i_notifier* notifier)
+						{
+							_notifier = notifier;
+						}
+						virtual void set_this(c_input_box* that)
+						{
+							_that = that;
+						}
+						virtual const char* get_enter_text()
+						{
+							return "";
+						}
+						virtual const char* get_prompt_text()
+						{
+							return "请输入自定义波特率:";
+						}
+
+					protected:
+						i_notifier* _notifier;
+						c_input_box* _that;
+					};
+
+					c_input_baudrate_dlg cibd;
+					c_input_box brinput(&cibd);
+					brinput.do_modal(*this);
+					if (brinput.get_dlg_code() == IDOK){
+						int br = brinput.get_int_value();
+						std::string s = brinput.get_string_value();
+						const c_baudrate& item = _comm.baudrates()->add(c_baudrate(br, s.c_str(), false));
+						index = ComboBox_InsertString(_hBR, index, s.c_str());
+						ComboBox_SetItemData(_hBR, index, &item);
+						ComboBox_SetCurSel(_hBR, index);
+					}
+					else{
+						ComboBox_SetCurSel(_hBR, index - 1);
+					}
+					return 0;
+				}
+			}
+			break;
 		case IDC_RADIO_SEND_CHAR:
 		case IDC_RADIO_SEND_HEX:
 			if (code == BN_CLICKED){
