@@ -68,7 +68,7 @@ namespace Common{
 	int c_asctable_dlg::_fgcolor = 0;
 	int c_asctable_dlg::_bgcolor = 6;
 
-	LRESULT c_asctable_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam)
+	LRESULT c_asctable_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 	{
 		switch(uMsg)
 		{
@@ -201,10 +201,10 @@ namespace Common{
 				InvalidateRect(m_hWnd,NULL,TRUE);
 				return 0;
 			}
-		case WM_CREATE:
+		case WM_INITDIALOG:
 			{
+				::SetWindowText(m_hWnd, "ASCIIÂë±í: ×ó¼ü: Ç°¾°É«, ÓÒ¼ü: ±³¾°É«");
 				SCROLLINFO si;
-				ZeroMemory(&si,sizeof(si));
 				si.cbSize = sizeof(si);
 				si.fMask = SIF_ALL;
 				si.nMin=0; 
@@ -221,7 +221,8 @@ namespace Common{
 					borderheight = (rcW.bottom-rcW.top)-(rcC.bottom-rcC.top);
 					MoveWindow(m_hWnd,axisx,axisy,ASC_CLIENT_WIDTH+16, // "²ÂµÄ"
 						borderheight+(ASC_LINES_CLIENT+2)*(ASC_FONT_HEIGHT+ASC_TEXT_ASCENT),TRUE);
-					break;
+					break;	ZeroMemory(&si,sizeof(si));
+			
 				}
 
 				for(;;){
@@ -249,7 +250,7 @@ namespace Common{
 			}
 			break;
 		}
-		return __super::handle_message(uMsg, wParam, lParam);
+		return __super::handle_message(uMsg, wParam, lParam, bHandled);
 	}
 
 	c_asctable_dlg::c_asctable_dlg()

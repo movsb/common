@@ -176,11 +176,11 @@ const char* Common::c_about_dlg::about_str =
 		;
 
 namespace Common{
-	LRESULT c_about_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam)
+	LRESULT c_about_dlg::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 	{
 		switch (uMsg)
 		{
-		case WM_CREATE:
+		case WM_INITDIALOG:
 		{
 			SetWindowText(m_hWnd, "关于 "COMMON_NAME_AND_VERSION);
 			SetWindowText(*_layout.FindControl("stk_name"), COMMON_NAME_AND_VERSION"  编译时间:"__DATE__" - "__TIME__);
@@ -203,7 +203,7 @@ namespace Common{
 		case WM_CLOSE:
 			break;
 		}
-		return __super::handle_message(uMsg, wParam, lParam);
+		return __super::handle_message(uMsg, wParam, lParam, bHandled);
 	}
 
 	LPCTSTR c_about_dlg::get_skin_xml() const
