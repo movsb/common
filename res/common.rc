@@ -302,10 +302,20 @@ BEGIN
     END
 END
 
+MENU_RICHEDIT_CONTEXTMENU MENU
 IDR_MENU_EDIT_RECV MENU
 BEGIN
+    POPUP "EditContextMenu"
     POPUP "popupmenu"
     BEGIN
+        MENUITEM "复制(&C)",                      ID_EDITCONTEXTMENU_COPY
+        MENUITEM "剪切(&X)",                      ID_EDITCONTEXTMENU_CUT
+        MENUITEM "粘贴(&P)",                      ID_EDITCONTEXTMENU_PASTE
+        MENUITEM SEPARATOR
+        MENUITEM "删除(&D)",                      ID_EDITCONTEXTMENU_DELETE
+        MENUITEM "全选(&A)",                      ID_EDITCONTEXTMENU_SELALL
+        MENUITEM SEPARATOR
+        MENUITEM "全屏(&F)",                      ID_EDITCONTEXTMENU_FULLSCREEN, CHECKED
         MENUITEM "允许中文显示(&C)(不可用)",             MENU_EDIT_CHINESE, CHECKED, INACTIVE
         MENUITEM "发送输入字符",                      MENU_EDIT_SEND_INPUT_CHAR, CHECKED
         MENUITEM "清空数据",                        MENU_EDIT_EMPTY

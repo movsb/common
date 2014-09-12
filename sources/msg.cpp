@@ -478,6 +478,17 @@ namespace Common {
 			msgbox(MB_ICONINFORMATION,0,"not implemented!"); break;
 		case MENU_OTHER_NEWVERSION:break;
 
+		// 文本接收数据区菜单
+		case ID_EDITCONTEXTMENU_COPY:		_recv_char_edit.do_copy(); break;
+		case ID_EDITCONTEXTMENU_CUT:		_recv_char_edit.do_cut(); break;
+		case ID_EDITCONTEXTMENU_PASTE:		_recv_char_edit.do_paste(); break;
+		case ID_EDITCONTEXTMENU_DELETE:		_recv_char_edit.do_delete(); break;
+		case ID_EDITCONTEXTMENU_SELALL:		_recv_char_edit.do_sel_all(); break;
+		case ID_EDITCONTEXTMENU_FULLSCREEN:	
+			_b_recv_char_edit_fullscreen = !_b_recv_char_edit_fullscreen;
+			switch_rich_edit_fullscreen(_b_recv_char_edit_fullscreen); 
+			break;
+
 		}
 		return 0;
 	}

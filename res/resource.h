@@ -128,6 +128,12 @@
 #define ID_POPUPMENU_40030              40030
 #define MENU_EDIT_SEND_INPUT_CHAR       40031
 #define ID_POPUPMENU_40032              40032
+#define ID_EDITCONTEXTMENU_COPY         40039
+#define ID_EDITCONTEXTMENU_CUT          40040
+#define ID_EDITCONTEXTMENU_PASTE        40041
+#define ID_EDITCONTEXTMENU_DELETE       40042
+#define ID_EDITCONTEXTMENU_SELALL       40043
+#define ID_EDITCONTEXTMENU_FULLSCREEN   40044
 #define MENU_EDIT_EMPTY                 40033
 
 // Next default values for new objects
