@@ -67,6 +67,9 @@ namespace Common {
 		csdp_alloc,		// 分配包, 在数据量大于默认缓冲区或内部缓冲区不够时被分配
 		csdp_exit,		
 	};
+
+#pragma warning(push)
+#pragma warning(disable:4200)	// nonstandard extension used : zero-sized array in struct/union
 #pragma pack(push,1)
 	// 基础发送数据包, 不包含缓冲区
 	struct c_send_data_packet{
@@ -86,6 +89,7 @@ namespace Common {
 		unsigned char	data[csdp_def_size];
 	};
 #pragma pack(pop)
+#pragma warning(pop)
 
 	// 发送数据包管理器, 用来将发送的数据包排成队列
 	// 包管理器会被多个线程同时访问
