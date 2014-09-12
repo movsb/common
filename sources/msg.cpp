@@ -5,143 +5,6 @@
 
 static char* __THIS_FILE__  = __FILE__;
 
-/*
-int on_command(HWND hWndCtrl, int id, int codeNotify)
-{
-	switch(id)
-	{
-	case IDC_BTN_STOPDISP:
-		{
-			if(comm.fShowDataReceived){//点击了暂停显示,进入到暂停模式
-				SetWindowText(hWndCtrl, "继续显示(&D)");
-				comm.fShowDataReceived = 0;
-			}else{//点击了继续显示, 进入到显示模式
-				SetWindowText(hWndCtrl, "暂停显示(&D)");
-				comm.fShowDataReceived = 1;
-			}
-
-			if(comm.fShowDataReceived){
-				if(!deal.last_show){
-					//等待用户响应的过程中, 必须挂起读线程, 不然数据有冲突
-					ResetEvent(deal.hEventContinueToRead);
-					deal.do_check_recv_buf();
-					SetEvent(deal.hEventContinueToRead);
-				}
-			}
-			deal.last_show = comm.fShowDataReceived;
-		
-			deal.update_savebtn_status();
-			return 0;
-		}
-	case IDC_BTN_LOADFILE:
-		{
-			RECT rc;
-			HWND h = GetDlgItem(msg.hWndMain,IDC_CBO_CP);
-			GetWindowRect(h,&rc);
-			comm.load_from_file();
-			//2013-7-5 临时BUG修正
-			//不知道为什么串口选择ComboBox总是最小化消失掉....
-			SetWindowPos(h,0,0,0,rc.right-rc.left,rc.bottom-rc.top,SWP_NOMOVE|SWP_NOZORDER);
-		}		
-		return 0;
-	case IDC_BTN_SAVEFILE:
-		comm.save_to_file();
-		return 0;
-
-	case IDC_EDIT_RECV:
-		if(codeNotify==EN_ERRSPACE || codeNotify==EN_MAXTEXT){
-			int ret;
-			ret=utils.msgbox(msg.hWndMain,MB_ICONEXCLAMATION|MB_YESNOCANCEL,NULL,
-				"接收缓冲区满了, 是清空接收区数据还是保存,抑或是取消?\n\n"
-				"若选择   是:将要求保存接收区数据,并清空接收区数据\n"
-				"若选择   否:接收区数据将会被清空,数据不被保存\n"
-				"若选择 取消:接收区数据将被保留,新数据将无法再显示\n\n"
-				"除非接下来没有数据要接收,否则请不要点击取消!");
-			if(ret==IDYES){
-				if(comm.save_to_file()){
-					msg.on_command(NULL,IDC_BTN_CLR_RECV,BN_CLICKED);
-				}else{
-					int a;
-					a=utils.msgbox(msg.hWndMain,MB_ICONQUESTION|MB_YESNO,COMMON_NAME,"数据没有被保存,要继续清空接收缓冲区么?");
-					if(a==IDYES){
-						msg.on_command(NULL,IDC_BTN_CLR_RECV,BN_CLICKED);
-					}
-				}
-			}else if(ret==IDNO){
-				msg.on_command(NULL,IDC_BTN_CLR_RECV,BN_CLICKED);
-			}else if(ret==IDCANCEL){
-				//取消...
-			}
-		}
-		return 0;
-	case IDC_EDIT_SEND:
-		if(codeNotify==EN_ERRSPACE || codeNotify==EN_MAXTEXT){
-			utils.msgbox(msg.hWndMain,MB_ICONEXCLAMATION|MB_YESNO, NULL, "发送缓冲区满!");
-		}else if(codeNotify == EN_CHANGE){
-			if(comm.fAutoSend){
-				deal.cancel_auto_send(0);
-				utils.msgbox(msg.hWndMain,MB_ICONINFORMATION,COMMON_NAME,"由于发送内容已改变, 自动重发已取消!");
-			}
-		}
-		return 0;
-	case IDC_BTN_SEND:
-		deal.do_send(0);
-		return 0;
-	case IDC_CHK_AUTO_SEND:
-		deal.check_auto_send();
-		return 0;
-	case IDC_BTN_OPEN:
-		{
-			deal.update_savebtn_status();
-			return 0;
-		}
-
-	}
-	return 0;
-}
-*/
-/*
-#if _MSC_VER > 1200			//compatible with vc6.0
-#define  strnicmp _strnicmp
-#endif
-int on_device_change(WPARAM event, DEV_BROADCAST_HDR* pDBH)
-{
-	if(msg.hComPort==NULL){
-		if(event==DBT_DEVICEARRIVAL){
-			if(pDBH->dbch_devicetype == DBT_DEVTYP_PORT){
-				DEV_BROADCAST_PORT* pPort = (DEV_BROADCAST_PORT*)pDBH;
-				char* name = &pPort->dbcp_name[0];
-				if(strnicmp("COM",name,3)==0){
-					int com_id;
-					char buff[32];
-					extern HWND hComPort;
-					_snprintf(buff,sizeof(buff),"已检测到串口设备 %s 的插入!",name);
-					deal.update_status(buff);
-					com_id = atoi(name+3);
-					if(comm.update((int*)&com_id))
-						ComboBox_SetCurSel(hComPort,com_id);
-					SetFocus(GetDlgItem(msg.hWndMain, IDC_EDIT_SEND));
-				}
-			}
-		}else if(event==DBT_DEVICEREMOVECOMPLETE){
-			if(pDBH->dbch_devicetype==DBT_DEVTYP_PORT){
-				DEV_BROADCAST_PORT* pPort=(DEV_BROADCAST_PORT*)pDBH;
-				char* name = &pPort->dbcp_name[0];
-				if(strnicmp("COM",name,3)==0){
-					char buff[32];
-					extern HWND hComPort;
-					_snprintf(buff,sizeof(buff),"串口设备 %s 已移除!",name);
-					deal.update_status(buff);
-					comm.update((int*)-1);
-					if(ComboBox_GetCount(hComPort))
-						ComboBox_SetCurSel(hComPort,0);
-				}
-			}
-		}
-	}
-	return TRUE;
-}
-*/
 // int on_setting_change(void)
 // {
 // 	if(msg.hComPort == NULL){
@@ -324,6 +187,40 @@ namespace Common {
 
 	LRESULT CComWnd::on_device_change( WPARAM event, DEV_BROADCAST_HDR* pDBH )
 	{
+		if(event==DBT_DEVICEARRIVAL || event==DBT_DEVICEREMOVECOMPLETE){
+			if (pDBH->dbch_devicetype == DBT_DEVTYP_PORT){
+				DEV_BROADCAST_PORT* pPort = reinterpret_cast<DEV_BROADCAST_PORT*>(pDBH);
+				const char* name = &pPort->dbcp_name[0];
+				if (_strnicmp("COM", name, 3) == 0){
+					if (event == DBT_DEVICEARRIVAL){
+						update_status("串口设备 %s 已插入!", name);
+						if (!_comm.is_opened()){
+							com_update_comport_list();
+						}
+					}
+					else{
+						update_status("串口设备 %s 已移除!", name);
+						// 保持当前选中的设备依然为选中状态
+						if (!_comm.is_opened()){
+							int index = ComboBox_GetCurSel(_hCP);
+							c_comport* cp = index >= 0 ? (c_comport*)ComboBox_GetItemData(_hCP, index) : nullptr;
+							int comidcur = (int)cp > 0xFFFF ? cp->get_i() : 0;
+							com_update_comport_list();
+							for (int i = 0; i < ComboBox_GetCount(_hCP); i++){
+								c_comport* cp = (c_comport*)ComboBox_GetItemData(_hCP, i);
+								if (cp->get_i() == comidcur){
+									ComboBox_SetCurSel(_hCP, i);
+									break;
+								}
+
+							}
+							com_add_prompt_if_no_cp_presents();
+						}
+					}
+
+				}
+			}
+		}
 		return 0;
 	}
 
