@@ -224,16 +224,6 @@ namespace Common {
 	public:
 		enum newline_type {NLT_CR,NLT_LF,NLT_CRLF};
 
-
-		/***********************************************************************
-		名称:check_chs
-		描述:检测ba数组中的数据是否为合法的中英文序列,中文为两个>=0x80的值,英文小于0x80
-		参数:ba-数组,cb字节数
-		返回:!0-最后需要一个中文字符,0-合法
-		说明:如果检测到一个>0x7F+一个小于等于0x7F...
-		***********************************************************************/
-		static int check_chs(unsigned char* ba, int cb);
-
 		/**************************************************
 		函  数:remove_string_cr
 		功  能:移除字符串中的 '\r'
@@ -355,6 +345,10 @@ namespace Common {
 	};
 
 	void set_clipboard_data(const char* str);
+
+	int read_integer(const char* str, int* pi);
+	unsigned char val_from_char(char c);
+	int char_oct_from_chars(const char* str, unsigned char* poct);
 }
 
 

@@ -10,43 +10,6 @@
 static char* __THIS_FILE__ = __FILE__;
 
 namespace Common {
-	int c_text_formatting::check_chs( unsigned char* ba, int cb )
-	{
-		int it;
-		enum{
-			CHARFMT_NULL,
-			CHARFMT_ASCII,
-			CHARFMT_OEMCP
-		};
-		int flag=CHARFMT_NULL;
-		int flag_current=CHARFMT_NULL;
-		for(it=0; it<cb;it++){
-			flag_current = ba[it]<=0x7F?CHARFMT_ASCII:CHARFMT_OEMCP;
-			switch(flag)
-			{
-			case CHARFMT_NULL:
-				flag = flag_current;
-				break;
-			case CHARFMT_ASCII:
-				if(flag_current == CHARFMT_ASCII){
-					continue;
-				}else if(flag_current == CHARFMT_OEMCP){
-					flag = CHARFMT_OEMCP;
-				}
-				break;
-			case CHARFMT_OEMCP:
-				if(flag_current == CHARFMT_ASCII){
-					//ba[it-1] = '?';
-					flag = CHARFMT_ASCII;
-				}else if(flag_current == CHARFMT_OEMCP){
-					flag = CHARFMT_NULL;
-				}
-				break;
-			}
-		}
-		return flag_current==CHARFMT_OEMCP && flag==CHARFMT_OEMCP;
-	}
-
 	unsigned int c_text_formatting::remove_string_crlf( char* str )
 	{
 		char* p1 = str;
@@ -96,7 +59,7 @@ namespace Common {
 		return (unsigned int)p1-(unsigned int)str;
 	}
 
-	static __inline unsigned char val_from_char(char c)
+	unsigned char val_from_char(char c)
 	{
 		if(c>='0' && c<='9') return c-'0';
 		else if(c>='a' && c<='f') return c-'a'+10;
@@ -104,7 +67,7 @@ namespace Common {
 		else return 0;
 	}
 
-	static __inline int char_oct_from_chars(char* str, unsigned char* poct)
+	int char_oct_from_chars(const char* str, unsigned char* poct)
 	{
 		unsigned char oct = 0;
 		int i;
@@ -116,6 +79,21 @@ namespace Common {
 
 		*poct = oct;
 		return i;
+	}
+
+	int read_integer(const char* str, int* pi)
+	{
+		int r = 0;
+		const char* p = str;
+
+		while (*p >= '0' && *p <= '9'){
+			r *= 10;
+			r += *p - '0';
+			p++;
+		}
+
+		*pi = r;
+		return (int)p - (int)str;
 	}
 
 	unsigned int c_text_formatting::parse_string_escape_char( char* str )
