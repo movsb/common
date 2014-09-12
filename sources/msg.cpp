@@ -399,6 +399,7 @@ namespace Common {
 		SendMessage(WM_SETICON, ICON_SMALL, LPARAM(LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1))));
 
 		m_hAccel = ::LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
+		m_wndmgr.AcceleratorTranslator() = this;
 
 		m_layout = ::layout_new(hWnd, MAKEINTRESOURCE(IDR_RCDATA2), hInstance);
 		layout_visible(layout_control(m_layout, "recv_wnd_recv"), FALSE);
@@ -1181,6 +1182,11 @@ namespace Common {
 			}
 		}
 		return CallWindowProc(_thunk_rich_edit_old_proc, hWnd, uMsg, wParam, lParam);
+	}
+
+	bool CComWnd::TranslateAccelerator(MSG* pmsg)
+	{
+		return !!::TranslateAccelerator(m_hWnd, m_hAccel, pmsg);
 	}
 
 	//////////////////////////////////////////////////////////////////////////

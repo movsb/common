@@ -44,6 +44,7 @@ namespace Common {
 		: public CWnd
 		, public i_data_counter
 		, public i_timer
+		, public IAcceleratorTranslator
 	{
 		friend class c_send_data_format_dlg;
 	public:
@@ -82,6 +83,8 @@ namespace Common {
 
 		void update_status(const char* fmt, ...);
 
+		// IAcceleratorTranslator interface
+		virtual bool TranslateAccelerator(MSG* pmsg);
 	protected:
 		LRESULT CALLBACK RichEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 		virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
