@@ -1,7 +1,4 @@
-output/
-common.ncb
-common.opt
-common.plg
-common.positions
-common.*sdf
-*.aps
+/output/
+/ipch/
+/*.*sdf
+/*.suo
