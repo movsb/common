@@ -1,34 +1,18 @@
 #include "stdafx.h"
-#include "../res/resource.h"
 
 namespace Common{
 
-
-	int c_input_box::do_modal(HWND hParent, i_input_box* piib)
-	{
-		_piib = piib;
-		if (_piib){
-			_piib->set_notifier(this);
-			_piib->set_this(this);
-			_prompt_str = _piib->get_prompt_text();
-			_enter_string = _piib->get_enter_text();
-		}
-		assert(::IsWindow(hParent));
-		Create(hParent, MAKEINTRESOURCE(IDD_INPUTBOX));
-		CenterWindow();
-		ShowModal();
-		return _dlg_code;
-	}
-
-	LRESULT c_input_box::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+	LRESULT c_input_box::handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 	{
 		switch (uMsg)
 		{
 		case WM_INITDIALOG:
-			_hPrompt = ::GetDlgItem(m_hWnd, IDC_INPUTBOX_PROMPT);
-			_hEnter  = ::GetDlgItem(m_hWnd, IDC_INPUTBOX_ENTERTEXT);
-			_hOk     = ::GetDlgItem(m_hWnd, IDOK);
-			_hCancel = ::GetDlgItem(m_hWnd, IDCANCEL);
+			CenterWindow();
+
+			_hPrompt = *_layout.FindControl("prompt");
+			_hEnter = *_layout.FindControl("enter");
+			_hOk = *_layout.FindControl("btnok");
+			_hCancel = *_layout.FindControl("btncancel");
 
 			::SetWindowText(_hPrompt, _prompt_str ? _prompt_str : _T(""));
 			::SetWindowText(_hEnter, _enter_string ? _enter_string : _T(""));
@@ -43,49 +27,24 @@ namespace Common{
 				return 0;
 			}
 			_dlg_code = IDCANCEL;
-			::DestroyWindow(m_hWnd);
-			return 0;
-
-		case WM_COMMAND:
-		{
-			HWND hChild = (HWND)lParam;
-			int code = HIWORD(wParam);
-			int id = LOWORD(wParam);
-
-			if (hChild && code == BN_CLICKED){
-				if (id == IDOK){
-
-					if (!call_interface())
-						return 0;
-
-					_dlg_code = IDOK;
-					::DestroyWindow(m_hWnd);
-					return 0;
-				}
-				else if (id == IDCANCEL){
-					if (_piib && !_piib->try_close()){
-						::SetFocus(_hEnter);
-						return 0;
-					}
-					_dlg_code = IDCANCEL;
-					::DestroyWindow(m_hWnd);
-					return 0;
-				}
-			}
-			break;			
+			break;
 		}
-		}
-		return __super::HandleMessage(uMsg, wParam, lParam, bHandled);
+		return __super::handle_message(uMsg, wParam, lParam, bHandled);
 	}
 
-	c_input_box::c_input_box()
+	c_input_box::c_input_box(i_input_box* piib)
 		: _prompt_str(0)
 		, _enter_string(0)
 		, _dlg_code(IDCANCEL)
-		, _piib(0)
+		, _piib(piib)
 		, _pstr(0)
 	{
+		SMART_ASSERT(_piib != nullptr);
 
+		_piib->set_notifier(this);
+		_piib->set_this(this);
+		_prompt_str = _piib->get_prompt_text();
+		_enter_string = _piib->get_enter_text();
 	}
 
 	c_input_box::~c_input_box()
@@ -93,36 +52,16 @@ namespace Common{
 		if (_pstr) delete[] _pstr;
 	}
 
-	bool c_input_box::ResponseDefaultKeyEvent(HWND hChild, WPARAM wParam)
-	{
-		if (wParam == VK_ESCAPE){
-			_dlg_code = IDCANCEL;
-			Close();
-			return true;
-		}
-		else if (wParam == VK_RETURN){
-			if (hChild == _hOk || hChild == _hEnter){
-				if (call_interface()){
-					_dlg_code = IDOK;
-					::DestroyWindow(m_hWnd);
-					return true;
-				}
-			}
-			return false;
-		}
-		return false;
-	}
-
 	bool c_input_box::test_get_int_value()
 	{
 		int value;
-		BOOL bTranslated;
-
-		value = ::GetDlgItemInt(m_hWnd, IDC_INPUTBOX_ENTERTEXT, &bTranslated, TRUE);
-		if (!bTranslated) return false;
-
-		_i = value;
-		return true;
+		if (sscanf(_pstr, "%d", &value) == 1){
+			_i = value;
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 
 	int c_input_box::get_int_value()
@@ -152,6 +91,54 @@ namespace Common{
 		}
 
 		return true;
+	}
+
+	LPCTSTR c_input_box::get_skin_xml() const
+	{
+		return
+			R"feifei(
+<Window size="230,70">
+	<Font name = "Î¢ÈíÑÅºÚ" size = "12" default = "true" />
+	<Font name = "Î¢ÈíÑÅºÚ" size = "12"/>
+	<Vertical>
+		<Horizontal inset="5,5,5,5">
+			<Vertical inset="5,5,5,5">
+				<Static name="prompt"/>
+				<Edit name="enter" height="20"/>
+			</Vertical>
+			<Control width="10" />
+			<Vertical width="50" height="60">
+				<Button name="btnok" text="È·¶¨" />
+				<Control height="5"/>
+				<Button name="btncancel" text="È¡Ïû" />
+			</Vertical>
+		</Horizontal>
+	</Vertical>
+</Window>
+		)feifei";
+	}
+
+	LRESULT c_input_box::on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code)
+	{
+		if (name == "btnok"){
+			if (!call_interface())
+				return 0;
+
+			_dlg_code = IDOK;
+			end_dialog();
+			return 0;
+		}
+		else if (name == "btncancel"){
+			if (!_piib->try_close()){
+				::SetFocus(_hEnter);
+				return 0;
+			}
+
+			_dlg_code = IDCANCEL;
+			end_dialog();
+			return 0;
+		}
+		return 0;
 	}
 
 }

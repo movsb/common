@@ -14,21 +14,23 @@ namespace Common{
 		virtual const char* get_prompt_text() = 0;
 	};
 
-	class c_input_box : public CWnd
+	class c_input_box : public c_dialog_builder
 	{
 	public:
-		c_input_box();
+		c_input_box(i_input_box* piib);
 		~c_input_box();
-		int do_modal(HWND hParent, i_input_box* piib);
-		void set_prompt_string(const char* s) { _prompt_str = s; }
-		void set_enter_string(const char* s)  { _enter_string = s; }
+
 		bool test_get_int_value();
 		int get_int_value();
 		std::string get_string_value();
+		int get_dlg_code() const { return _dlg_code; }
+
+	private:
+		virtual LPCTSTR get_skin_xml() const override;
 
 	protected:
-		virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
-		virtual bool ResponseDefaultKeyEvent(HWND hChild, WPARAM wParam) override;
+		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+		virtual LRESULT		on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code) override;
 		bool call_interface();
 
 	protected:
