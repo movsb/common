@@ -80,11 +80,14 @@ void CSdkLayout::_InitializeLayout()
 	if(!m_pRoot) return;
 
 	SIZE& sz = m_Manager.InitSize();
-	::SetWindowPos(m_hWnd, 0, 0, 0, sz.cx, sz.cy, SWP_NOMOVE | SWP_NOZORDER);
+	RECT rc = { 0 };
+	rc.right = sz.cx;
+	rc.bottom = sz.cy;
+	if (!::AdjustWindowRectEx(&rc, GetWindowStyle(m_hWnd), (!(GetWindowStyle(m_hWnd) & WS_CHILD) && (::GetMenu(m_hWnd) != NULL)), GetWindowExStyle(m_hWnd))) return;
+	::SetWindowPos(m_hWnd, NULL, 0, 0, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 
 	m_pRoot->SetFont(-2);
 	m_pRoot->SetVisible(m_pRoot->IsVisible());
-	//m_pRoot->SetDisplayed(m_pRoot->IsDispalyed());
 
 	m_pRoot->DoInit();
 
