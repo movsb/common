@@ -97,6 +97,7 @@ namespace Common {
 		LRESULT on_device_change(WPARAM event, DEV_BROADCAST_HDR* pDBH);
 		LRESULT on_setting_change();
 		LRESULT on_app(UINT uMsg, WPARAM wParam, LPARAM lParam);
+		LRESULT on_contextmenu(HWND hwnd, int x, int y);
 
 	private:
 		LRESULT on_command_menu(int id);
@@ -126,6 +127,7 @@ namespace Common {
 		void com_do_send();
 
 		// 一些相关配置
+		void switch_rich_edit_fullscreen(bool full);
 		void switch_window_top_most(bool manual=false, bool topmost = true);
 		void switch_simple_ui(bool manual=false, bool bsimple=false);
 		void switch_send_data_format(bool manual=false, bool bhex=false, DWORD fmthex=0,DWORD fmtchar=0);
@@ -145,6 +147,7 @@ namespace Common {
 		HWND _hCP, _hBR, _hPA, _hSB, _hDB;
 		HWND _hStatus, _hOpen;
 		Window::c_rich_edit	_recv_char_edit;
+		bool				_b_recv_char_edit_fullscreen;
 		Window::c_edit		_recv_hex_edit;
 		Window::c_edit		_send_edit;
 		sdklayout*			m_layout;

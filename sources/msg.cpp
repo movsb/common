@@ -325,6 +325,7 @@ namespace Common {
 		: m_layout(0)
 		, m_hAccel(0)
 	{
+		_b_recv_char_edit_fullscreen = false;
 		_b_send_data_format_hex = false; // ×Ö·û
 		_send_data_format_hex   = SendDataFormatHex::sdfh_kNone;
 		_send_data_format_char  = SendDataFormatChar::sdfc_kNone;
@@ -348,6 +349,7 @@ namespace Common {
 		case WM_CLOSE:			return on_close();
 		case WM_COMMAND:		return on_command(HWND(lParam), LOWORD(wParam), HIWORD(wParam));
 		case WM_DEVICECHANGE:	return on_device_change(wParam, (DEV_BROADCAST_HDR*)lParam);
+		case WM_CONTEXTMENU:	return on_contextmenu(HWND(wParam), GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		}
 		if (uMsg >= WM_APP && uMsg <= 0xBFFF)
 			return on_app(uMsg, wParam, lParam);
@@ -451,6 +453,11 @@ namespace Common {
 
 	LRESULT CComWnd::on_close()
 	{
+		if (_b_recv_char_edit_fullscreen){
+			_b_recv_char_edit_fullscreen = false;
+			switch_rich_edit_fullscreen(_b_recv_char_edit_fullscreen);
+			return 0;
+		}
 
 		if (_comm.is_opened()){
 			com_try_close(true);
@@ -511,6 +518,24 @@ namespace Common {
 			::SetDlgItemText(m_hWnd, IDC_STATIC_TIMER, tstr);
 			return 0;
 		}
+	LRESULT CComWnd::on_contextmenu(HWND hwnd, int x, int y)
+	{
+		if (hwnd == _recv_char_edit){
+			HMENU hMenu = ::LoadMenu(theApp, MAKEINTRESOURCE(MENU_RICHEDIT_CONTEXTMENU));
+			HMENU hSubMenu0 = ::GetSubMenu(hMenu, 0);
+
+			bool bsel = _recv_char_edit.get_sel_range();
+			::EnableMenuItem(hSubMenu0, ID_EDITCONTEXTMENU_COPY, bsel ? MF_ENABLED : MF_DISABLED | MF_GRAYED);
+			::EnableMenuItem(hSubMenu0, ID_EDITCONTEXTMENU_CUT, bsel ? MF_ENABLED : MF_DISABLED | MF_GRAYED);
+			::EnableMenuItem(hSubMenu0, ID_EDITCONTEXTMENU_DELETE, bsel ? MF_ENABLED : MF_DISABLED | MF_GRAYED);
+
+			bool breadonly = _recv_char_edit.is_read_only();
+			::EnableMenuItem(hSubMenu0, ID_EDITCONTEXTMENU_PASTE, (!breadonly && ::IsClipboardFormatAvailable(CF_TEXT)) ? MF_ENABLED : MF_DISABLED | MF_GRAYED);
+
+			::CheckMenuItem(hSubMenu0, ID_EDITCONTEXTMENU_FULLSCREEN, _b_recv_char_edit_fullscreen ? MF_CHECKED : MF_UNCHECKED);
+
+			::TrackPopupMenu(hSubMenu0, TPM_LEFTALIGN | TPM_LEFTBUTTON, x, y, 0, *this, nullptr);
+
 		}
 		return 0;
 	}
@@ -1116,6 +1141,22 @@ namespace Common {
 			delete[] text;
 
 		return;
+	}
+
+	void CComWnd::switch_rich_edit_fullscreen(bool full)
+	{
+		SdkLayout::CControlUI* p_main_wnd = m_layout->FindControl("main_wnd");
+		SdkLayout::CControlUI* p_recv_rich = m_layout->FindControl("fullscreen_recv_rich_wnd");
+
+		if (full){
+			p_main_wnd->SetVisible(false);
+			p_recv_rich->SetVisible(true);
+		}
+		else{
+			p_recv_rich->SetVisible(false);
+			p_main_wnd->SetVisible(true);
+		}
+		::SetFocus(*editor_recv_char());
 	}
 
 	LRESULT CALLBACK CComWnd::RichEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
