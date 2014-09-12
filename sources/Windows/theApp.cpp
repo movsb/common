@@ -26,5 +26,10 @@ namespace Common{
 		return _path;
 	}
 
+	c_the_app::operator HINSTANCE()
+	{
+		return _hinst;
+	}
+
 }
 
