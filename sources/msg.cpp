@@ -48,6 +48,7 @@ namespace Common {
 		case WM_COMMAND:		return on_command(HWND(lParam), LOWORD(wParam), HIWORD(wParam));
 		case WM_DEVICECHANGE:	return on_device_change(wParam, (DEV_BROADCAST_HDR*)lParam);
 		case WM_CONTEXTMENU:	return on_contextmenu(HWND(wParam), GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		case WM_LBUTTONDOWN:	return SendMessage(WM_NCLBUTTONDOWN, HTCAPTION, 0);
 		}
 		if (uMsg >= WM_APP && uMsg <= 0xBFFF)
 			return on_app(uMsg, wParam, lParam);
