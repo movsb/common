@@ -27,6 +27,29 @@ namespace Window{
 		::SetWindowText(*this, str);
 	}
 
+	HMENU c_edit::_load_default_menu()
+	{
+		return nullptr;
+	}
+
+	LRESULT c_edit::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+	{
+		if (uMsg == WM_CONTEXTMENU) { 
+			if (!_bUseDefMenu){
+				return ::DefWindowProc(m_hWnd, uMsg, wParam, lParam);
+			}
+			else{
+
+			}
+		}
+		return __super::HandleMessage(uMsg, wParam, lParam, bHandled);
+	}
+
+	bool c_edit::is_read_only()
+	{
+		return !!(::GetWindowLongPtr(*this, GWL_STYLE) & ES_READONLY);
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	bool c_rich_edit::back_delete_char( int n )
 	{
@@ -77,31 +100,46 @@ namespace Window{
 		return true;
 	}
 
-	bool c_rich_edit::apply_linux_attributes( char* attrs )
+	bool c_rich_edit::apply_linux_attributes(char* attrs)
 	{
 		const char* p = attrs;
+		const char* end; 
 
-		assert(*p == '\033');
-		p++;
-		assert(*p == '[');
-		p++;
+		if (!attrs || !*attrs)
+			return false;
+		
+		end = attrs + strlen(attrs) - 1;
 
-		while(*p != 'm'){
-			if(*p == ';'){
-				p++;
-				continue;
+		assert(*p++ == '\033');
+		assert(*p++ == '[');
+
+		switch (*end)
+		{
+		case 'm': // \033[a1;a1;...m
+		{
+			for (;*p != 'm';){
+				if (*p == ';'){
+					p++;
+				}
+				else if (*p >= '0' && *p <= '9'){
+					int a = 0;
+					p += read_integer(p, &a);
+					apply_linux_attribute_m(a);
+				}
+				else{
+					SMART_ASSERT(0)(*p).Fatal();
+				}
 			}
-			else{
-				// TODO:
-				//p += read_integer((char*)p, &var);
-				//richedit_apply_linux_attribute(var);
-			}
+			break;
 		}
+
+		}
+
 
 		return true;
 	}
 
-	bool c_rich_edit::apply_linux_attribute_m( int attr )
+	bool c_rich_edit::apply_linux_attribute_m(int attr)
 	{
 		CHARFORMAT2 cf;
 		static struct{
@@ -151,10 +189,49 @@ namespace Window{
 			SendMessage(EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&cf);
 		}
 		else{
-			//debug_out(("unknown or unsupported linux control format!\n"));
+			//debug_out(("unknown or unsupported Linux control format!\n"));
 		}
 
 		return true;
+	}
+
+	LRESULT c_rich_edit::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+	{
+		return __super::HandleMessage(uMsg, wParam, lParam, bHandled);
+	}
+
+	bool c_rich_edit::get_sel_range(int* start /*= nullptr*/, int* end /*= nullptr*/)
+	{
+		CHARRANGE rng;
+		SendMessage(EM_EXGETSEL, 0, LPARAM(&rng));
+		if (start) *start = rng.cpMin;
+		if (end)   *end = rng.cpMax;
+		return rng.cpMin != rng.cpMax;
+	}
+
+	void c_rich_edit::do_copy()
+	{
+		SendMessage(WM_COPY);
+	}
+
+	void c_rich_edit::do_cut()
+	{
+		SendMessage(WM_CUT);
+	}
+
+	void c_rich_edit::do_paste()
+	{
+		SendMessage(WM_PASTE);
+	}
+
+	void c_rich_edit::do_delete()
+	{
+		SendMessage(WM_CLEAR);
+	}
+
+	void c_rich_edit::do_sel_all()
+	{
+		SendMessage(EM_SETSEL, 0, -1);
 	}
 
 }

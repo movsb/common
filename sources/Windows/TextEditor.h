@@ -5,34 +5,38 @@ namespace Common {
 		class c_edit : public CWnd
 		{
 		public:
-			c_edit(){
-				::InitializeCriticalSection(&_cs);
+			c_edit()
+				: _bUseDefMenu(true)
+			{
 			}
 			virtual ~c_edit(){
-				::DeleteCriticalSection(&_cs);
 			}
-
-			void lock() { ::EnterCriticalSection(&_cs); }
-			void unlock() { ::LeaveCriticalSection(&_cs); }
 
 			virtual LPCTSTR GetSuperClassName() const{return WC_EDIT;}
 			virtual LPCTSTR GetWindowClassName() const{return "Common" WC_EDIT;}
 			virtual bool ResponseDefaultKeyEvent(HWND hwnd, WPARAM wParam) {return false;}
 
 			void clear() {
-				lock();
 				::SetWindowText(*this, ""); 
-				unlock();
 			}
 			virtual bool back_delete_char(int n);
 			virtual bool append_text(const char* str);
 			virtual void set_text(const char* str);
 
+		public: // menu support functions
+			virtual bool is_read_only();
+
 		public:
 			virtual void limit_text(int sz);
 
 		protected:
-			CRITICAL_SECTION _cs;
+			virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+			HMENU _load_default_menu();
+
+
+		protected:
+			bool _bUseDefMenu;
+
 		};
 
 		class c_rich_edit : public c_edit
@@ -50,6 +54,17 @@ namespace Common {
 			virtual bool apply_linux_attributes(char* attrs);
 			virtual bool apply_linux_attribute_m(int attr);
 
+		public:
+			bool get_sel_range(int* start = nullptr, int* end = nullptr);
+			void do_copy();
+			void do_cut();
+			void do_paste();
+			void do_delete();
+			void do_sel_all();
+
+		protected:
+			virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+		
 		protected:
 			int _deffg;
 			int _defbg;
