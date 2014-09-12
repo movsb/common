@@ -28,8 +28,7 @@ namespace Common {
 		IMessageFilter*& MessageFilter(){return m_pMsgFilter;}
 
 		bool TranslateAccelerator(MSG* pmsg);
-		bool AddAcceleratorTranslator(IAcceleratorTranslator* pat);
-		bool RemoveAcceleratorTranslator(IAcceleratorTranslator* pat);
+		IAcceleratorTranslator*& AcceleratorTranslator() { return m_pAcceTrans; }
 
 		static void MessageLoop();
 		static bool TranslateMessage(MSG* pmsg);
@@ -40,7 +39,7 @@ namespace Common {
 	protected:
 		HWND m_hWnd;
 		IMessageFilter* m_pMsgFilter;
-		c_ptr_array<IAcceleratorTranslator> m_AcceTrans;
+		IAcceleratorTranslator* m_pAcceTrans;
 		static c_ptr_array<CWindowManager> m_aWndMgrs;
 	};
 }

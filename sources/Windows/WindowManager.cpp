@@ -7,6 +7,7 @@ namespace Common{
 	CWindowManager::CWindowManager()
 		: m_hWnd(0)
 		, m_pMsgFilter(0)
+		, m_pAcceTrans(0)
 	{
 
 	}
@@ -34,22 +35,7 @@ namespace Common{
 
 	bool CWindowManager::TranslateAccelerator( MSG* pmsg )
 	{
-		for(int i=0; i<m_AcceTrans.size(); i++){
-			if(m_AcceTrans[i]->TranslateAccelerator(pmsg)){
-				return true;
-			}
-		}
-		return false;
-	}
-
-	bool CWindowManager::AddAcceleratorTranslator( IAcceleratorTranslator* pat )
-	{
-		return m_AcceTrans.add(pat);
-	}
-
-	bool CWindowManager::RemoveAcceleratorTranslator( IAcceleratorTranslator* pat )
-	{
-		return m_AcceTrans.remove(pat);
+		return m_pAcceTrans && m_pAcceTrans->TranslateAccelerator(pmsg);
 	}
 
 	void CWindowManager::MessageLoop()
@@ -61,29 +47,12 @@ namespace Common{
 				::DispatchMessage(&msg);
 			}
 		}
-		assert(m_aWndMgrs.size() == 0);
 	}
 
 	bool CWindowManager::TranslateMessage( MSG* pmsg )
 	{
 		bool bChild = !!(GetWindowStyle(pmsg->hwnd) & WS_CHILD);
 		if(bChild){
-// 			HWND hParent = ::GetParent(pmsg->hwnd);
-// 			for(int i=0; i<m_aWndMgrs.size(); i++){
-// 				CWindowManager* pWM = m_aWndMgrs.getat(i);
-// 				HWND hTempParent = hParent;
-// 				while(hTempParent){
-// 					if(pmsg->hwnd == pWM->hWnd() || hTempParent==pWM->hWnd()){
-// 						if(pWM->TranslateAccelerator(pmsg))
-// 							return true;
-// 						if(pWM->FilterMessage(pmsg))
-// 							return true;
-// 
-// 						return false;
-// 					}
-// 					hTempParent = ::GetParent(hTempParent);
-// 				}
-// 			}
 			HWND hParent = pmsg->hwnd;
 			while (hParent && ::GetWindowLongPtr(hParent, GWL_STYLE)&WS_CHILD){
 				hParent = ::GetParent(hParent);
