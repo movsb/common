@@ -203,6 +203,13 @@ namespace Common {
 	};
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
+	// 我不知道该如何主动通知串口被关闭这一事件? 干脆写个接口吧
+	class i_com_event_handler
+	{
+	public:
+		virtual void com_closed() = 0;
+	};
+
 	// 串口类
 	class CComm
 	{
@@ -228,6 +235,7 @@ namespace Common {
 				case csdp_type::csdp_alloc:
 				case csdp_type::csdp_local:
 					_data_counter.add_unsend(psdp->cb);
+					_data_counter.call_updater();
 					break;
 				}
 				return true;
@@ -248,6 +256,11 @@ namespace Common {
 	private:
 		c_data_counter			_data_counter;
 
+	// 串口相关事件处理器
+	public:
+		void					set_event_handler(i_com_event_handler* handler) { _event_handler = handler; }
+	private:
+		i_com_event_handler*	_event_handler;
 	// 数据接收器
 	public:
 		void add_data_recerver(i_data_receiver* receiver);
