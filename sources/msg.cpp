@@ -1200,6 +1200,9 @@ namespace Common {
 		if (cp) {
 			comcfg->set_key("comm.config.comport", cp->get_i());
 		}
+		else{
+			comcfg->set_key("comm.config.comport", "");
+		}
 
 		// 当前波特率
 		auto& brs = *_comm.baudrates();
