@@ -50,14 +50,6 @@ namespace Common{
 	CComm::CComm()
 		: _notifier(NULL)
 		, _hComPort(NULL)
-		, _hthread_read(0)
-		, _hthread_write(0)
-		//, _hevent_continue_to_read(0)
-		, _hevent_read_start(0)
-		, _hevent_write_start(0)
-		, _hevent_read_end(0)
-		, _hevent_write_end(0)
-
 	{
 		_begin_threads();
 		static char* aBaudRate[]={"110","300","600","1200","2400","4800","9600","14400","19200","38400","57600","115200","128000","256000", NULL};
@@ -129,41 +121,51 @@ namespace Common{
 
 	bool CComm::begin_threads()
 	{
-		::ResetEvent(_hevent_read_end);
-		::ResetEvent(_hevent_write_end);
-		::SetEvent(_hevent_write_start);
-		::SetEvent(_hevent_read_start);
+		::ResetEvent(_thread_read.hEventToExit);
+		::ResetEvent(_thread_write.hEventToExit);
+		::ResetEvent(_thread_event.hEventToExit);
+		
+		::SetEvent(_thread_read.hEventToBegin);
+		::SetEvent(_thread_write.hEventToBegin);
+		::SetEvent(_thread_event.hEventToBegin);
+
 		return true;
 	}
 
 	bool CComm::end_threads()
 	{
-		::ResetEvent(_hevent_read_start);
-		::ResetEvent(_hevent_write_start);
-		::SetEvent(_hevent_write_end);
-		::SetEvent(_hevent_read_end);
+		::ResetEvent(_thread_read.hEventToBegin);
+		::ResetEvent(_thread_write.hEventToBegin);
+		::ResetEvent(_thread_event.hEventToBegin);
+
+		::SetEvent(_thread_read.hEventToExit);
+		::SetEvent(_thread_write.hEventToExit);
+		::SetEvent(_thread_event.hEventToExit);
 		
 		// 在读写线程退出之前, 两个end均为激发状态
 		// 必须等到两个线程均退出工作状态才能有其它操作
-		debug_out(("%s: 等待 [读线程] 结束...\n", __FUNCTION__));
-		while (::WaitForSingleObject(_hevent_read_end, 0) == WAIT_OBJECT_0)
-			;
-		debug_out(("%s: 等待 [写线程] 结束...\n", __FUNCTION__));
-		while (::WaitForSingleObject(_hevent_write_end, 0) == WAIT_OBJECT_0)
-			;
+		debug_out(("等待 [读线程] 结束...\n"));
+		while (::WaitForSingleObject(_thread_read.hEventToExit, 0) == WAIT_OBJECT_0);
+		debug_out(("等待 [写线程] 结束...\n"));
+		while (::WaitForSingleObject(_thread_write.hEventToExit, 0) == WAIT_OBJECT_0);
+		debug_out(("等待 [事件线程] 结束...\n"));
+		while (::WaitForSingleObject(_thread_event.hEventToExit, 0) == WAIT_OBJECT_0);
+
 		return true;
 	}
 
 	unsigned int __stdcall CComm::thread_helper(void* pv)
 	{
-		thread_helper_context* pctx = (thread_helper_context*)pv;
-		CComm* comm = pctx->that;
-		thread_helper_context::e_which which = pctx->which;
+		auto pctx = reinterpret_cast<thread_helper_context*>(pv);
+		auto comm = pctx->that;
+		auto which = pctx->which;
 
 		delete pctx;
 
 		switch (which)
 		{
+		case thread_helper_context::e_which::kEvent:
+			return comm->thread_event();
 		case thread_helper_context::e_which::kRead:
 			return comm->thread_read();
 		case thread_helper_context::e_which::kWrite:
@@ -174,143 +176,213 @@ namespace Common{
 		}
 	}
 
+	unsigned int CComm::thread_event()
+	{
+		BOOL bRet;
+		DWORD dw,dw2;
+
+	_wait_for_work:
+		debug_out(("[事件线程] 就绪!\n"));
+		dw = ::WaitForSingleObject(_thread_event.hEventToBegin, INFINITE);
+		SMART_ASSERT(dw == WAIT_OBJECT_0)(dw).Fatal();
+
+		debug_out(("[事件线程] 开始工作...\n"));
+		if (!is_opened()){
+			debug_out(("[事件线程] 没有工作, 退出中...\n"));
+			::SetEvent(_thread_event.hEventToExit);
+			return 0;
+		}
+
+		OVERLAPPED o = { 0 };
+		o.hEvent = ::CreateEvent(nullptr, TRUE, FALSE, nullptr);
+
+	_wait_again:
+		DWORD dwEvent = 0;
+		::ResetEvent(o.hEvent);
+		dw = ::WaitCommEvent(_hComPort, &dwEvent, &o);
+		if (dw != FALSE){
+			_event_listener.call_listeners(dwEvent);
+			goto _wait_again;
+		}
+		else{ // I/O is pending
+			if (::GetLastError() == ERROR_IO_PENDING){
+				HANDLE handles[2];
+				handles[0] = _thread_event.hEventToExit;
+				handles[1] = o.hEvent;
+
+				switch (::WaitForMultipleObjects(_countof(handles), handles, FALSE, INFINITE))
+				{
+				case WAIT_FAILED:
+					_notifier->msgerr("[事件线程::Wait失败]");
+					goto _restart;
+					break;
+				case WAIT_OBJECT_0 + 0:
+					debug_out(("[事件线程] 收到退出事件!\n"));
+					goto _restart;
+					break;
+				case WAIT_OBJECT_0 + 1:
+					debug_out(("[事件线程] 等待结束\n"));
+					bRet = ::GetOverlappedResult(_hComPort, &o, &dw2, FALSE);
+					if (bRet == FALSE){
+						_notifier->msgerr("[事件线程::Wait失败]");
+						goto _restart;
+					}
+					else{
+						_event_listener.call_listeners(dwEvent); // uses dwEvent, not dw2
+						goto _wait_again;
+					}
+					break;
+				}
+			}
+			else{
+				_notifier->msgerr("[事件线程]::GetLastError() != ERROR_IO_PENDING\n\n");
+			}
+		}
+
+	_restart:
+		if (!::CancelIo(_hComPort)){
+
+		}
+
+		::CloseHandle(o.hEvent);
+
+		::WaitForSingleObject(_thread_event.hEventToExit, INFINITE);
+		::ResetEvent(_thread_event.hEventToExit);
+
+		goto _wait_for_work;
+	}
+
 	unsigned int CComm::thread_write()
 	{
 		BOOL bRet;
 		DWORD dw;
-		bool bNormalExit = false;
 
-		debug_out(("[写线程] 就绪\n"));
+		c_event_event_listener listener;
+
 	_wait_for_work:
-		dw = ::WaitForSingleObject(_hevent_write_start, INFINITE);
-		debug_out(("[写线程] 开始开始进入工作状态\n"));
-
+		debug_out(("[写线程] 就绪\n"));
+		dw = ::WaitForSingleObject(_thread_write.hEventToBegin, INFINITE);
 		SMART_ASSERT(dw == WAIT_OBJECT_0)(dw).Fatal();
-
-		// 进入工作线程, 但如果不是因为串口而工作, 则意味着该结束了
+		
+		debug_out(("[写线程] 开始工作...\n"));
 		if (!is_opened()){
-			debug_out(("[写线程] 没有任务, 写线程退出\n"));
-			::SetEvent(_hevent_write_end);
+			debug_out(("[写线程] 没有工作, 退出中...\n"));
+			::SetEvent(_thread_write.hEventToExit);
 			return 0;
 		}
-		 
 
 		OVERLAPPED overlap = { 0 };
 		overlap.hEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+		
+		_event_listener.add_listener(listener, EV_TXEMPTY);
 
-		for (;;)
-		{
-			debug_out(("[写线程] 取数据包中...\n"));
-			c_send_data_packet* psdp = _send_data.get();	// get@1 
-			if (psdp->type == csdp_type::csdp_alloc || psdp->type == csdp_type::csdp_local){
-				debug_out(("[写线程] 取得一个发送数据包, 长度为 %d 字节\n", psdp->cb));
+	_get_packet:
+		debug_out(("[写线程] 取数据包中...\n"));
+		c_send_data_packet* psdp = _send_data.get();
+		if (psdp->type == csdp_type::csdp_alloc || psdp->type == csdp_type::csdp_local){
+			debug_out(("[写线程] 取得一个发送数据包, 长度为 %d 字节\n", psdp->cb));
 
-				DWORD	nWritten = 0;		// 写操作一次写入的长度
-				int		nWrittenData;	// 当前循环总共写入长度
+			DWORD	nWritten = 0;		// 写操作一次写入的长度
+			int		nWrittenData;		// 当前循环总共写入长度
 
-				for (nWrittenData = 0; nWrittenData < psdp->cb;)
-				{
-					BOOL bSucceed = FALSE;
-
-					bRet = ::WriteFile(_hComPort, &psdp->data[0] + nWrittenData, psdp->cb - nWrittenData, NULL, &overlap);
-					if (bRet != FALSE){ // I/O is completed
-						bSucceed = ::GetOverlappedResult(_hComPort, &overlap, &nWritten, FALSE);
-						debug_out(("[写线程] I/O completed immediately: bytes : %d\n", nWritten));
-					}
-					else{ // I/O is pending						
-						if (::GetLastError() == ERROR_IO_PENDING){
-							HANDLE handles[2];
-							handles[0] = _hevent_write_end;
-							handles[1] = overlap.hEvent;
-
-
-							switch (::WaitForMultipleObjects(2, &handles[0], FALSE, INFINITE))
-							{
-							case WAIT_FAILED:		// what error happened ? the serial port removed ?
-								debug_out(("[写线程] 等待失败\n"));
-								bSucceed = FALSE;
-								break;
-							case WAIT_OBJECT_0 + 0: // now we exit
-								debug_out(("[写线程] 正在准备退出工作状态\n"));
-								nWritten = 0;
-								bSucceed = TRUE;
-								goto exit_main_for;
-								break;
-							case WAIT_OBJECT_0 + 1: // the I/O operation is now completed
-								bSucceed = ::GetOverlappedResult(_hComPort, &overlap, &nWritten, FALSE);
-								break;
-							}
-						}
-						else{
-							bSucceed = FALSE;
-						}
-					}
-
-					if (bSucceed){
-						nWrittenData += nWritten;
-						_data_counter.add_send(nWritten);
-						_data_counter.sub_unsend(nWritten);
-						_data_counter.call_updater();
+			for (nWrittenData = 0; nWrittenData < psdp->cb;){
+				bRet = ::WriteFile(_hComPort, &psdp->data[0] + nWrittenData, psdp->cb - nWrittenData, NULL, &overlap);
+				if (bRet != FALSE){ // I/O is completed
+					bRet = ::GetOverlappedResult(_hComPort, &overlap, &nWritten, FALSE);
+					if (bRet){
+						debug_out(("[写线程] I/O completed immediately, bytes : %d\n", nWritten));
 					}
 					else{
-						_notifier->msgerr("[写操作失败]");
-						goto exit_main_for;
+						_notifier->msgerr("[写线程] GetOverlappedResult失败!\n");
+						goto _restart;
 					}
 				}
-				_send_data.release(psdp);
-			}
-			else if (psdp->type == csdp_type::csdp_exit){
-				debug_out(("[写线程] 收到退出请求\n"));
-				_send_data.release(psdp);
-				bNormalExit = true;
-				goto exit_main_for;
-			}
-		}
-		exit_main_for:
-		;
+				else{ // I/O is pending						
+					if (::GetLastError() == ERROR_IO_PENDING){
+						HANDLE handles[2];
+						handles[0] = _thread_write.hEventToExit;
+						handles[1] = listener.hEvent;
 
-		debug_out(("[写线程] CancelIO()...\n"));
+						switch (::WaitForMultipleObjects(_countof(handles), &handles[0], FALSE, INFINITE))
+						{
+						case WAIT_FAILED:
+							_notifier->msgerr("[写线程] Wait失败!\n");
+							goto _restart;
+							break;
+						case WAIT_OBJECT_0 + 0: // now we exit
+							debug_out(("[写线程] 收到退出事件!\n"));
+							goto _restart;
+							break;
+						case WAIT_OBJECT_0 + 1: // the I/O operation is now completed
+							bRet = ::GetOverlappedResult(_hComPort, &overlap, &nWritten, FALSE);
+							if (bRet){
+								debug_out(("[写线程] 写入 %d 个字节!\n", nWritten));
+							}
+							else{
+								_notifier->msgerr("[写线程] GetOverlappedResult失败!\n");
+								goto _restart;
+							}
+							break;
+						}
+					}
+					else{
+						_notifier->msgerr("[写线程] ::GetLastError() != ERROR_IO_PENDING");
+						goto _restart;
+					}
+				}
+
+				nWrittenData += nWritten;
+				_data_counter.add_send(nWritten);
+				_data_counter.sub_unsend(nWritten);
+				_data_counter.call_updater();
+			}
+			_send_data.release(psdp);
+			goto _get_packet;
+		}
+		else if (psdp->type == csdp_type::csdp_exit){
+			debug_out(("[写线程] 收到退出事件!\n"));
+			_send_data.release(psdp);
+			goto _restart;
+		}
+
+	_restart:
 		if (!::CancelIo(_hComPort)){
-			//_notifier->msgerr("CancelIO");
+
 		}
 
 		::CloseHandle(overlap.hEvent);
 
-		if (!bNormalExit){
-			_event_handler->com_closed();
-		}
+		_event_listener.remove_listener(listener);
+		listener.reset();
 
 		// Do just like the thread_read do.
-		::WaitForSingleObject(_hevent_write_end, INFINITE);
-		::ResetEvent(_hevent_write_end);
+		::WaitForSingleObject(_thread_write.hEventToExit, INFINITE);
+		::ResetEvent(_thread_write.hEventToExit);
 
-		debug_out(("[写线程] 重新就绪!\n"));
 		goto _wait_for_work;
-
-		return 0;
 	}
 
 	unsigned int CComm::thread_read()
 	{
 		BOOL bRet;
 		DWORD dw;
-		bool bNormalExit =false;
 
+		c_event_event_listener listener;
+
+		const int kReadBufSize = 1 << 20;
 		unsigned char* block_data = NULL;
-		block_data = new unsigned char[COMMON_READ_BUFFER_SIZE];
+		block_data = new unsigned char[kReadBufSize];
 
-		debug_out(("[读线程] 就绪\n"));
 	_wait_for_work:
-		dw = ::WaitForSingleObject(_hevent_read_start, INFINITE);
-		debug_out(("[读线程] 开始开始进入工作状态\n"));
-
+		debug_out(("[读线程] 就绪\n"));
+		dw = ::WaitForSingleObject(_thread_read.hEventToBegin, INFINITE);
 		SMART_ASSERT(dw == WAIT_OBJECT_0)(dw).Fatal();
 
-		// 进入工作线程, 但如果不是因为串口而工作, 则意味着该结束了
+		debug_out(("[读线程] 开始工作...\n"));
 		if (!is_opened()){
-			debug_out(("[读线程] 没有任务, 读线程退出\n"));
+			debug_out(("[读线程] 没有工作, 退出中...\n"));
 			delete[] block_data;
-			::SetEvent(_hevent_read_end);
+			::SetEvent(_thread_read.hEventToExit);
 			return 0;
 		}
 
@@ -318,144 +390,104 @@ namespace Common{
 		OVERLAPPED overlap = { 0 };
 		overlap.hEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 
-		OVERLAPPED owaitevent = { 0 };
-		owaitevent.hEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL); // MSDN说WaitCommEvent必须是手动重置事件
+		_event_listener.add_listener(listener, EV_RXCHAR);
 
-		for (;;)
+
+		HANDLE handles[2];
+		handles[0] = _thread_read.hEventToExit;
+		handles[1] = listener.hEvent;
+
+	_get_packet:
+		switch (::WaitForMultipleObjects(_countof(handles), handles, FALSE, INFINITE))
 		{
-			BOOL	bSucceed = FALSE;
+		case WAIT_FAILED:
+			_notifier->msgerr("[读线程] Wait失败!\n");
+			goto _restart;
+		case WAIT_OBJECT_0 + 0:
+			debug_out(("[读线程] 收到退出事件!\n"));
+			goto _restart;
+		case WAIT_OBJECT_0 + 1:
+			break;
+		}
 
-			//debug_out(("[读线程] 等待串口事件中...\n"));
+		DWORD nBytesToRead, nRead, nTotalRead;
+		DWORD	comerr;
+		COMSTAT	comsta;
+		// for some reasons, such as comport has been removed
+		if (!::ClearCommError(_hComPort, &comerr, &comsta)){
+			_notifier->msgerr("ClearCommError()");
+			goto _restart;
+		}
 
-			::ResetEvent(owaitevent.hEvent);
-			bRet = ::WaitCommEvent(_hComPort, &dw, &owaitevent);
-			if (bRet == FALSE){
+		nBytesToRead = comsta.cbInQue;
+		if (nBytesToRead == 0) 
+			nBytesToRead++; // would never happen
+
+		if (nBytesToRead > kReadBufSize)
+			nBytesToRead = kReadBufSize;
+
+		for (nTotalRead = 0; nTotalRead < nBytesToRead;){
+			bRet = ::ReadFile(_hComPort, block_data + nTotalRead, nBytesToRead - nTotalRead, &nRead, &overlap);
+			if (bRet != FALSE){
+				bRet = ::GetOverlappedResult(_hComPort, &overlap, &nRead, FALSE);
+				if (bRet) {
+					debug_out(("[读线程] 读取 %d 字节, bRet==TRUE, nBytesToRead: %d\n", nRead, nBytesToRead));
+				}
+				else{
+					_notifier->msgerr("[写线程] GetOverlappedResult失败!\n");
+					goto _restart;
+				}
+			}
+			else{
 				if (::GetLastError() == ERROR_IO_PENDING){
 					HANDLE handles[2];
-					handles[0] = _hevent_read_end;
-					handles[1] = owaitevent.hEvent;
-					switch (::WaitForMultipleObjects(2, &handles[0], FALSE, INFINITE))
+					handles[0] = _thread_read.hEventToExit;
+					handles[1] = overlap.hEvent;
+
+					switch (::WaitForMultipleObjects(_countof(handles), &handles[0], FALSE, INFINITE))
 					{
 					case WAIT_FAILED:
-						debug_out(("[读线程] WaitCommEvent 失败...\n"));
-						bSucceed = FALSE;
-						break;
+						debug_out(("[读线程] 等待失败!\n"));
+						goto _restart;
 					case WAIT_OBJECT_0 + 0:
-						debug_out(("[读线程] 收到串口关闭事件通知\n"));
-						bNormalExit = true;
-						goto _exit_main_for;
+						debug_out(("[读线程] 收到退出事件!\n"));
+						goto _restart;
 					case WAIT_OBJECT_0 + 1:
-						// MSDN上说这里可以通过GetOverlappedResult来取得结果
-						// 但我试过, 如果在等待过程中把串口拔了的话, GOR依然返回TRUE
-						// 没有哪个地方暗示错误发生了, 所以我就只能先假定是"成功"的啦
-						// Then I should call ClearCommError() and detect the errors.
-						debug_out(("[读线程] WAIT_OBJECT + 1\n"));
-						bSucceed = TRUE;
+						bRet = ::GetOverlappedResult(_hComPort, &overlap, &nRead, FALSE);
+						if (bRet){
+							debug_out(("[读线程] 读取 %d 字节, bRet==FALSE\n", nRead));
+						}
+						else{
+							_notifier->msgerr("[读线程] GetOverlappedResult失败!\n");
+							goto _restart;
+						}
 						break;
 					}
 				}
 				else{
-					bSucceed = FALSE;
+					_notifier->msgerr("[读线程] ::GetLastError() != ERROR_IO_PENDING");
+					goto _restart;
 				}
+			}
+
+			if (nRead > 0){
+				nTotalRead += nRead;
+				_data_counter.add_recv(nRead);
+				_data_counter.call_updater();
 			}
 			else{
-				bSucceed = TRUE;
-			}
-
-			if (bSucceed){
-				DWORD nBytesToRead, nRead, nTotalRead;
-				DWORD	comerr;
-				COMSTAT	comsta;
-				// for some reasons, such as comport has been removed
-				if (!::ClearCommError(_hComPort, &comerr, &comsta)){
-					_notifier->msgerr("ClearCommError()");
-					goto _exit_main_for;
-				}
-				nBytesToRead = comsta.cbInQue;
-				if (nBytesToRead == 0) 
-					nBytesToRead++; // would never happen
-
-				if (nBytesToRead > COMMON_READ_BUFFER_SIZE)
-					nBytesToRead = COMMON_READ_BUFFER_SIZE;
-
-				for (nTotalRead = 0; nTotalRead < nBytesToRead;)
-				{
-					bRet = ::ReadFile(_hComPort, block_data + nTotalRead, nBytesToRead - nTotalRead, &nRead, &overlap);
-					if (bRet != FALSE){
-						bSucceed = ::GetOverlappedResult(_hComPort, &overlap, &nRead, FALSE);
-						if (bSucceed) {
-							//debug_out(("[读线程] 读取 %d 字节, bRet==TRUE, nBytesToRead: %d\n", nRead, nBytesToRead));
-						}
-					}
-					else{
-						if (::GetLastError() == ERROR_IO_PENDING){
-							HANDLE handles[2];
-							handles[0] = _hevent_read_end;
-							handles[1] = overlap.hEvent;
-
-							switch (::WaitForMultipleObjects(2, &handles[0], FALSE, INFINITE))
-							{
-							case WAIT_FAILED:
-								debug_out(("[读线程] 等待失败!\n"));
-								bSucceed = FALSE;
-								break;
-							case WAIT_OBJECT_0 + 0:
-								debug_out(("[读线程] 正在准备退出工作状态!\n"));
-								if (!::PurgeComm(_hComPort, PURGE_TXABORT | PURGE_TXCLEAR)){
-									_notifier->msgerr("PurgeComm");
-								}
-								bNormalExit = true;
-								goto _exit_main_for;
-								break;
-							case WAIT_OBJECT_0 + 1:
-								bSucceed = ::GetOverlappedResult(_hComPort, &overlap, &nRead, FALSE);
-								//debug_out(("[读线程] 读取 %d 字节, bRet==FALSE\n", nRead));
-								break;
-							}
-						}
-						else{
-							bSucceed = FALSE;
-						}
-					}
-
-					if (bSucceed){
-						if (nRead > 0){
-							nTotalRead += nRead;
-							_data_counter.add_recv(nRead);
-							_data_counter.call_updater();
-						}
-						else{
-							nBytesToRead--;
-						}
-					}
-					else{
-						_notifier->msgerr("[读操作失败]");
-						goto _exit_main_for;
-					}
-				}
-				call_data_receivers(block_data, nBytesToRead);
-			}
-			else{
-				_notifier->msgerr("[读操作失败]");
-				goto _exit_main_for;
+				nBytesToRead--;
 			}
 		}
-	_exit_main_for:
-		if (!::PurgeComm(_hComPort, PURGE_RXABORT | PURGE_RXCLEAR)){
-			// The main thread is waiting for us!!!
-			//_notifier->msgerr("PurgeComm");
-		}
+		call_data_receivers(block_data, nBytesToRead);
+		goto _get_packet;
 
+	_restart:
 		if (!::CancelIo(_hComPort)){
-			//_notifier->msgerr("CancelIO");
+
 		}
 
-		::CloseHandle(owaitevent.hEvent);
 		::CloseHandle(overlap.hEvent);
-
-		if (!bNormalExit){
-			_event_handler->com_closed();
-		}
 
 		// Sometimes we got here not because of we've got a exit signal
 		// Maybe something wrong
@@ -464,15 +496,13 @@ namespace Common{
 		// this thread Reset it, since the event is a Manual reset event handle.
 		// So, let's wait whatever the current signal-state the event is, just before the
 		// main thread  really want we do that.
-		::WaitForSingleObject(_hevent_read_end, INFINITE);
-		::ResetEvent(_hevent_read_end);
+		::WaitForSingleObject(_thread_read.hEventToExit, INFINITE);
+		::ResetEvent(_thread_read.hEventToExit);
 
-		debug_out(("[读线程] 重新就绪!\n"));
 		goto _wait_for_work;
-
-		return 0;
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	void CComm::call_data_receivers(const unsigned char* ba, int cb)
 	{
 		_data_receiver_lock.lock();
@@ -496,6 +526,7 @@ namespace Common{
 		_data_receivers.add(receiver);
 		_data_receiver_lock.unlock();
 	}
+	//////////////////////////////////////////////////////////////////////////
 
 	bool CComm::setting_comm(s_setting_comm* pssc)
 	{
@@ -518,7 +549,14 @@ namespace Common{
 			return false;
 		}
 
-		if (!::SetCommMask(get_handle(), EV_RXCHAR)){
+		if (!::SetCommMask(get_handle(), 
+			EV_RXCHAR|EV_RXFLAG|EV_TXEMPTY
+			| EV_CTS | EV_DSR | EV_RLSD
+			| EV_BREAK | EV_ERR
+			| EV_RING
+			| EV_PERR | EV_RX80FULL
+			| EV_EVENT1 | EV_EVENT2))
+		{
 			_notifier->msgerr("SetCommMask()错误");
 			return false;
 		}
@@ -535,37 +573,46 @@ namespace Common{
 
 	bool CComm::_begin_threads()
 	{
-		SMART_ASSERT(!_hthread_read && !_hthread_write
-			&& !_hevent_read_start && !_hevent_write_start
-			&& !_hevent_read_end && !_hevent_write_end).Fatal();
+		thread_helper_context* pctx = nullptr;
 
+		// 开启读线程
+		_thread_read.hEventToBegin = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		_thread_read.hEventToExit = ::CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
-		// 在开启读写线程之前应该先创建事件, 因为线程根据他们判断是否开始工作
-		_hevent_read_start  = ::CreateEvent(NULL, FALSE, FALSE, NULL);
-		_hevent_read_end    = ::CreateEvent(NULL, TRUE, FALSE, NULL);
-		_hevent_write_start = ::CreateEvent(NULL, FALSE, FALSE, NULL);
-		_hevent_write_end   = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+		pctx = new thread_helper_context;
+		pctx->that = this;
+		pctx->which = thread_helper_context::e_which::kRead;
+		_thread_read.hThread = (HANDLE)::_beginthreadex(nullptr, 0, thread_helper, pctx, 0, nullptr);
 
-		if (!_hevent_read_start || !_hevent_write_start
-			|| !_hevent_read_end || !_hevent_read_end)
-		{
+		if (!_thread_read.hEventToBegin || !_thread_read.hEventToExit || !_thread_read.hThread){
 			::MessageBox(NULL, "应用程序初始化失败, 即将退出!", NULL, MB_ICONHAND);
 			::exit(1);
 		}
 
-		thread_helper_context* ctx = NULL;;
+		// 开启写线程
+		_thread_write.hEventToBegin = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		_thread_write.hEventToExit = ::CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
-		ctx = new thread_helper_context;
-		ctx->that = this;
-		ctx->which = thread_helper_context::kRead;
-		_hthread_read = (HANDLE)_beginthreadex(NULL, 0, thread_helper, ctx, 0, NULL);
+		pctx = new thread_helper_context;
+		pctx->that = this;
+		pctx->which = thread_helper_context::e_which::kWrite;
+		_thread_write.hThread = (HANDLE)::_beginthreadex(nullptr, 0, thread_helper, pctx, 0, nullptr);
 
-		ctx = new thread_helper_context;
-		ctx->that = this;
-		ctx->which = thread_helper_context::kWrite;
-		_hthread_write = (HANDLE)_beginthreadex(NULL, 0, thread_helper, ctx, 0, NULL);
+		if (!_thread_write.hEventToBegin || !_thread_write.hEventToExit || !_thread_write.hThread){
+			::MessageBox(NULL, "应用程序初始化失败, 即将退出!", NULL, MB_ICONHAND);
+			::exit(1);
+		}
 
-		if (!_hthread_read || !_hthread_write){
+		// 开启事件线程
+		_thread_event.hEventToBegin = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		_thread_event.hEventToExit = ::CreateEvent(nullptr, TRUE, FALSE, nullptr);
+
+		pctx = new thread_helper_context;
+		pctx->that = this;
+		pctx->which = thread_helper_context::e_which::kEvent;
+		_thread_event.hThread = (HANDLE)::_beginthreadex(nullptr, 0, thread_helper, pctx, 0, nullptr);
+
+		if (!_thread_event.hEventToBegin || !_thread_event.hEventToExit || !_thread_event.hThread){
 			::MessageBox(NULL, "应用程序初始化失败, 即将退出!", NULL, MB_ICONHAND);
 			::exit(1);
 		}
@@ -577,22 +624,27 @@ namespace Common{
 	{
 		SMART_ASSERT(is_opened() == false).Fatal();
 
-		// 由读写线程设置并让当前线程等待他们的结束
-		::ResetEvent(_hevent_read_end);
-		::ResetEvent(_hevent_write_end);
+		// 由线程在退出之前设置并让当前线程等待他们的结束
+		::ResetEvent(_thread_read.hEventToExit);
+		::ResetEvent(_thread_write.hEventToExit);
+		::ResetEvent(_thread_event.hEventToExit);
 
 		// 此时串口是关闭的, 收到此事件即准备退出线程
-		::SetEvent(_hevent_read_start);
-		::SetEvent(_hevent_write_start);
+		::SetEvent(_thread_read.hEventToBegin);
+		::SetEvent(_thread_write.hEventToBegin);
+		::SetEvent(_thread_event.hEventToBegin);
 
-		// 等待读写线程完全退出
-		::WaitForSingleObject(_hevent_read_end, INFINITE);
-		::WaitForSingleObject(_hevent_write_end, INFINITE);
+		// 等待线程完全退出
+		::WaitForSingleObject(_thread_read.hEventToExit, INFINITE);
+		::WaitForSingleObject(_thread_write.hEventToExit, INFINITE);
+		::WaitForSingleObject(_thread_event.hEventToExit, INFINITE);
 
-		::CloseHandle(_hevent_read_end);
-		::CloseHandle(_hevent_read_start);
-		::CloseHandle(_hevent_write_end);
-		::CloseHandle(_hevent_write_start);
+		::CloseHandle(_thread_read.hEventToBegin);
+		::CloseHandle(_thread_read.hEventToExit);
+		::CloseHandle(_thread_write.hEventToBegin);
+		::CloseHandle(_thread_write.hEventToExit); 
+		::CloseHandle(_thread_event.hEventToBegin);
+		::CloseHandle(_thread_event.hEventToExit);
 
 		return false;
 	}

@@ -209,6 +209,40 @@ namespace Common {
 		virtual void do_event(DWORD evt) = 0;
 	};
 
+	// do_event的过程一定不要长时间不返回, 所以写了个基于事件的监听器
+	class c_event_event_listener : public i_com_event_listener
+	{
+	public:
+		operator i_com_event_listener*() {
+			return this;
+		}
+		virtual void do_event(DWORD evt) override
+		{
+			event = evt;
+			::SetEvent(hEvent);
+		}
+
+	public:
+		c_event_event_listener()
+		{
+			hEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		}
+		~c_event_event_listener()
+		{
+			::CloseHandle(hEvent);
+		}
+
+		void reset()
+		{
+			::ResetEvent(hEvent);
+		}
+
+
+	public:
+		DWORD	event;
+		HANDLE	hEvent;
+	};
+
 	// 串口事件监听器接口 管理器
 	class c_com_event_listener
 	{
@@ -319,27 +353,29 @@ namespace Common {
 		struct thread_helper_context
 		{
 			CComm* that;
-			enum e_which{
+			enum class e_which{
+				kEvent,
 				kRead,
 				kWrite,
-			}which;
+			};
+			e_which which;
 		};
+		struct thread_state{
+			HANDLE hThread;
+			HANDLE hEventToBegin;
+			HANDLE hEventToExit;
+		};
+		unsigned int thread_event();
 		unsigned int thread_read();
-		//void wait_read_event() { ::WaitForSingleObject(_hevent_continue_to_read, INFINITE); }
 		unsigned int thread_write();
 		static unsigned int __stdcall thread_helper(void* pv);
-	public:
-		//void resume_read_thread() { ::SetEvent(_hevent_continue_to_read); }
-		//void suspend_read_thread() { ::ResetEvent(_hevent_continue_to_read); }
+
+		thread_state	_thread_read;
+		thread_state	_thread_write;
+		thread_state	_thread_event;
+
 	private:
-		HANDLE		_hthread_read;				// 读线程句柄
-		HANDLE		_hthread_write;				// 写线程句柄
 
-		HANDLE		_hevent_read_start;			// 自动重置,通知读线程开始与结束的事件
-		HANDLE		_hevent_read_end;			// 手动重置,通知读线程开始与结束的事件
-
-		HANDLE		_hevent_write_start;		// 自动重置,通知写线程开始与结束的事件
-		HANDLE		_hevent_write_end;			// 手动重置,通知写线程开始与结束的事件
 
 	// 串口配置结构体
 	private:
