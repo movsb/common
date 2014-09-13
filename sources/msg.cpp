@@ -254,6 +254,27 @@ namespace Common {
 			::SetDlgItemText(m_hWnd, IDC_STATIC_TIMER, tstr);
 			return 0;
 		}
+		case kMessageBox:
+		{
+			auto p = reinterpret_cast<void**>(lParam);
+			auto msg = reinterpret_cast<std::string*>(p[0]);
+			auto cap = reinterpret_cast<std::string*>(p[1]);
+			auto ico = reinterpret_cast<int*>(p[2]);
+
+			int x = ::MessageBox(m_hWnd, msg->c_str(), cap->c_str(), *ico);
+
+			delete msg;
+			delete cap;
+			delete ico;
+
+			delete[] p;
+
+			return x;
+		}
+		}
+		return 0;
+	}
+
 	LRESULT CComWnd::on_contextmenu(HWND hwnd, int x, int y)
 	{
 		if (hwnd == _recv_char_edit){
@@ -1220,6 +1241,33 @@ namespace Common {
 		comcfg->set_key("comm.config.parity", get_cbo_item_data(_hPA)->get_i());
 		comcfg->set_key("comm.config.databit", get_cbo_item_data(_hDB)->get_i());
 		comcfg->set_key("comm.config.stopbit", get_cbo_item_data(_hSB)->get_i());
+	}
+
+	int CComWnd::msgbox(UINT msgicon, char* caption, char* fmt, ...)
+	{
+		va_list va;
+		char smsg[1024] = { 0 };
+		va_start(va, fmt);
+		_vsnprintf(smsg, sizeof(smsg), fmt, va);
+		va_end(va);
+
+		if (GetCurrentThreadId() == GetWindowThreadProcessId(m_hWnd, nullptr)){
+			return ::MessageBox(m_hWnd, smsg, caption, msgicon);
+		}
+		else{
+			auto msg = new std::string(smsg);
+			auto cap = new std::string(caption?caption:"");
+			auto ico = new int(msgicon);
+
+			void** p = new void*[3];
+			p[0] = msg;
+			p[1] = cap;
+			p[2] = ico;
+
+			// ”√SendMessage∫√≤ª?
+			PostMessage(kMessageBox, 0, LPARAM(p));
+			return 0;
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
