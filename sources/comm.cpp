@@ -62,8 +62,8 @@ namespace Common{
 		_begin_threads();
 		static char* aBaudRate[]={"110","300","600","1200","2400","4800","9600","14400","19200","38400","57600","115200","128000","256000", NULL};
 		static DWORD iBaudRate[]={CBR_110,CBR_300,CBR_600,CBR_1200,CBR_2400,CBR_4800,CBR_9600,CBR_14400,CBR_19200,CBR_38400,CBR_57600,CBR_115200,CBR_128000,CBR_256000};
-		static char* aParity[] = {"无","偶校验","奇校验", "标记", "空格", NULL};
-		static BYTE iParity[] = {NOPARITY,EVENPARITY,ODDPARITY,MARKPARITY,SPACEPARITY};
+		static char* aParity[] = {"无","奇校验","偶校验", "标记", "空格", NULL};
+		static BYTE iParity[] = { NOPARITY, ODDPARITY,EVENPARITY, MARKPARITY, SPACEPARITY };
 		static char* aStopBit[] = {"1位", "1.5位","2位", NULL};
 		static BYTE iStopBit[] = {ONESTOPBIT,ONE5STOPBITS,TWOSTOPBITS};
 		static char* aDataSize[] = {"8位","7位","6位","5位",NULL};
