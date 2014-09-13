@@ -5,18 +5,6 @@
 
 static char* __THIS_FILE__  = __FILE__;
 
-// int on_setting_change(void)
-// {
-// 	if(msg.hComPort == NULL){
-// 		extern HWND hComPort;
-// 		comm.update((int*)-1);
-// 		if(ComboBox_GetCount(hComPort)){
-// 			ComboBox_SetCurSel(hComPort,0);
-// 		}
-// 	}
-// 	return 0;
-// }
-
 namespace Common {
 	//////////////////////////////////////////////////////////////////////////
 	CComWnd::CComWnd()
@@ -47,6 +35,7 @@ namespace Common {
 		case WM_CLOSE:			return on_close();
 		case WM_COMMAND:		return on_command(HWND(lParam), LOWORD(wParam), HIWORD(wParam));
 		case WM_DEVICECHANGE:	return on_device_change(wParam, (DEV_BROADCAST_HDR*)lParam);
+		case WM_SETTINGCHANGE:	return on_setting_change(wParam, LPCTSTR(lParam));
 		case WM_CONTEXTMENU:	return on_contextmenu(HWND(wParam), GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		case WM_LBUTTONDOWN:	return SendMessage(WM_NCLBUTTONDOWN, HTCAPTION, 0);
 		}
@@ -222,8 +211,11 @@ namespace Common {
 		return 0;
 	}
 
-	LRESULT CComWnd::on_setting_change()
+	LRESULT CComWnd::on_setting_change(WPARAM wParam, LPCTSTR area)
 	{
+		if (area && strcmp(area, "Ports")==0 && !_comm.is_opened()){
+			com_update_comport_list_and_select_current();
+		}
 		return 0;
 	}
 

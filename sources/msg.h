@@ -103,7 +103,7 @@ namespace Common {
 		LRESULT on_destroy();
 		LRESULT on_command(HWND hWndCtrl, int id, int codeNotify);
 		LRESULT on_device_change(WPARAM event, DEV_BROADCAST_HDR* pDBH);
-		LRESULT on_setting_change();
+		LRESULT on_setting_change(WPARAM wParam, LPCTSTR area);
 		LRESULT on_app(UINT uMsg, WPARAM wParam, LPARAM lParam);
 		LRESULT on_contextmenu(HWND hwnd, int x, int y);
 
