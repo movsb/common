@@ -201,14 +201,6 @@ namespace Common {
 	protected:
 		bool _inner;
 	};
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
-	// 我不知道该如何主动通知串口被关闭这一事件? 干脆写个接口吧
-	class i_com_event_handler
-	{
-	public:
-		virtual void com_closed() = 0;
-	};
 
 	// 串口事件监听器接口
 	class i_com_event_listener
@@ -310,11 +302,6 @@ namespace Common {
 	private:
 		c_com_event_listener	_event_listener;
 
-	// 串口相关事件处理器
-	public:
-		void					set_event_handler(i_com_event_handler* handler) { _event_handler = handler; }
-	private:
-		i_com_event_handler*	_event_handler;
 	// 数据接收器
 	public:
 		void add_data_recerver(i_data_receiver* receiver);
