@@ -89,6 +89,8 @@ namespace Common{
 
 	bool CComConfig::LoadFile(const char* file)
 	{
+		_file = file;
+
 		FILE* fp = fopen(file, "rb");
 		if (!fp) return false;
 
@@ -118,7 +120,6 @@ namespace Common{
 		bool r = Load(buf);
 		delete buf;
 
-		_file = file;
 		return r;
 	}
 
