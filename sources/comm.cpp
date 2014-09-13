@@ -223,6 +223,7 @@ namespace Common{
 							handles[0] = _hevent_write_end;
 							handles[1] = overlap.hEvent;
 
+
 							switch (::WaitForMultipleObjects(2, &handles[0], FALSE, INFINITE))
 							{
 							case WAIT_FAILED:		// what error happened ? the serial port removed ?
@@ -267,13 +268,8 @@ namespace Common{
 		}
 		exit_main_for:
 		;
-		debug_out(("[写线程] PurgeComm()...\n"));
-		if (!::PurgeComm(_hComPort, PURGE_TXABORT | PURGE_TXCLEAR)){
-			// The main thread is waiting for us!!!
-			//_notifier->msgerr("PurgeComm");
-		}
-		debug_out(("[写线程] CancelIO()...\n"));
 
+		debug_out(("[写线程] CancelIO()...\n"));
 		if (!::CancelIo(_hComPort)){
 			//_notifier->msgerr("CancelIO");
 		}
@@ -353,6 +349,7 @@ namespace Common{
 						// 但我试过, 如果在等待过程中把串口拔了的话, GOR依然返回TRUE
 						// 没有哪个地方暗示错误发生了, 所以我就只能先假定是"成功"的啦
 						// Then I should call ClearCommError() and detect the errors.
+						debug_out(("[读线程] WAIT_OBJECT + 1\n"));
 						bSucceed = TRUE;
 						break;
 					}
