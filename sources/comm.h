@@ -210,6 +210,56 @@ namespace Common {
 		virtual void com_closed() = 0;
 	};
 
+	// 串口事件监听器接口
+	class i_com_event_listener
+	{
+	public:
+		virtual void do_event(DWORD evt) = 0;
+	};
+
+	// 串口事件监听器接口 管理器
+	class c_com_event_listener
+	{
+		struct item{
+			item(i_com_event_listener* p, DWORD _mask)
+				: listener(p)
+				, mask(_mask)
+			{}
+
+			i_com_event_listener* listener;
+			DWORD mask;
+		};
+	public:
+		void call_listeners(DWORD dwEvt){
+			_lock.lock();
+			for (auto& item : _listeners){
+				if (dwEvt & item.mask){
+					item.listener->do_event(dwEvt);
+				}
+			}
+			_lock.unlock();
+		}
+		void add_listener(i_com_event_listener* pcel, DWORD mask){
+			_lock.lock();
+			_listeners.push_back(item(pcel, mask));
+			_lock.unlock();
+		}
+		void remove_listener(i_com_event_listener* pcel){
+			_lock.lock();
+			for (auto it = _listeners.begin(); it != _listeners.end(); it++){
+				if (it->listener == pcel){
+					_listeners.erase(it);
+					break;
+				}
+			}
+			_lock.unlock();
+		}
+
+	protected:
+		c_critical_locker	_lock;
+		std::vector<item>	_listeners;
+	};
+
 	// 串口类
 	class CComm
 	{
@@ -255,6 +305,10 @@ namespace Common {
 		c_data_counter*			counter() { return &_data_counter; }
 	private:
 		c_data_counter			_data_counter;
+
+	// 事件监听器
+	private:
+		c_com_event_listener	_event_listener;
 
 	// 串口相关事件处理器
 	public:
