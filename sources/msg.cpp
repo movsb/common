@@ -1307,6 +1307,26 @@ namespace Common {
 					</Horizontal>
 				</Vertical>
 			</Window>
+			)feifei"
+			:
+		R"feifei(
+<Window size="300,100">
+	<Font name = "微软雅黑" size = "12" default = "true" />
+	<Font name = "黑体" size = "20"/>
+	<Vertical>
+		<Vertical>
+			<Control />
+			<Horizontal height="30">
+				<Control />
+				<Static text="当前没有可设置的属性" font="1" width="200"/>
+				<Control />
+			</Horizontal>
+			<Control />
+		</Vertical>
+	</Vertical>
+</Window>
+		)feifei"
+		;
 			)feifei";
 	}
 
