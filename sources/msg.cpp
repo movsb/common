@@ -193,29 +193,26 @@ namespace Common {
 				DEV_BROADCAST_PORT* pPort = reinterpret_cast<DEV_BROADCAST_PORT*>(pDBH);
 				const char* name = &pPort->dbcp_name[0];
 				if (_strnicmp("COM", name, 3) == 0){
+					int comid = atoi(name + 3);
 					if (event == DBT_DEVICEARRIVAL){
 						update_status("串口设备 %s 已插入!", name);
 						if (!_comm.is_opened()){
-							com_update_comport_list();
+							com_update_comport_list_and_select_current();
 						}
 					}
 					else{
 						update_status("串口设备 %s 已移除!", name);
 						// 保持当前选中的设备依然为选中状态
 						if (!_comm.is_opened()){
+							com_update_comport_list_and_select_current();
+						}
+						else{ // 如果移除的是当前COM
 							int index = ComboBox_GetCurSel(_hCP);
 							c_comport* cp = index >= 0 ? (c_comport*)ComboBox_GetItemData(_hCP, index) : nullptr;
 							int comidcur = (int)cp > 0xFFFF ? cp->get_i() : 0;
-							com_update_comport_list();
-							for (int i = 0; i < ComboBox_GetCount(_hCP); i++){
-								c_comport* cp = (c_comport*)ComboBox_GetItemData(_hCP, i);
-								if (cp->get_i() == comidcur){
-									ComboBox_SetCurSel(_hCP, i);
-									break;
-								}
-
+							if (comid == comidcur){
+								com_openclose();
 							}
-							com_add_prompt_if_no_cp_presents();
 						}
 					}
 
@@ -438,32 +435,8 @@ namespace Common {
 			break;
 		case IDC_BTN_OPEN:
 			if (code == BN_CLICKED){
-				if (_comm.is_opened()){
-					if (com_try_close(true)){
-						com_lock_ui_panel(false);
-						com_update_comport_list();
-						com_add_prompt_if_no_cp_presents();
-						com_update_open_btn_text();
-						_timer.stop();
-						return 0;
-					}
-				}
-				else{
-					if (com_try_open()){
-						if (!com_flush_settings_from_combobox()){
-							com_try_close(false);
-							return 0;
-						}
-						_text_data_receiver.reset_buffer();
-						_hex_data_receiver.reset_buffer();
-						_comm.begin_threads();
-						com_lock_ui_panel(true);
-						com_update_open_btn_text();
-						update_status("串口已打开!");
-						_timer.start();
-						return 0;
-					}
-				}
+				com_openclose();
+				return 0;
 			}
 			break;
 		case IDC_BTN_MORE_SETTINGS:
@@ -973,6 +946,34 @@ namespace Common {
 		return;
 	}
 
+	void CComWnd::com_openclose()
+	{
+		if (_comm.is_opened()){
+			if (com_try_close(true)){
+				com_lock_ui_panel(false);
+				com_update_comport_list();
+				com_add_prompt_if_no_cp_presents();
+				com_update_open_btn_text();
+				_timer.stop();
+			}
+		}
+		else{
+			if (com_try_open()){
+				if (!com_flush_settings_from_combobox()){
+					com_try_close(false);
+					return;
+				}
+				com_lock_ui_panel(true);
+				_text_data_receiver.reset_buffer();
+				_hex_data_receiver.reset_buffer();
+				_comm.begin_threads();
+				com_update_open_btn_text();
+				update_status("串口已打开!");
+				_timer.start();
+			}
+		}
+	}
+
 	void CComWnd::switch_rich_edit_fullscreen(bool full)
 	{
 		SdkLayout::CControlUI* p_main_wnd = m_layout->FindControl("main_wnd");
@@ -1241,6 +1242,22 @@ namespace Common {
 		comcfg->set_key("comm.config.parity", get_cbo_item_data(_hPA)->get_i());
 		comcfg->set_key("comm.config.databit", get_cbo_item_data(_hDB)->get_i());
 		comcfg->set_key("comm.config.stopbit", get_cbo_item_data(_hSB)->get_i());
+	}
+
+	void CComWnd::com_update_comport_list_and_select_current()
+	{
+		int index = ComboBox_GetCurSel(_hCP);
+		c_comport* cp = index >= 0 ? (c_comport*)ComboBox_GetItemData(_hCP, index) : nullptr;
+		int comidcur = (int)cp > 0xFFFF ? cp->get_i() : 0;
+		com_update_comport_list();
+		for (int i = 0; i < ComboBox_GetCount(_hCP); i++){
+			c_comport* cp = (c_comport*)ComboBox_GetItemData(_hCP, i);
+			if (cp->get_i() == comidcur){
+				ComboBox_SetCurSel(_hCP, i);
+				break;
+			}
+		}
+		com_add_prompt_if_no_cp_presents();
 	}
 
 	int CComWnd::msgbox(UINT msgicon, char* caption, char* fmt, ...)

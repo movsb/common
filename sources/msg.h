@@ -123,9 +123,11 @@ namespace Common {
 		static void com_udpate_list_callback(void* ud, const t_com_item* t);
 		void com_update_item_list();
 		void com_update_comport_list();
+		void com_update_comport_list_and_select_current();
 		bool com_flush_settings_from_combobox();
 		bool com_try_close(bool b_thread_started);
 		bool com_try_open();
+		void com_openclose();
 		void com_lock_ui_panel(bool lock);
 		void com_add_prompt_if_no_cp_presents();
 		void com_update_open_btn_text();
