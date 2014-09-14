@@ -79,9 +79,9 @@
 #define MAINSTATIC_RECV_FORMAT          1077
 #define MAINSTATIC_SEND_FORMAT          1078
 #define MAINSTATIC_AUTOSEND             1079
-#define MAINSTATIC_PERIOD               1080
 #define IDC_CHECK_SIMPLE                1081
 #define IDC_CHECK2                      1085
+#define MAINSTATIC_PERIOD               1090
 #define MENU_OTHER_ASCII                40001
 #define MENU_OTHER_HELP                 40002
 #define MENU_OTHER_CALC                 40003
@@ -119,7 +119,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         40046
-#define _APS_NEXT_CONTROL_VALUE         1090
+#define _APS_NEXT_CONTROL_VALUE         1091
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
