@@ -28,10 +28,11 @@ namespace Common {
 		switch(uMsg)
 		{
 		case WM_INITDIALOG:		return on_create(m_hWnd, GetModuleHandle(0));
-		case WM_VSCROLL: case WM_HSCROLL: return on_scroll(uMsg, wParam, lParam);
+		case WM_VSCROLL: 
+		case WM_HSCROLL:		return on_scroll(uMsg, wParam, lParam);
 		case WM_SIZE:			
-			__super::HandleMessage(uMsg, wParam, lParam, bHandled);
-			return on_size(LOWORD(lParam), HIWORD(lParam));
+								__super::HandleMessage(uMsg, wParam, lParam, bHandled);
+								return on_size(LOWORD(lParam), HIWORD(lParam));
 		case WM_CLOSE:			return on_close();
 		case WM_COMMAND:		return on_command(HWND(lParam), LOWORD(wParam), HIWORD(wParam));
 		case WM_DEVICECHANGE:	return on_device_change(wParam, (DEV_BROADCAST_HDR*)lParam);
@@ -74,9 +75,11 @@ namespace Common {
 		editor_recv_char()->Create(hWnd, "", WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | ES_READONLY |
 			ES_MULTILINE | ES_WANTRETURN | ES_AUTOHSCROLL | ES_AUTOVSCROLL ,
 			0, 0,0,0,0, (HMENU)IDC_EDIT_RECV2);
+
 		WNDPROC new_rich_proc = static_cast<WNDPROC>(_thunk_rich_edit.Stdcall(this, &CComWnd::RichEditProc));
 		_thunk_rich_edit_old_proc = SubclassWindow(*editor_recv_char(), new_rich_proc);
 		::ImmAssociateContext(*editor_recv_char(), nullptr);
+
 		editor_recv_hex()->Attach(::GetDlgItem(hWnd, IDC_EDIT_RECV));
 		editor_send()->Attach(::GetDlgItem(hWnd, IDC_EDIT_SEND));
 
@@ -126,7 +129,6 @@ namespace Common {
 		// ¥”≈‰÷√Œƒº˛º”‘ÿ≈‰÷√
 		init_from_config_file();
 
-
 		// ª∂”≠”Ô
 		update_status("ª∂”≠ π”√ Common¥Æø⁄µ˜ ‘π§æﬂ! Enjoy! :-)");
 
@@ -155,10 +157,12 @@ namespace Common {
 
 		if (_comm.is_opened()){
 			com_try_close(true);
+			_timer.stop();
 		}
 
 		save_to_config_file();
 
+		DestroyWindow();
 		return 0;
 	}
 
@@ -321,6 +325,7 @@ namespace Common {
 				ComboBox_SetCurSel(ud.hwnd, 0);
 			}
 		}
+
 		int ii = ComboBox_InsertString(_hBR, -1, "< ‰»Î>");
 		ComboBox_SetItemData(_hBR, ii, 1);	// 1 - ◊‘∂®“Â
 	}
@@ -349,6 +354,7 @@ namespace Common {
 
 		// baudrate
 		t_com_item*  item = (t_com_item*)ComboBox_GetItemData(_hBR, ComboBox_GetCurSel(_hBR));
+		SMART_ASSERT((int)item > 0xffff).Fatal();
 		ssc.baud_rate = item->get_i();
 
 		// parity
@@ -382,12 +388,12 @@ namespace Common {
 
 	LRESULT CComWnd::on_command_menu(int id)
 	{
-		// π§æﬂœ‰/∞Ô÷˙≤Àµ•
 		switch (id)
 		{
-		case MENU_OTHER_HELP:		(new c_about_dlg)->do_modal(this); break;
-		case MENU_OTHER_STR2HEX:	(new c_str2hex_dlg)->do_modeless(this); break;
-		case MENU_OTHER_ASCII:		(new c_asctable_dlg)->do_modeless(this);break;
+		// π§æﬂœ‰/∞Ô÷˙≤Àµ•
+		case MENU_OTHER_HELP:		(new c_about_dlg)->do_modal(*this); break;
+		//case MENU_OTHER_STR2HEX:	(new c_str2hex_dlg)->do_modeless(this); break;
+		case MENU_OTHER_ASCII:		(new c_asctable_dlg)->do_modeless(*this);break;
 		case MENU_OTHER_CALC:		::ShellExecute(m_hWnd, "open", "calc", NULL, NULL, SW_SHOWNORMAL);	break;
 		case MENU_OTHER_NOTEPAD:	::ShellExecute(m_hWnd, "open", "notepad", NULL, NULL, SW_SHOWNORMAL); break;
 		case MENU_OTHER_DEVICEMGR:	::ShellExecute(m_hWnd, "open", "devmgmt.msc", NULL, NULL, SW_SHOWNORMAL); break;
@@ -428,6 +434,10 @@ namespace Common {
 	{
 		switch (id)
 		{
+		case IDC_BTN_SAVEFILE:
+		{
+			return 0;
+		}
 		case IDC_BTN_SEND:
 			if (code == BN_CLICKED){
 				com_do_send(false);
@@ -1382,7 +1392,7 @@ namespace Common {
 	{
 		return 
 			R"(
-			<Window size="420,330">
+			<Window size="430,330">
 				<Font name = "Œ¢»Ì—≈∫⁄" size = "16" default = "true" />
 				<Font name = "Œ¢»Ì—≈∫⁄" size = "12"/>
 				<Vertical>
@@ -1437,9 +1447,10 @@ namespace Common {
 	//////////////////////////////////////////////////////////////////////////
 	LPCTSTR c_send_data_format_dlg::get_skin_xml() const
 	{
-		return 			
+		return 
+			_bchar ?
 			R"feifei(
-			<Window size="420,330">
+			<Window size="260,110">
 				<Font name = "Œ¢»Ì—≈∫⁄" size = "12" default = "true" />
 				<Font name = "Œ¢»Ì—≈∫⁄" size = "12"/>
 				<Vertical>
@@ -1482,7 +1493,6 @@ namespace Common {
 </Window>
 		)feifei"
 		;
-			)feifei";
 	}
 
 	LRESULT c_send_data_format_dlg::on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code)
