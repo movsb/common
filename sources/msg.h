@@ -44,6 +44,7 @@ namespace Common {
 		: public CWnd
 		, public i_data_counter
 		, public i_timer
+		, public i_timer_period
 		, public IAcceleratorTranslator
 	{
 		friend class c_send_data_format_dlg;
@@ -58,6 +59,7 @@ namespace Common {
 			kUpdateCounter,
 			kUpdateStatus,
 			kUpdateTimer,
+			kAutoSend,
 		};
 
 		// 发送方式只有两种: 16进制 + 文本字符, 由_b_send_data_frmat_hex决定; 调用函数来方便决定
@@ -80,7 +82,9 @@ namespace Common {
 		// interface Deal::i_data_counter
 		virtual void update_counter(long rd, long wr, long uw) override;
 		// interface i_com_timer
-		virtual void update_timer(int h, int m, int s);
+		virtual void update_timer(int h, int m, int s) override;
+		// interface 
+		virtual void update_timer_period() override;
 
 		void update_status(const char* fmt, ...);
 
@@ -134,7 +138,7 @@ namespace Common {
 		void com_copy_text_data_to_clipboard(HWND hwnd);
 		void com_load_file();
 		bool _com_load_file_prompt_size(SdkLayout::CTinyString& selected, c_binary_file& bf);
-		void com_do_send();
+		bool com_do_send(bool callfromautosend);
 
 		// 一些相关配置
 		void init_from_config_file();
@@ -149,6 +153,7 @@ namespace Common {
 		bool is_send_data_format_char(){ return !is_send_data_format_hex(); }
 		bool is_recv_data_format_hex() { return _b_recv_data_format_hex; }
 		bool is_recv_data_format_char(){ return !is_recv_data_format_hex(); }
+		void switch_auto_send(bool manual=false, bool bauto=false, int interval=-1);
 		
 
 	public:
@@ -168,6 +173,7 @@ namespace Common {
 
 		CComm				_comm;
 		c_timer				_timer;
+		c_timer				_auto_send_timer;
 
 		char				_send_buffer[10240];	//用于默认取发送数据框的数据
 		Window::c_edit*		_recv_cur_edit;			// 当前接收数据格式文本控件

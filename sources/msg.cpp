@@ -102,12 +102,17 @@ namespace Common {
 		switch_window_top_most(true, false);
 		switch_send_data_format(true, false);
 		switch_recv_data_format(true, false);
+		switch_auto_send(true, false, -1);
 
 		// 相关接口
 		_comm.set_notifier(this);
 		_comm.counter()->set_updater(this);
+		_timer.set_period(1000);
 		_timer.set_timer(this);
 		_timer.set_notifier(this);
+		_auto_send_timer.set_period(1000);
+		_auto_send_timer.set_period_timer(this);
+		_auto_send_timer.set_notifier(this);
 
 		// 接收器
 		_hex_data_receiver.set_editor(&_recv_hex_edit);
@@ -260,6 +265,10 @@ namespace Common {
 
 			return x;
 		}
+		case kAutoSend:
+			debug_out(("自动发送中...\n"));
+			com_do_send(true);
+			return 0;
 		}
 		return 0;
 	}
@@ -421,7 +430,7 @@ namespace Common {
 		{
 		case IDC_BTN_SEND:
 			if (code == BN_CLICKED){
-				com_do_send();
+				com_do_send(false);
 				return 0;
 			}
 			break;
@@ -537,6 +546,9 @@ namespace Common {
 				return 0;
 			}
 			break;
+		case IDC_CHK_AUTO_SEND:
+			switch_auto_send();
+			return 0;
 		// 接收数据中间的按钮
 		case IDC_BTN_HELP:
 			if(code==BN_CLICKED){
@@ -697,6 +709,11 @@ namespace Common {
 		SendMessage(kUpdateTimer, 0, LPARAM(tstr));
 	}
 
+	void CComWnd::update_timer_period()
+	{
+		SendMessage(kAutoSend);
+	}
+
 	void CComWnd::switch_simple_ui(bool manual/* = false*/, bool bsimple/* = false*/)
 	{
 		if (manual){
@@ -768,6 +785,55 @@ namespace Common {
 		m_layout->FindControl("edit_recv_char")->SetVisible(is_recv_data_format_char());
 	}
 
+	void CComWnd::switch_auto_send(bool manual, bool bauto, int interval)
+	{
+		const int interval_min = 50;
+		const int interval_max = 60000;
+		const int interval_default = 1000;
+
+		if (manual){
+			bool valid = interval >= interval_min && interval <= interval_max;
+			if (interval == -1) {
+				valid = true;
+				interval = interval_default;
+			}
+
+			::CheckDlgButton(m_hWnd, IDC_CHK_AUTO_SEND, bauto && valid ? BST_CHECKED : BST_UNCHECKED);
+			::EnableWindow(GetDlgItem(m_hWnd, IDC_EDIT_DELAY), bauto && valid && _comm.is_opened() ? FALSE : TRUE);
+			::SetDlgItemInt(m_hWnd, IDC_EDIT_DELAY, valid ? interval : interval_default, FALSE);
+			if (!valid){
+				msgbox(MB_ICONEXCLAMATION, nullptr, "自动发送时间不合法, 已设置为默认值!");
+			}
+			else{
+				_auto_send_timer.set_period(interval);
+			}
+		}
+		else{
+			bool bStart = !!::IsDlgButtonChecked(m_hWnd, IDC_CHK_AUTO_SEND);
+			if(_comm.is_opened()){
+				if (bStart){
+					BOOL bTranslated;
+					int ti = ::GetDlgItemInt(m_hWnd, IDC_EDIT_DELAY, &bTranslated, FALSE);
+					if (!bTranslated || !(ti >= interval_min && ti <= interval_max)){
+						msgbox(MB_ICONEXCLAMATION, nullptr, "自动发送时间设置有误!");
+						return;
+					}
+
+					::EnableWindow(GetDlgItem(m_hWnd, IDC_EDIT_DELAY), FALSE);
+					_auto_send_timer.set_period(ti);
+					_auto_send_timer.start();
+				}
+				else{
+					::EnableWindow(GetDlgItem(m_hWnd, IDC_EDIT_DELAY), TRUE);
+					_auto_send_timer.stop();
+				}
+			}
+			else{
+				::EnableWindow(GetDlgItem(m_hWnd, IDC_EDIT_DELAY), TRUE);
+				_auto_send_timer.stop();
+			}
+		}
+	}
 
 	void CComWnd::com_copy_text_data_to_clipboard(HWND hwnd)
 	{
@@ -873,10 +939,17 @@ namespace Common {
 			return true;
 	}
 
-	void CComWnd::com_do_send()
+	bool CComWnd::com_do_send(bool callfromautosend)
 	{
+		auto cancel_auto_send = [=](){
+			if (callfromautosend){
+				::CheckDlgButton(m_hWnd, IDC_CHK_AUTO_SEND, BST_UNCHECKED);
+				switch_auto_send();
+			}
+		};
+
 		int len = ::GetWindowTextLength(_send_edit);
-		if (len <= 0) return;
+		if (len <= 0) return true;
 
 		char* text = NULL;
 		if (len+1 > sizeof(_send_buffer))
@@ -908,12 +981,13 @@ namespace Common {
 				unsigned int n = c_text_formatting::parse_string_escape_char(text);
 				len = n & 0x7FFFFFFF;
 				if ((n & 0x80000000) == 0){
+					cancel_auto_send();
 					msgbox(MB_ICONEXCLAMATION, NULL,
 						"解析转义字符串时遇到错误!\n\n"
 						"在第 %d 个字符附近出现语法解析错误!",
 						len
 						);
-					return;
+					return false;
 				}
 			}
 		}
@@ -921,9 +995,10 @@ namespace Common {
 			unsigned int n = c_text_formatting::str2hex(text, (unsigned char**)&text, len);
 			len = n & 0x7FFFFFFF;
 			if ((n & 0x80000000) == 0){
+				cancel_auto_send();
 				msgbox(MB_ICONEXCLAMATION, NULL, "发送区的数据解析错误, 请检查!\n\n是不是选错了发送数据的格式\?\n\n"
 					"在第 %d 个字符附近出现语法解析错误!", len);
-				return;
+				return false;
 			}
 		}
 
@@ -933,7 +1008,7 @@ namespace Common {
 		if (text != _send_buffer)
 			delete[] text;
 
-		return;
+		return _comm.put_packet(packet);
 	}
 
 	void CComWnd::com_openclose()
@@ -962,6 +1037,7 @@ namespace Common {
 				_timer.start();
 			}
 		}
+		switch_auto_send();
 	}
 
 	void CComWnd::switch_rich_edit_fullscreen(bool full)
@@ -988,6 +1064,7 @@ namespace Common {
 				c_send_data_packet* psdp = _comm.alloc_packet(1);
 				::memcpy(psdp->data, &ch, 1);
 				if (!_comm.put_packet(psdp)){
+
 				}
 				return 0;
 			}
@@ -1177,6 +1254,19 @@ namespace Common {
 				ComboBox_SetCurSel(_hSB, index);
 			}
 		}
+
+		// 自动发送
+		bool bAutoSend = false;
+		int  interval = -1;
+		if (auto item = comcfg->get_key("comm.autosend.enable")){
+			bAutoSend = item->get_bool();
+		}
+		if (auto item = comcfg->get_key("comm.autosend.interval")){
+			interval = item->get_int();
+			if (interval == 0)
+				interval = -1;
+		}
+		switch_auto_send(true, bAutoSend, interval);
 	}
 
 	void CComWnd::save_to_config_file()
@@ -1231,6 +1321,17 @@ namespace Common {
 		comcfg->set_key("comm.config.parity", get_cbo_item_data(_hPA)->get_i());
 		comcfg->set_key("comm.config.databit", get_cbo_item_data(_hDB)->get_i());
 		comcfg->set_key("comm.config.stopbit", get_cbo_item_data(_hSB)->get_i());
+
+		// 自动发送
+		comcfg->set_key("comm.autosend.enable", !!::IsDlgButtonChecked(m_hWnd, IDC_CHK_AUTO_SEND));
+		BOOL bTranslated;
+		int interval = ::GetDlgItemInt(m_hWnd, IDC_EDIT_DELAY, &bTranslated, FALSE);
+		if (!bTranslated){
+			comcfg->set_key("comm.autosend.interval","");
+		}
+		else{
+			comcfg->set_key("comm.autosend.interval", interval);
+		}
 	}
 
 	void CComWnd::com_update_comport_list_and_select_current()
