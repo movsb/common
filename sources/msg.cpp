@@ -929,8 +929,6 @@ namespace Common {
 
 		c_send_data_packet* packet = _comm.alloc_packet(len);
 		::memcpy(&packet->data[0], text, len);
-		if (!_comm.put_packet(packet))
-			_comm.release_packet(packet);
 
 		if (text != _send_buffer)
 			delete[] text;
@@ -990,7 +988,6 @@ namespace Common {
 				c_send_data_packet* psdp = _comm.alloc_packet(1);
 				::memcpy(psdp->data, &ch, 1);
 				if (!_comm.put_packet(psdp)){
-					_comm.release_packet(psdp);
 				}
 				return 0;
 			}

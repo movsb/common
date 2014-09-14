@@ -318,6 +318,7 @@ namespace Common {
 			}
 			else{
 				_notifier->msgbox(MB_ICONERROR, NULL, "´®¿ÚÎ´´ò¿ª!");
+				release_packet(psdp);
 				return false;
 			}
 		}
