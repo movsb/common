@@ -646,6 +646,10 @@ namespace Common{
 		::CloseHandle(_thread_event.hEventToBegin);
 		::CloseHandle(_thread_event.hEventToExit);
 
+		::CloseHandle(_thread_read.hThread);
+		::CloseHandle(_thread_write.hThread);
+		::CloseHandle(_thread_event.hThread);
+
 		return false;
 	}
 
