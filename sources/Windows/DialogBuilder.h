@@ -17,6 +17,7 @@ namespace Common{
 		virtual void		OnFinalMessage(HWND hWnd) { on_final_message(hWnd); }
 
 	protected:
+		virtual void		response_key_event(WPARAM vk);
 		virtual void		end_dialog() { ::EndDialog(m_hWnd, 0); }
 		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 		virtual void		on_final_message(HWND hwnd) { CWnd::OnFinalMessage(hwnd); }

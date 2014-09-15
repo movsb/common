@@ -33,15 +33,25 @@ namespace Common{
 			int id = LOWORD(wParam);
 			int code = HIWORD(wParam);
 
+			if (hwnd == nullptr &&code == 0){
+				if (id == 2){
+					response_key_event(VK_ESCAPE);
+					return 0;
+				}
+				else if (id == 1){
+					response_key_event(VK_RETURN);
+					return 0;
+				}
+			}
+
 			if (hwnd != NULL){
 				SdkLayout::CControlUI* pControl = _layout.FindControl(hwnd);
 				if (pControl){
 					return on_command_ctrl(hwnd, pControl->GetName(), code);
 				}
 			}
-
-			return 0;
 		}
+		break;
 		}
 		return handle_message(uMsg, wParam, lParam, bHandled);
 	}
@@ -50,4 +60,12 @@ namespace Common{
 	{
 		return __super::HandleMessage(uMsg, wParam, lParam, bHandled);
 	}
+
+	void c_dialog_builder::response_key_event(WPARAM vk)
+	{
+		if (vk == VK_ESCAPE){
+			Close();
+		}
+	}
+
 }
