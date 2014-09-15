@@ -141,4 +141,15 @@ namespace Common{
 		return 0;
 	}
 
+	void c_input_box::response_key_event(WPARAM vk)
+	{
+		if (vk == VK_RETURN){
+			if (call_interface()){
+				_dlg_code = IDOK;
+				end_dialog();
+			}
+		}
+		return __super::response_key_event(vk);
+	}
+
 }
