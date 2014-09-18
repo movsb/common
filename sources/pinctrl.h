@@ -1,8 +1,12 @@
-#ifndef __PINCTRL_H__
-#define __PINCTRL_H__
+#pragma once
 
-#include <Windows.h>
+namespace Common{
+	class c_pinctrl_dlg : public CWnd
+	{
+	public:
+		virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
-int ShowPinCtrl(void);
-
-#endif//!__PINCTRL_H__
+	private:
+		static int axisx, axisy;
+	};
+}

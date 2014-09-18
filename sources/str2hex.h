@@ -1,10 +1,13 @@
-#ifndef __STR2HEX_H__
-#define __STR2HEX_H__
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
-#include <windows.h>
-#include <stdio.h>
+#pragma once
 
-int ShowStr2Hex(void);
+namespace Common{
+	class c_str2hex_dlg : public CWnd
+	{
+	public:
+		virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+		virtual void OnFinalMessage(HWND hWnd) override { __super::OnFinalMessage(hWnd); delete this; }
 
-#endif//!__STR2HEX_H__
+	protected:
+		static int axisx, axisy;
+	};
+}
