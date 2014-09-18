@@ -339,8 +339,8 @@ namespace Common {
 
 	// 数据接收器
 	public:
-		void add_data_recerver(i_data_receiver* receiver);
-		void remove_data_recerver(i_data_receiver* receiver);
+		void add_data_receiver(i_data_receiver* receiver);
+		void remove_data_receiver(i_data_receiver* receiver);
 		void call_data_receivers(const unsigned char* ba, int cb);
 	private:
 		c_ptr_array<i_data_receiver>	_data_receivers;

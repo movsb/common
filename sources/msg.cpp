@@ -120,8 +120,8 @@ namespace Common {
 		// ½ÓÊÕÆ÷
 		_hex_data_receiver.set_editor(&_recv_hex_edit);
 		_text_data_receiver.set_editor(&_recv_char_edit);
-		_comm.add_data_recerver(&_hex_data_receiver);
-		_comm.add_data_recerver(&_text_data_receiver);
+		_comm.add_data_receiver(&_hex_data_receiver);
+		_comm.add_data_receiver(&_text_data_receiver);
 
 		com_update_item_list();
 		com_add_prompt_if_no_cp_presents();
