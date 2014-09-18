@@ -1160,6 +1160,12 @@ namespace Common {
 			get_font_info(item->val(), &face, &sz);
 			set_ctrl_font("edit_recv_hex", face, sz);
 		}
+		if (auto item = comcfg->get_key("gui.recv.edit.char.fgcolor")){
+
+		}
+		if (auto item = comcfg->get_key("gui.recv.edit.char.bgcolor")){
+
+		}
 		if (auto item = comcfg->get_key("gui.fullscreen")){
 			_b_recv_char_edit_fullscreen = item->get_bool();
 			switch_rich_edit_fullscreen(_b_recv_char_edit_fullscreen);

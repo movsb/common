@@ -234,5 +234,26 @@ namespace Window{
 		SendMessage(EM_SETSEL, 0, -1);
 	}
 
+	void c_rich_edit::set_default_text_fgcolor(COLORREF fg)
+	{
+		CHARFORMAT2 cf;
+		::memset(&cf, 0, sizeof(cf));
+		cf.cbSize = sizeof(cf);
+		cf.dwMask = CFM_COLOR;
+		cf.dwEffects = 0;
+		cf.crTextColor = fg;
+		SMART_ENSURE(SendMessage(EM_SETCHARFORMAT, 0, LPARAM(&cf)), != 0).Warning();
+	}
+
+	void c_rich_edit::set_default_text_bgcolor(COLORREF bg)
+	{
+		CHARFORMAT2 cf;
+		cf.cbSize = sizeof(cf);
+		cf.dwMask = CFM_BACKCOLOR;
+		cf.dwEffects = 0;
+		cf.crBackColor = bg;
+		SMART_ENSURE(SendMessage(EM_SETCHARFORMAT, SCF_ALL, LPARAM(&cf)), != 0).Warning();
+	}
+
 }
 }
