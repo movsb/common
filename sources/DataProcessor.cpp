@@ -454,7 +454,7 @@ namespace Common{
 		char buf[1024];
 		int n = 0;
 
-		while (n < cb && n<sizeof(buf) && ba[n] >= 0x20 && ba[n] <=0x7F){
+		while (n < cb && n<sizeof(buf)-1 && ba[n] >= 0x20 && ba[n] <=0x7F){
 			buf[n] = ba[n];
 			n++;
 		}
