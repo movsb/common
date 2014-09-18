@@ -1,17 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="sources\load_driver\load_driver.c">
-      <Filter>drivers</Filter>
-    </ClCompile>
     <ClCompile Include="sources\struct\list.c">
       <Filter>struct</Filter>
     </ClCompile>
     <ClCompile Include="sources\struct\Thunk.cpp">
       <Filter>struct</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\GetBaudRate.cpp">
-      <Filter>sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\struct\Config.cpp">
       <Filter>struct</Filter>
@@ -31,9 +25,6 @@
     <ClCompile Include="sources\common.cpp">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\deal.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
     <ClCompile Include="sources\debug.cpp">
       <Filter>sources</Filter>
     </ClCompile>
@@ -43,13 +34,7 @@
     <ClCompile Include="sources\pinctrl.cpp">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\send_cmd.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
     <ClCompile Include="sources\str2hex.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\timeouts.cpp">
       <Filter>sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\utils.cpp">
@@ -58,67 +43,76 @@
     <ClCompile Include="sources\struct\memory.cpp">
       <Filter>struct</Filter>
     </ClCompile>
-    <ClCompile Include="sources\struct\parse_cmd.cpp">
-      <Filter>struct</Filter>
+    <ClCompile Include="sources\Windows\WindowManager.cpp">
+      <Filter>sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Windows\Wnd.cpp">
+      <Filter>sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Windows\TextEditor.cpp">
+      <Filter>sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Windows\theApp.cpp">
+      <Filter>sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Windows\InputBox.cpp">
+      <Filter>sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Windows\Timer.cpp">
+      <Filter>sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Windows\FileDialog.cpp">
+      <Filter>sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\SdkLayout.cpp">
+      <Filter>sources\sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\UIContainer.cpp">
+      <Filter>sources\sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\UIControl.cpp">
+      <Filter>sources\sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\UIDlgBuilder.cpp">
+      <Filter>sources\sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\UIHorizontalLayout.cpp">
+      <Filter>sources\sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\UIManager.cpp">
+      <Filter>sources\sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\UIMarkup.cpp">
+      <Filter>sources\sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\UISystemControls.cpp">
+      <Filter>sources\sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\UIVerticalLayout.cpp">
+      <Filter>sources\sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\uiUtils.cpp">
+      <Filter>sources\sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Windows\DialogBuilder.cpp">
+      <Filter>sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Windows\FileOperation.cpp">
+      <Filter>sources\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\DataProcessor.cpp">
+      <Filter>sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sources\about.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\asctable.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\load_driver\com_drv.h">
-      <Filter>drivers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\comm.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\common.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\deal.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\debug.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\load_driver\load_driver.h">
-      <Filter>drivers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\msg.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\pinctrl.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\str2hex.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\timeouts.h">
-      <Filter>headers</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\utils.h">
-      <Filter>headers</Filter>
-    </ClInclude>
     <ClInclude Include="sources\struct\list.h">
       <Filter>struct</Filter>
     </ClInclude>
     <ClInclude Include="sources\struct\memory.h">
       <Filter>struct</Filter>
     </ClInclude>
-    <ClInclude Include="sources\struct\parse_cmd.h">
-      <Filter>struct</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\send_cmd.h">
-      <Filter>sources</Filter>
-    </ClInclude>
     <ClInclude Include="sources\struct\Thunk.h">
       <Filter>struct</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\GetBaudRate.h">
-      <Filter>sources</Filter>
     </ClInclude>
     <ClInclude Include="res\resource.h">
       <Filter>resources</Filter>
@@ -129,22 +123,109 @@
     <ClInclude Include="sources\stdafx.h">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="sources\Windows\WindowManager.h">
+      <Filter>sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Windows\Wnd.h">
+      <Filter>sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Windows\TextEditor.h">
+      <Filter>sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Windows\theApp.h">
+      <Filter>sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Windows\InputBox.h">
+      <Filter>sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Windows\Timer.h">
+      <Filter>sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Windows\FileDialog.h">
+      <Filter>sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\sdklayout\SdkLayout.h">
+      <Filter>sources\sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\sdklayout\UIContainer.h">
+      <Filter>sources\sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\sdklayout\UIControl.h">
+      <Filter>sources\sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\sdklayout\UIDlgBuilder.h">
+      <Filter>sources\sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\sdklayout\UIHorizontalLayout.h">
+      <Filter>sources\sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\sdklayout\UIManager.h">
+      <Filter>sources\sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\sdklayout\UIMarkup.h">
+      <Filter>sources\sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\sdklayout\UISystemControls.h">
+      <Filter>sources\sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\sdklayout\UIVerticalLayout.h">
+      <Filter>sources\sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\sdklayout\uiUtils.h">
+      <Filter>sources\sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Windows\DialogBuilder.h">
+      <Filter>sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Windows\FileOperation.h">
+      <Filter>sources\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\DataProcessor.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\comm.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\about.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\asctable.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\common.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\debug.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\msg.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\pinctrl.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\str2hex.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\utils.h">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="headers">
-      <UniqueIdentifier>{80c5a30f-468f-434d-bb86-a359878c3bf4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="resources">
       <UniqueIdentifier>{950386c5-54bc-49b0-9916-d268fa20788d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="drivers">
-      <UniqueIdentifier>{490aca65-269c-46ca-9d11-db39cc678f39}</UniqueIdentifier>
     </Filter>
     <Filter Include="sources">
       <UniqueIdentifier>{819d1f8e-de3f-417c-a3fe-2d0b3d42bbdc}</UniqueIdentifier>
     </Filter>
     <Filter Include="struct">
       <UniqueIdentifier>{d9a76f60-29ba-406f-878d-5cb33039f150}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources\Windows">
+      <UniqueIdentifier>{caabdc79-bee4-4ed1-9e11-90d00c367714}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources\sdklayout">
+      <UniqueIdentifier>{cc66f5ef-0aeb-44a3-9ac0-1fdb8c77d0b5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -161,5 +242,8 @@
     <Manifest Include="res\xps.manifest">
       <Filter>resources</Filter>
     </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="res\main.xml" />
   </ItemGroup>
 </Project>

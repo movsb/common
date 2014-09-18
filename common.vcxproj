@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -23,19 +23,19 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -71,22 +71,31 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\YangTao\Desktop\SdkLayout\SdkLayout</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./sources</AdditionalIncludeDirectories>
+      <TreatSpecificWarningsAsErrors>4701;4706;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <BrowseInformation>false</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>setupapi.lib;sdklayout_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>setupapi.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\YangTao\Desktop\SdkLayout\bin</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>res\xps.manifest</AdditionalManifestFiles>
     </Manifest>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Bscmake>
+      <PreserveSbr>
+      </PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">
     <ClCompile>
@@ -95,6 +104,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatSpecificWarningsAsErrors>4701;4706;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,20 +118,21 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./sources/SdkLayout</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./sources;C:\Users\YangTao\Desktop\SdkLayout\SdkLayout</AdditionalIncludeDirectories>
+      <TreatSpecificWarningsAsErrors>4701;4706;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>setupapi.lib;sdklayout.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>setupapi.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <AdditionalLibraryDirectories>./sources/SdkLayout</AdditionalLibraryDirectories>
@@ -135,22 +146,60 @@
     <ClCompile Include="sources\asctable.cpp" />
     <ClCompile Include="sources\comm.cpp" />
     <ClCompile Include="sources\common.cpp" />
-    <ClCompile Include="sources\deal.cpp" />
-    <ClCompile Include="sources\debug.cpp" />
-    <ClCompile Include="sources\GetBaudRate.cpp" />
-    <ClCompile Include="sources\load_driver\load_driver.c" />
+    <ClCompile Include="sources\DataProcessor.cpp" />
+    <ClCompile Include="sources\debug.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="sources\msg.cpp" />
-    <ClCompile Include="sources\pinctrl.cpp" />
-    <ClCompile Include="sources\send_cmd.cpp" />
-    <ClCompile Include="sources\stdafx.cpp" />
-    <ClCompile Include="sources\str2hex.cpp" />
-    <ClCompile Include="sources\struct\Config.cpp" />
-    <ClCompile Include="sources\struct\list.c" />
+    <ClCompile Include="sources\pinctrl.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="sources\sdklayout\SdkLayout.cpp" />
+    <ClCompile Include="sources\sdklayout\UIContainer.cpp" />
+    <ClCompile Include="sources\sdklayout\UIControl.cpp" />
+    <ClCompile Include="sources\sdklayout\UIDlgBuilder.cpp" />
+    <ClCompile Include="sources\sdklayout\UIHorizontalLayout.cpp" />
+    <ClCompile Include="sources\sdklayout\UIManager.cpp" />
+    <ClCompile Include="sources\sdklayout\UIMarkup.cpp" />
+    <ClCompile Include="sources\sdklayout\UISystemControls.cpp" />
+    <ClCompile Include="sources\sdklayout\UIVerticalLayout.cpp" />
+    <ClCompile Include="sources\sdklayout\uiUtils.cpp" />
+    <ClCompile Include="sources\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="sources\str2hex.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="sources\struct\Config.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="sources\struct\list.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="sources\struct\memory.cpp" />
-    <ClCompile Include="sources\struct\parse_cmd.cpp" />
-    <ClCompile Include="sources\struct\Thunk.cpp" />
-    <ClCompile Include="sources\timeouts.cpp" />
+    <ClCompile Include="sources\struct\Thunk.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="sources\utils.cpp" />
+    <ClCompile Include="sources\Windows\DialogBuilder.cpp" />
+    <ClCompile Include="sources\Windows\FileDialog.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="sources\Windows\FileOperation.cpp" />
+    <ClCompile Include="sources\Windows\InputBox.cpp" />
+    <ClCompile Include="sources\Windows\TextEditor.cpp" />
+    <ClCompile Include="sources\Windows\theApp.cpp" />
+    <ClCompile Include="sources\Windows\Timer.cpp" />
+    <ClCompile Include="sources\Windows\WindowManager.cpp" />
+    <ClCompile Include="sources\Windows\Wnd.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="res\resource.h" />
@@ -158,23 +207,36 @@
     <ClInclude Include="sources\asctable.h" />
     <ClInclude Include="sources\comm.h" />
     <ClInclude Include="sources\common.h" />
-    <ClInclude Include="sources\deal.h" />
+    <ClInclude Include="sources\DataProcessor.h" />
     <ClInclude Include="sources\debug.h" />
-    <ClInclude Include="sources\GetBaudRate.h" />
-    <ClInclude Include="sources\load_driver\com_drv.h" />
-    <ClInclude Include="sources\load_driver\load_driver.h" />
     <ClInclude Include="sources\msg.h" />
     <ClInclude Include="sources\pinctrl.h" />
-    <ClInclude Include="sources\send_cmd.h" />
+    <ClInclude Include="sources\sdklayout\SdkLayout.h" />
+    <ClInclude Include="sources\sdklayout\UIContainer.h" />
+    <ClInclude Include="sources\sdklayout\UIControl.h" />
+    <ClInclude Include="sources\sdklayout\UIDlgBuilder.h" />
+    <ClInclude Include="sources\sdklayout\UIHorizontalLayout.h" />
+    <ClInclude Include="sources\sdklayout\UIManager.h" />
+    <ClInclude Include="sources\sdklayout\UIMarkup.h" />
+    <ClInclude Include="sources\sdklayout\UISystemControls.h" />
+    <ClInclude Include="sources\sdklayout\UIVerticalLayout.h" />
+    <ClInclude Include="sources\sdklayout\uiUtils.h" />
     <ClInclude Include="sources\stdafx.h" />
     <ClInclude Include="sources\str2hex.h" />
     <ClInclude Include="sources\struct\Config.h" />
     <ClInclude Include="sources\struct\list.h" />
     <ClInclude Include="sources\struct\memory.h" />
-    <ClInclude Include="sources\struct\parse_cmd.h" />
     <ClInclude Include="sources\struct\Thunk.h" />
-    <ClInclude Include="sources\timeouts.h" />
     <ClInclude Include="sources\utils.h" />
+    <ClInclude Include="sources\Windows\DialogBuilder.h" />
+    <ClInclude Include="sources\Windows\FileDialog.h" />
+    <ClInclude Include="sources\Windows\FileOperation.h" />
+    <ClInclude Include="sources\Windows\InputBox.h" />
+    <ClInclude Include="sources\Windows\TextEditor.h" />
+    <ClInclude Include="sources\Windows\theApp.h" />
+    <ClInclude Include="sources\Windows\Timer.h" />
+    <ClInclude Include="sources\Windows\WindowManager.h" />
+    <ClInclude Include="sources\Windows\Wnd.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\common.rc" />
@@ -186,6 +248,9 @@
     <Manifest Include="res\xps.manifest">
       <SubType>Designer</SubType>
     </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="res\main.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
