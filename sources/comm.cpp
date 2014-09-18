@@ -221,7 +221,6 @@ namespace Common{
 					goto _restart;
 					break;
 				case WAIT_OBJECT_0 + 1:
-					debug_out(("[事件线程] 等待结束\n"));
 					bRet = ::GetOverlappedResult(_hComPort, &o, &dw2, FALSE);
 					if (bRet == FALSE){
 						_notifier->msgerr("[事件线程::Wait失败]");
@@ -293,7 +292,7 @@ namespace Common{
 						debug_out(("[写线程] I/O completed immediately, bytes : %d\n", nWritten));
 					}
 					else{
-						_notifier->msgerr("[写线程] GetOverlappedResult失败!\n");
+						_notifier->msgerr("[写线程] GetOverlappedResult失败(I/O completed)!\n");
 						goto _restart;
 					}
 				}
@@ -319,7 +318,7 @@ namespace Common{
 								debug_out(("[写线程] 写入 %d 个字节!\n", nWritten));
 							}
 							else{
-								_notifier->msgerr("[写线程] GetOverlappedResult失败!\n");
+								_notifier->msgerr("[写线程] GetOverlappedResult失败(I/O pending)!\n");
 								goto _restart;
 							}
 							break;
@@ -659,13 +658,12 @@ namespace Common{
 	c_data_packet_manager::c_data_packet_manager()
 		: _hEvent(0)
 	{
-		list_init(&_list);
 		_hEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 		SMART_ASSERT(_hEvent != NULL).Fatal();
-
+		
+		list_init(&_list);
 		for (int i = 0; i < sizeof(_data) / sizeof(_data[0]); i++)
 			_data[i].used = false;
-
 	}
 
 	c_data_packet_manager::~c_data_packet_manager()
@@ -767,7 +765,11 @@ namespace Common{
 
 	void c_data_packet_manager::empty()
 	{
-		// TODO
+		while (!list_is_empty(&_list)){
+			list_s* p = list_remove_head(&_list);
+			c_send_data_packet* psdp = list_data(p, c_send_data_packet, _list_entry);
+			release(psdp);
+		}
 	}
 
 	c_send_data_packet* c_data_packet_manager::query_head()

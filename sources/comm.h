@@ -324,6 +324,7 @@ namespace Common {
 		}
 		c_send_data_packet*		alloc_packet(int size) { return _send_data.alloc(size); }
 		void					release_packet(c_send_data_packet* psdp) { _send_data.release(psdp); }
+		void					empty_packet_list() { _send_data.empty(); }
 	private:	
 		c_data_packet_manager	_send_data;
 
