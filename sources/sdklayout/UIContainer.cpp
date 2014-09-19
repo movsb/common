@@ -32,6 +32,10 @@ namespace SdkLayout
 	{
 		if( pControl == NULL) return false;
 		pControl->SetParent(this);
+		if (m_pManager){
+			pControl->SetManager(m_pManager);
+			pControl->DoInit();
+		}
 		return m_items.Add(pControl);   
 	}
 
