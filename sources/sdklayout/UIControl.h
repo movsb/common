@@ -80,6 +80,7 @@ public:
 
 	virtual void SetManager(CPaintManagerUI* mgr);
 
+	virtual void SetHWND(HWND hwnd) { m_hWnd = hwnd; }
 	virtual HWND GetHWND() const	{return m_hWnd;}
 	operator HWND() const { return m_hWnd; }
 
@@ -104,6 +105,9 @@ public:
 	virtual void SetFont(int id);
 	virtual int  GetFont(){return m_font;}
 
+	void SetUserData(void* ud) { m_ud = ud; }
+	void* GetUserData() const { return m_ud; }
+
 	virtual CControlUI* GetParent() const {return m_pParent;}
 	virtual void SetParent(CControlUI* pParent) { assert(pParent); m_pParent = pParent;}
 
@@ -123,6 +127,7 @@ protected:
 	int  m_id;
 	CTinyString m_name;
 
+	void* m_ud;
 	CPaintManagerUI* m_pManager;
 	CControlUI* m_pParent; // should be CContainerUI*
 	CDuiRect m_rcInset;

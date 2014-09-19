@@ -11,7 +11,8 @@ m_id(0),
 m_name(""),
 m_font(-1),
 m_pManager(NULL),
-m_pParent(NULL)
+m_pParent(NULL),
+m_ud(0)
 {
     m_cXY.cx = m_cXY.cy = 0;
     m_cxyFixed.cx = m_cxyFixed.cy = 0;
