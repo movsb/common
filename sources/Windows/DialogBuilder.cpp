@@ -47,7 +47,7 @@ namespace Common{
 			if (hwnd != NULL){
 				SdkLayout::CControlUI* pControl = _layout.FindControl(hwnd);
 				if (pControl){
-					return on_command_ctrl(hwnd, pControl->GetName(), code);
+					return on_command_ctrl(hwnd, pControl, code);
 				}
 			}
 		}

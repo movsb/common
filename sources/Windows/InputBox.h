@@ -31,7 +31,7 @@ namespace Common{
 	protected:
 		virtual void		response_key_event(WPARAM vk) override;
 		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
-		virtual LRESULT		on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code) override;
+		virtual LRESULT		on_command_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code) override;
 		bool call_interface();
 
 	protected:

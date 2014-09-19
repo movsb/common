@@ -10,7 +10,7 @@ namespace Common {
 	protected:
 		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 		virtual LPCTSTR		get_skin_xml() const override;
-		virtual LRESULT		on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code) override;
+		virtual LRESULT		on_command_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code) override;
 		virtual DWORD		get_window_style() const { return WS_POPUP | WS_SIZEBOX; }
 
 	protected:
@@ -30,7 +30,7 @@ namespace Common {
 	protected:
 		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 		virtual LPCTSTR		get_skin_xml() const override;
-		virtual LRESULT		on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code);
+		virtual LRESULT		on_command_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code);
 		virtual DWORD		get_window_style() const { return WS_OVERLAPPEDWINDOW; }
 		virtual DWORD		get_window_ex_style() const override { return WS_EX_TOOLWINDOW; }
 		virtual void		on_final_message(HWND hwnd) { __super::on_final_message(hwnd); delete this; }

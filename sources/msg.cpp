@@ -1434,8 +1434,9 @@ namespace Common {
 		return __super::handle_message(uMsg, wParam, lParam, bHandled);
 	}
 
-	LRESULT c_send_file_format_dlg::on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code)
+	LRESULT c_send_file_format_dlg::on_command_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code)
 	{
+		auto& name = ctrl->GetName();
 		if (name == "text" || name == "any" || name == "hexseq" || name == "cmd" || name == "nothing"){
 			if (code == BN_CLICKED){
 				_selected = name;
@@ -1500,8 +1501,9 @@ namespace Common {
 		;
 	}
 
-	LRESULT c_send_data_format_dlg::on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code)
+	LRESULT c_send_data_format_dlg::on_command_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code)
 	{
+		auto& name = ctrl->GetName();
 		if (code == BN_CLICKED){
 			if (name == "nlt_crlf"){
 				*_dwAttr &= ~0x00000003;

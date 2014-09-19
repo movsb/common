@@ -118,8 +118,9 @@ namespace Common{
 		)feifei";
 	}
 
-	LRESULT c_input_box::on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code)
+	LRESULT c_input_box::on_command_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code)
 	{
+		auto& name = ctrl->GetName();
 		if (name == "btnok"){
 			if (!call_interface())
 				return 0;
