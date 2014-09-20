@@ -902,7 +902,10 @@ namespace Common {
 			}
 		}
 		else if (selected == "cmd"){
-
+			bf.close();
+			delete[] buffer;
+			sendcmd_try_load_xml(*this, bf.get_fn().c_str());
+			return; // !!!
 		}
 
 		delete[] buffer;
@@ -925,7 +928,7 @@ namespace Common {
 		}
 		else if (selected == "cmd"){
 			fodlg.set_title("命令文件能方便地发送一组相关的命令, 选择一个吧~");
-			fodlg.set_filter("文本文件(*.txt)\0 * .txt\0所有文件(*.*)\0 * .*\0");
+			fodlg.set_filter("命令文本文件(*.xml)\0 * .xml\0所有文件(*.*)\0 * .*\0");
 		}
 
 		if (!fodlg.do_modal(*this) || !bf.open(fodlg.get_buffer(), "rb"))
