@@ -391,6 +391,7 @@ bool CWnd::do_modal(HWND owner)
 
 bool CWnd::do_modeless(HWND owner)
 {
+	m_bIsWindowsDialogModeless = true;
 	m_hWnd = CreateDialogParam(GetModuleHandle(0), MAKEINTRESOURCE(139), owner,  __DialogProc, LPARAM(this));
 	ShowWindow();
 	return true;
