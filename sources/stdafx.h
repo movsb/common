@@ -26,6 +26,7 @@
 #include <WinInet.h>
 
 #include "Sdklayout/SdkLayout.h"
+#include "tinyxml2/tinyxml2.h"
 
 
 #include "debug.h"
@@ -50,6 +51,7 @@
 #include "asctable.h"
 #include "comm.h"
 #include "about.h"
+#include "SendCmd.h"
 #include "msg.h"
 
 extern Common::CComConfig* comcfg;

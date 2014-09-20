@@ -103,6 +103,12 @@
     <ClCompile Include="sources\DataProcessor.cpp">
       <Filter>sources</Filter>
     </ClCompile>
+    <ClCompile Include="sources\SendCmd.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\tinyxml2\tinyxml2.cpp">
+      <Filter>sources\tinyxml2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\struct\list.h">
@@ -210,6 +216,12 @@
     <ClInclude Include="sources\utils.h">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="sources\SendCmd.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\tinyxml2\tinyxml2.h">
+      <Filter>sources\tinyxml2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="resources">
@@ -226,6 +238,9 @@
     </Filter>
     <Filter Include="sources\sdklayout">
       <UniqueIdentifier>{cc66f5ef-0aeb-44a3-9ac0-1fdb8c77d0b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources\tinyxml2">
+      <UniqueIdentifier>{8ba952e1-cc25-488a-a41c-30399ca0a488}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

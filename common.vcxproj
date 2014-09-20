@@ -166,6 +166,7 @@
     <ClCompile Include="sources\sdklayout\UISystemControls.cpp" />
     <ClCompile Include="sources\sdklayout\UIVerticalLayout.cpp" />
     <ClCompile Include="sources\sdklayout\uiUtils.cpp" />
+    <ClCompile Include="sources\SendCmd.cpp" />
     <ClCompile Include="sources\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -183,6 +184,10 @@
     </ClCompile>
     <ClCompile Include="sources\struct\memory.cpp" />
     <ClCompile Include="sources\struct\Thunk.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="sources\tinyxml2\tinyxml2.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -221,12 +226,14 @@
     <ClInclude Include="sources\sdklayout\UISystemControls.h" />
     <ClInclude Include="sources\sdklayout\UIVerticalLayout.h" />
     <ClInclude Include="sources\sdklayout\uiUtils.h" />
+    <ClInclude Include="sources\SendCmd.h" />
     <ClInclude Include="sources\stdafx.h" />
     <ClInclude Include="sources\str2hex.h" />
     <ClInclude Include="sources\struct\Config.h" />
     <ClInclude Include="sources\struct\list.h" />
     <ClInclude Include="sources\struct\memory.h" />
     <ClInclude Include="sources\struct\Thunk.h" />
+    <ClInclude Include="sources\tinyxml2\tinyxml2.h" />
     <ClInclude Include="sources\utils.h" />
     <ClInclude Include="sources\Windows\DialogBuilder.h" />
     <ClInclude Include="sources\Windows\FileDialog.h" />
