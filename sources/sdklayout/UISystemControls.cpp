@@ -2,6 +2,26 @@
 
 namespace SdkLayout{
 
+	bool map_style(DWORD* dwStyle, style_map* known_styles, std::vector<std::string>& styles)
+	{
+		int n = 0;
+		for (auto& style : styles){
+			if (style.size()){
+				for (int i = 0; known_styles[i].strStyle != nullptr; i++){
+					if (strcmp(known_styles[i].strStyle, style.c_str()) == 0){
+						*dwStyle |= known_styles[i].dwStyle;
+						style = "";
+						n++;
+						break;
+					}
+				}
+			}
+			else{
+				n++;
+			}
+		}
+		return n == styles.size();
+	}
 
 	CSystemControlUI::CSystemControlUI()
 		: m_dwStyle(WS_CHILD|WS_VISIBLE)
@@ -14,17 +34,18 @@ namespace SdkLayout{
 	{
 		if(_tcscmp(pstrName, "text") == 0) m_strText = pstrValue;
 		else if(_tcscmp(pstrName, "style")==0){
-			TCHAR* p;
-			m_dwStyle = _tcstol(pstrValue, &p, 10);
+			std::vector<std::string> styles;
+			split_string(&styles, pstrValue, ',');
+			SetStyle(styles);
 		}
 		else if(_tcscmp(pstrName, "exstyle")==0){
-			TCHAR* p;
-			m_dwExStyle= _tcstol(pstrValue, &p, 10);
+			std::vector<std::string> exstyles;
+			split_string(&exstyles, pstrValue, ',');
+			SetStyle(exstyles, true);
 		}
-
 		else CControlUI::SetAttribute(pstrName, pstrValue);
 	}
-
+	
 	void CSystemControlUI::Create( LPCTSTR lpClass )
 	{
 		m_hWnd = ::CreateWindowEx(m_dwExStyle, lpClass, m_strText.c_str(), m_dwStyle,
@@ -32,11 +53,51 @@ namespace SdkLayout{
 		assert(m_hWnd != NULL);
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	void CButtonUI::SetManager( CPaintManagerUI* mgr )
+	void CSystemControlUI::SetManager(CPaintManagerUI* mgr)
 	{
 		m_pManager = mgr;
-		Create(WC_BUTTON);
+		Create(GetWindowClass());
+	}
+
+	void CSystemControlUI::SetStyle(std::vector<std::string>& styles, bool bex)
+	{
+		static style_map known_styles[] =
+		{
+			{ WS_BORDER, "border" },
+			{ WS_CAPTION, "caption" },
+			{ WS_CHILD, "child" },
+			{ WS_CLIPSIBLINGS, "clipsiblings" },
+			{ WS_CLIPCHILDREN, "clipchildren" },
+			{ WS_DISABLED, "disabled" },
+			{ WS_GROUP, "group" },
+			{ WS_HSCROLL, "hscroll" },
+			{ WS_TABSTOP, "tabstop" },
+			{ WS_VSCROLL, "vscroll" },
+			{ 0, nullptr }
+		};
+
+		static style_map known_ex_styles[] =
+		{
+			{ WS_EX_ACCEPTFILES, "acceptfiles" },
+			{ WS_EX_CLIENTEDGE, "clientedge" },
+			{ WS_EX_STATICEDGE, "staticedge" },
+			{ WS_EX_TOOLWINDOW, "toolwindow" },
+			{ WS_EX_TOPMOST, "topmost" },
+			{ WS_EX_TRANSPARENT, "transparent" },
+			{ 0, nullptr }
+		};
+
+		auto ks = bex ? &known_ex_styles[0] : &known_styles[0];
+		auto& thestyle = bex ? m_dwExStyle : m_dwStyle;
+		if (!map_style(&thestyle, ks, styles)){
+			assert(0 && "unknown style detected!");
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	void CButtonUI::SetStyle(std::vector<std::string>& styles, bool bex /*= false*/)
+	{
+		return __super::SetStyle(styles, bex);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -46,17 +107,10 @@ namespace SdkLayout{
 		m_dwStyle |= BS_AUTORADIOBUTTON;
 	}
 
-	void COptionUI::SetManager( CPaintManagerUI* mgr )
+	//////////////////////////////////////////////////////////////////////////
+	void COptionUI::SetStyle(std::vector<std::string>& styles, bool bex /*= false*/)
 	{
-		m_pManager = mgr;
-		if(m_bHasWsGroup) m_dwStyle |= WS_GROUP;
-		Create(WC_BUTTON);
-	}
-
-	void COptionUI::SetAttribute( LPCTSTR pstrName, LPCTSTR pstrValue )
-	{
-		if(_tcscmp(pstrName, "group") == 0) m_bHasWsGroup = _tcscmp(pstrValue,"true")==0;
-		else CSystemControlUI::SetAttribute(pstrName, pstrValue);
+		return __super::SetStyle(styles, bex);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -68,8 +122,7 @@ namespace SdkLayout{
 
 	void CCheckUI::SetManager( CPaintManagerUI* mgr )
 	{
-		m_pManager = mgr;
-		Create(WC_BUTTON);
+		__super::SetManager(mgr);
 		::SendMessage(GetHWND(), BM_SETCHECK, m_bCheck ? BST_CHECKED : BST_UNCHECKED, 0);
 	}
 
@@ -80,40 +133,43 @@ namespace SdkLayout{
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	void CStaticUI::SetManager( CPaintManagerUI* mgr )
-	{
-		m_pManager = mgr;
-		Create(WC_STATIC);
-	}
-
-	void CStaticUI::SetAttribute( LPCTSTR pstrName, LPCTSTR pstrValue )
-	{
-		CSystemControlUI::SetAttribute(pstrName, pstrValue);
-	}
-
-	//////////////////////////////////////////////////////////////////////////
 	CGroupUI::CGroupUI()
 	{
 		m_dwStyle |= BS_GROUPBOX;
 	}
 
-	void CGroupUI::SetManager(CPaintManagerUI* mgr)
-	{
-		m_pManager = mgr;
-		Create(WC_BUTTON);
-	}
-
 	//////////////////////////////////////////////////////////////////////////
 	CEditUI::CEditUI()
 	{
-
+		m_dwStyle |= ES_AUTOHSCROLL | ES_AUTOVSCROLL;
 	}
 
-	void CEditUI::SetManager(CPaintManagerUI* mgr)
+	void CEditUI::SetStyle(std::vector<std::string>& styles, bool bex /*= false*/)
 	{
-		m_pManager = mgr;
-		Create(WC_EDIT);
+		static style_map known_styles[] =
+		{
+			{ ES_CENTER, "center" },
+			{ ES_MULTILINE, "multiline" },
+			{ ES_NOHIDESEL, "nohidesel" },
+			{ ES_NUMBER, "number" },
+			{ ES_READONLY, "readonly" },
+			{ ES_WANTRETURN, "wantreturn" },
+			{ 0, nullptr }
+		};
+
+		static style_map known_ex_styles[] =
+		{
+			{ 0, nullptr }
+		};
+
+		auto ks = bex ? &known_ex_styles[0] : &known_styles[0];
+		auto& thestyle = bex ? m_dwExStyle : m_dwStyle;
+		if (!map_style(&thestyle, ks, styles)){
+			return __super::SetStyle(styles, bex);
+		}
 	}
+
+
 
 }
 
