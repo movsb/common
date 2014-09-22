@@ -6,6 +6,7 @@
 namespace SdkLayout
 {
 	UINT HashKey(LPCTSTR Key);
+	void split_string(std::vector<std::string>* vec, const char* str, char delimiter);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	//

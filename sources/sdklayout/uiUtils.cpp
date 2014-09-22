@@ -10,6 +10,31 @@ namespace SdkLayout
 		return i;
 	}
 
+	void split_string(std::vector<std::string>* vec, const char* str, char delimiter)
+	{
+		const char* p = str;
+		std::string tmp;
+		for (;;){
+			if (*p){
+				if (*p != delimiter){
+					tmp += *p;
+					p++;
+					continue;
+				}
+				else{
+					vec->push_back(tmp);
+					tmp = "";
+					p++;
+					continue;
+				}
+			}
+			else{
+				if (tmp.size()) vec->push_back(tmp);
+				break;
+			}
+		}
+	}
+
 	/////////////////////////////////////////////////////////////////////////////////////
 	//
 	//
