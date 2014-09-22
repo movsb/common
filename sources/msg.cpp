@@ -74,7 +74,8 @@ namespace Common {
 
 		editor_recv_char()->Create(hWnd, "", WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | ES_READONLY |
 			ES_MULTILINE | ES_WANTRETURN | ES_AUTOHSCROLL | ES_AUTOVSCROLL ,
-			0, 0,0,0,0, (HMENU)IDC_EDIT_RECV2);
+			WS_EX_CLIENTEDGE,
+			0,0,0,0, (HMENU)IDC_EDIT_RECV2);
 		WNDPROC new_rich_proc = static_cast<WNDPROC>(_thunk_rich_edit.Stdcall(this, &CComWnd::RichEditProc));
 		_thunk_rich_edit_old_proc = SubclassWindow(*editor_recv_char(), new_rich_proc);
 		::ImmAssociateContext(*editor_recv_char(), nullptr);
