@@ -1443,7 +1443,7 @@ namespace Common {
 						<Container inset="5,5,5,5" height="110" width="130">
 							<Group text="换行符类型"/>
 							<Vertical inset="15,20,5,5">
-								<Option name="nlt_crlf" text="回车换行(\r\n)" group="true"/>
+								<Option name="nlt_crlf" text="回车换行(\r\n)" style="group"/>
 								<Option name = "nlt_cr" text = "回车(\r)" />
 								<Option name = "nlt_lf" text = "换行(\n)" />
 								<Option name = "nlt_none" text = "忽略" />
