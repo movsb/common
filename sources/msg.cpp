@@ -904,7 +904,7 @@ namespace Common {
 		else if (selected == "cmd"){
 			bf.close();
 			delete[] buffer;
-			sendcmd_try_load_xml(*this, bf.get_fn().c_str());
+			sendcmd_try_load_xml(*this, bf.get_fn().c_str(), &_comm);
 			return; // !!!
 		}
 

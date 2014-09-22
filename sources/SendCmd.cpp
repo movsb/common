@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 namespace Common{
-	bool sendcmd_try_load_xml(HWND hOwner, LPCTSTR xml_file)
+	bool sendcmd_try_load_xml(HWND hOwner, LPCTSTR xml_file, CComm* comm)
 	{
 		auto doc = new tinyxml2::XMLDocument;
 		try{
@@ -20,7 +20,7 @@ namespace Common{
 				}
 			}
 
-			auto dlg = new c_send_cmd_dialog(doc);
+			auto dlg = new c_send_cmd_dialog(comm, doc);
 			return dlg->do_modeless(hOwner);
 
 		}
@@ -59,6 +59,19 @@ namespace Common{
 				return 0;
 			}
 		}
+		else if (name == "send"){
+			if (code == BN_CLICKED){
+				nm_send hdr;
+				hdr.hwndFrom = *this;
+				hdr.idFrom = 0;
+				hdr.code = (UINT)scimsg::send;
+				hdr.hEdit = *_layout.FindControl("script");
+				hdr.bhex = ::SendMessage(*_layout.FindControl("type_hex"), BM_GETCHECK, 0, 0)==BST_CHECKED;
+				hdr.buseescape = ::SendMessage(*_layout.FindControl("use_escape"), BM_GETCHECK, 0, 0) == BST_CHECKED;
+				::SendMessage(::GetParent(*this), WM_NOTIFY, 0, LPARAM(&hdr));
+				return 0;
+			}
+		}
 		return 0;
 	}
 
@@ -81,20 +94,16 @@ namespace Common{
 				<Control width="5" />
 				<Button name="send" text="发送" width="50"/>
 			</Horizontal>
-			<Horizontal name="misc_wnd" height="110" visible="false">
-				<Container minwidth="210">
+			<Horizontal name="misc_wnd" height="60" visible="false">
+				<Container minwidth="220">
 					<Group/>
 					<Vertical inset="5,15,5,5">
-						<Horizontal height="40">
-							<Vertical width="100">
-								<Option name="type_hex" text="十六进制" group="true"/>
-								<Option name = "type_char" text = "字符" />
-							</Vertical>
-							<Vertical width="100">
-								<Check name="use_escape" text="使用转义字符" />
-							</Vertical>
+						<Horizontal height="20">
+							<Option name="type_hex" text="十六进制" style="group" width="70"/>
+							<Option name = "type_char" text = "字符" width="50"/>
+							<Check name="use_escape" text="使用转义字符" />
 						</Horizontal>
-						<Edit name="script"/>
+						<Edit name="script" exstyle="clientedge"/>
 					</Vertical>
 				</Container>
 				<Control width="55" />
@@ -150,6 +159,16 @@ namespace Common{
 		::SetWindowText(ctrl, script);
 	}
 
+	void c_send_cmd_item::set_format(bool bhex, bool useescape)
+	{
+		auto thex = _layout.FindControl("type_hex")->GetHWND();
+		auto tchar = _layout.FindControl("type_char")->GetHWND();
+		auto escape = _layout.FindControl("use_escape")->GetHWND();
+
+		::SendMessage(bhex ? thex : tchar, BM_SETCHECK, BST_CHECKED, 0);
+		::SendMessage(escape, BM_SETCHECK, useescape ? BST_CHECKED : BST_UNCHECKED, 0);
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
@@ -175,10 +194,12 @@ namespace Common{
 	{
 		if (_tcscmp(ctrl->GetClass(), c_send_cmd_item_ui::GetClassStatic()) == 0){
 			auto item = static_cast<c_send_cmd_item*>(ctrl->GetUserData());
-			ctrl->SetFixedHeight(item->get_height());
-			ctrl->NeedParentUpdate();
-			_layout.ResizeLayout(); // only need updating the scroll bar
-			return 0;
+			if(code == c_send_cmd_item::scimsg::item_expand){
+				ctrl->SetFixedHeight(item->get_height());
+				ctrl->NeedParentUpdate();
+				_layout.ResizeLayout(); // only need updating the scroll bar
+				return 0;
+			}
 		}
 		return 0;
 	}
@@ -197,8 +218,9 @@ namespace Common{
 )feifei";
 	}
 
-	c_send_cmd_dialog::c_send_cmd_dialog(tinyxml2::XMLDocument* pdoc)
-		: _xml(pdoc)
+	c_send_cmd_dialog::c_send_cmd_dialog(CComm* comm, tinyxml2::XMLDocument* pdoc)
+		: _comm(comm)
+		, _xml(pdoc)
 	{
 
 	}
@@ -245,6 +267,76 @@ namespace Common{
 		if (auto k = handle.FirstChildElement("script").FirstChild().ToText()){
 			item->set_script(k->Value());
 		}
+
+		bool useescape = false;
+		auto aescape = cmd->Attribute("escape");
+		if (aescape) useescape = strcmp(aescape, "true") == 0;
+
+		bool bhex = false;
+		auto ahex = cmd->Attribute("type");
+		if (ahex) bhex = strcmp(ahex, "hex") == 0;
+
+		item->set_format(bhex, useescape);
+	}
+
+	LRESULT c_send_cmd_dialog::on_notify_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code, NMHDR* hdr)
+	{
+		if (_tcscmp(ctrl->GetClass(), c_send_cmd_item_ui::GetClassStatic()) == 0){
+			auto item = static_cast<c_send_cmd_item*>(ctrl->GetUserData());
+			if (code == c_send_cmd_item::scimsg::send){
+				if (!_comm->is_opened()){
+					msgbox(MB_ICONEXCLAMATION, nullptr, "串口未打开!");
+					return 0;
+				}
+				auto nmsend = static_cast<c_send_cmd_item::nm_send*>(hdr);
+				char _send_buffer[1024];
+				
+				int len = ::GetWindowTextLength(nmsend->hEdit);
+				if (len <= 0) return 0;
+
+				char* text = NULL;
+				if (len + 1 > sizeof(_send_buffer))
+					text = new char[len + 1];
+				else
+					text = _send_buffer;
+
+				*text = '\0';
+				::GetWindowText(nmsend->hEdit, text, len + 1);
+
+				if (nmsend->bhex == false){
+					if (nmsend->buseescape){
+						unsigned int n = c_text_formatting::parse_string_escape_char(text);
+						len = n & 0x7FFFFFFF;
+						if ((n & 0x80000000) == 0){
+							msgbox(MB_ICONEXCLAMATION, NULL,
+								"解析转义字符串时遇到错误!\n\n"
+								"在第 %d 个字符附近出现语法解析错误!",
+								len
+								);
+							return 0;
+						}
+					}
+				}
+				else{
+					unsigned int n = c_text_formatting::str2hex(text, (unsigned char**)&text, len);
+					len = n & 0x7FFFFFFF;
+					if ((n & 0x80000000) == 0){
+						msgbox(MB_ICONEXCLAMATION, NULL, "发送区的数据解析错误, 请检查!\n\n是不是选错了发送数据的格式\?\n\n"
+							"在第 %d 个字符附近出现语法解析错误!", len);
+						return false;
+					}
+				}
+
+				c_send_data_packet* packet = _comm->alloc_packet(len);
+				::memcpy(&packet->data[0], text, len);
+
+				if (text != _send_buffer)
+					delete[] text;
+
+				return _comm->put_packet(packet);
+			}
+		}
+		return 0;
 	}
 
 
