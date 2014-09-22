@@ -21,6 +21,7 @@ namespace Common{
 		virtual void		end_dialog() { ::EndDialog(m_hWnd, 0); }
 		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 		virtual void		on_final_message(HWND hwnd) { CWnd::OnFinalMessage(hwnd); }
+		virtual LRESULT		on_notify_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code, NMHDR* hdr) { return 0; }
 		virtual LRESULT		on_command_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code) { return 0; }
 		virtual LPCTSTR		get_class_name() const { return "c_dialog_builder"; }
 		virtual UINT		get_class_style() const { return 0; }

@@ -51,6 +51,13 @@ namespace Common{
 				}
 			}
 		}
+		case WM_NOTIFY:
+		{
+			auto hdr = reinterpret_cast<NMHDR*>(lParam);
+			auto ctrl = _layout.FindControl(hdr->hwndFrom);
+			if (!ctrl) break;
+			return on_notify_ctrl(hdr->hwndFrom, ctrl, hdr->code ,hdr);
+		}
 		break;
 		}
 		return handle_message(uMsg, wParam, lParam, bHandled);
