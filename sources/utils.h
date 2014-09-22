@@ -349,6 +349,8 @@ namespace Common {
 	int read_integer(const char* str, int* pi);
 	unsigned char val_from_char(char c);
 	int char_oct_from_chars(const char* str, unsigned char* poct);
+
+	void split_string(std::vector<std::string>* vec, const char* str, char delimiter);
 }
 
 

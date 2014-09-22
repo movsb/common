@@ -1111,30 +1111,6 @@ namespace Common {
 			pRE->SetFont(m_layout->GetManager()->GetFont(hFont));
 		};
 
-		auto split_string = [](std::vector<std::string>* vec, const char* str, char delimiter){
-			const char* p = str;
-			std::string tmp;
-			for (;;){
-				if (*p){
-					if (*p != delimiter){
-						tmp += *p;
-						p++;
-						continue;
-					}
-					else{
-						vec->push_back(tmp);
-						tmp = "";
-						p++;
-						continue;
-					}
-				}
-				else{
-					if (tmp.size()) vec->push_back(tmp);
-					break;
-				}
-			}
-		};
-
 		if (auto item = comcfg->get_key("app.title")){
 			::SetWindowText(m_hWnd, item->val().c_str());
 		}
