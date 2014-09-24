@@ -5,7 +5,7 @@
 文件路径:../list/list.h,../list/list.c
 创建时间:2013-1-29,0:23:04
 文件作者:女孩不哭
-代码备份:http://www.cnblogs.com/nbsofer/archive/2013/02/25/list_entry.html
+代码备份:http://www.cnblogs.com/memset/archive/2013/02/25/list_entry.html
 文件说明:该头文件及实现文件实现了WDK中双向链表的操作函数
 	2013-07-13 更新:加入list_remove函数实现移除某一结点
 **********************************************************/
@@ -22,7 +22,7 @@ typedef struct _list_s{
 
 #ifdef __cplusplus
 extern "C" {
-#endif // __cplusplu
+#endif // __cplusplus
 
 int   list_is_empty(list_s* phead);
 void  list_init(list_s* phead);
