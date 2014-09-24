@@ -11,7 +11,6 @@ namespace Common {
 		virtual LRESULT		handle_message(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 		virtual LPCTSTR		get_skin_xml() const override;
 		virtual LRESULT		on_command_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code) override;
-		virtual DWORD		get_window_style() const { return WS_POPUP | WS_SIZEBOX; }
 
 	protected:
 		SdkLayout::CTinyString _selected;
