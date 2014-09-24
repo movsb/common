@@ -25,6 +25,9 @@ namespace Common{
 			SendMessage(WM_SETICON, ICON_SMALL, LPARAM(::SendMessage(hParent, WM_GETICON, ICON_SMALL, 0)));
 			_layout.SetLayout(m_hWnd, get_skin_xml());
 			SMART_ASSERT(_layout.GetRoot() != NULL).Fatal();
+
+			SetWindowLongPtr(m_hWnd, GWL_STYLE, get_window_style());
+			if (get_window_style() & WS_CHILD) ::SetParent(m_hWnd, hParent);
 			break;
 		}
 		case WM_COMMAND:
