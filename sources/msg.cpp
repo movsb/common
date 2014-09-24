@@ -746,7 +746,7 @@ namespace Common {
 
 		layout_visible(layout_control(m_layout, "send_wnd"), !bsimple);
 		layout_visible(layout_control(m_layout, "send_btns"), !bsimple);
-		//layout_visible(layout_control(m_layout, "auto_send"), !bsimple);
+		layout_visible(layout_control(m_layout, "auto_send"), !bsimple);
 		layout_visible(layout_control(m_layout, "send_fmt"), !bsimple);
 
 		layout_resize(m_layout, 0);
