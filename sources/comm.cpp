@@ -193,8 +193,7 @@ namespace Common{
 			return 0;
 		}
 
-		OVERLAPPED o = { 0 };
-		o.hEvent = ::CreateEvent(nullptr, TRUE, FALSE, nullptr);
+		c_overlapped o(true, false);
 
 	_wait_again:
 		DWORD dwEvent = 0;
@@ -243,8 +242,6 @@ namespace Common{
 
 		}
 
-		::CloseHandle(o.hEvent);
-
 		::WaitForSingleObject(_thread_event.hEventToExit, INFINITE);
 		::ResetEvent(_thread_event.hEventToExit);
 
@@ -270,8 +267,7 @@ namespace Common{
 			return 0;
 		}
 
-		OVERLAPPED overlap = { 0 };
-		overlap.hEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+		c_overlapped overlap(false, false);
 		
 		_event_listener.add_listener(listener, EV_TXEMPTY);
 
@@ -349,8 +345,6 @@ namespace Common{
 
 		}
 
-		::CloseHandle(overlap.hEvent);
-
 		_event_listener.remove_listener(listener);
 		listener.reset();
 
@@ -385,9 +379,7 @@ namespace Common{
 			return 0;
 		}
 
-
-		OVERLAPPED overlap = { 0 };
-		overlap.hEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+		c_overlapped overlap(false, false);
 
 		_event_listener.add_listener(listener, EV_RXCHAR);
 
@@ -485,8 +477,6 @@ namespace Common{
 		if (!::CancelIo(_hComPort)){
 
 		}
-
-		::CloseHandle(overlap.hEvent);
 
 		// Sometimes we got here not because of we've got a exit signal
 		// Maybe something wrong

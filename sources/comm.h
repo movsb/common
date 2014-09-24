@@ -352,6 +352,22 @@ namespace Common {
 		bool _begin_threads();
 		bool _end_threads();
 
+		class c_overlapped : public OVERLAPPED
+		{
+		public:
+			c_overlapped(bool manual, bool sigaled)
+			{
+				Internal = 0;
+				InternalHigh = 0;
+				Pointer = 0;
+				hEvent = ::CreateEvent(nullptr, manual, sigaled ? TRUE : FALSE, nullptr);
+			}
+			~c_overlapped()
+			{
+				::CloseHandle(hEvent);
+			}
+		};
+
 		struct thread_helper_context
 		{
 			CComm* that;
