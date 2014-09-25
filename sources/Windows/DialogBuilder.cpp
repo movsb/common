@@ -53,6 +53,7 @@ namespace Common{
 					return on_command_ctrl(hwnd, pControl, code);
 				}
 			}
+		break;
 		}
 		case WM_NOTIFY:
 		{
