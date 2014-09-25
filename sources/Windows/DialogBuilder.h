@@ -23,6 +23,7 @@ namespace Common{
 		virtual void		on_final_message(HWND hwnd) { CWnd::OnFinalMessage(hwnd); }
 		virtual LRESULT		on_notify_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code, NMHDR* hdr) { return 0; }
 		virtual LRESULT		on_command_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code) { return 0; }
+		virtual LRESULT		on_menu(int id) { return 0; }
 		virtual LPCTSTR		get_class_name() const { return "c_dialog_builder"; }
 		virtual UINT		get_class_style() const { return 0; }
 		virtual HBRUSH		get_class_brush() const { return (HBRUSH)(COLOR_WINDOW); }

@@ -53,6 +53,11 @@ namespace Common{
 					return on_command_ctrl(hwnd, pControl, code);
 				}
 			}
+			else{
+				if (HIWORD(wParam) == 0){
+					return on_menu(LOWORD(wParam));
+				}
+			}
 		break;
 		}
 		case WM_NOTIFY:
