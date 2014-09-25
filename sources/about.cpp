@@ -221,7 +221,7 @@ R"feifei(
 					<Static text="女孩不哭(QQ:191035066) 开始于 2012-12-24 平安夜" height="20"/>
 				</Vertical>
 			</Horizontal>
-			<Edit style="1076889860" exstyle="131072" name="edit_help" inset="0,5,0,5" minheight="300"/>
+			<Edit style="readonly,multiline,hscroll,vscroll" exstyle="clientedge" name="edit_help" inset="0,5,0,5" minheight="300"/>
 			<Horizontal height="30" inset="0,5,0,0">
 				<Control />
 				<Button name="btn_website" text="官方网址" width="100" />
@@ -235,8 +235,9 @@ R"feifei(
 )feifei";
 	}
 
-	LRESULT c_about_dlg::on_command_ctrl(HWND hwnd, const SdkLayout::CTinyString& name, int code)
+	LRESULT c_about_dlg::on_command_ctrl(HWND hwnd, SdkLayout::CControlUI* ctrl, int code)
 	{
+		auto& name = ctrl->GetName();
 		if (name == "btn_website"){
 			if (code == BN_CLICKED){
 				char* web = "http://www.cnblogs.com/nbsofer/archive/2012/12/24/2831700.html";
