@@ -239,4 +239,14 @@ void CControlUI::SetManager(CPaintManagerUI* mgr)
 	}
 }
 
+void CControlUI::NeedParentUpdate()
+{
+	if (!m_bInited)
+		return;
+	if (GetParent())
+		GetParent()->NeedUpdate();
+	else
+		NeedUpdate(); // root only
+}
+
 } // namespace SdkLayout

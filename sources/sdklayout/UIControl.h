@@ -90,15 +90,8 @@ public:
 			return;
 		SetPos(GetPos());
 	}
-	virtual void NeedParentUpdate()
-	{
-		if(!m_bInited)
-			return;
-		if(GetParent())
-			GetParent()->NeedUpdate();
-		else
-			NeedUpdate(); // root only
-	}
+	virtual void NeedParentUpdate();
+
 	virtual void SetID(int id) {m_id = id;}
 	virtual int  GetID() const {return m_id;}
 
@@ -108,8 +101,8 @@ public:
 	void SetUserData(void* ud) { m_ud = ud; }
 	void* GetUserData() const { return m_ud; }
 
-	virtual CControlUI* GetParent() const {return m_pParent;}
-	virtual void SetParent(CControlUI* pParent) { assert(pParent); m_pParent = pParent;}
+	virtual CContainerUI* GetParent() const { return m_pParent; }
+	virtual void SetParent(CContainerUI* pParent) { assert(pParent); m_pParent = pParent; }
 
 	virtual void SetName(LPCTSTR name) {m_name = name;};
 	virtual const CTinyString& GetName() const {return m_name;}
@@ -129,7 +122,7 @@ protected:
 
 	void* m_ud;
 	CPaintManagerUI* m_pManager;
-	CControlUI* m_pParent; // should be CContainerUI*
+	CContainerUI* m_pParent; // should be CContainerUI*
 	CDuiRect m_rcInset;
     CDuiRect m_rcItem;
     SIZE m_cXY;

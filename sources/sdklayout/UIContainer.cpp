@@ -45,7 +45,13 @@ namespace SdkLayout
 
 		for( int it = 0; it < m_items.GetSize(); it++ ) {
 			if( static_cast<CControlUI*>(m_items[it]) == pControl ) {
-				return m_items.Remove(it);
+				if (m_items.Remove(it)){
+					NeedUpdate();
+					return true;
+				}
+				else{
+					return false;
+				}
 			}
 		}
 		return false;
