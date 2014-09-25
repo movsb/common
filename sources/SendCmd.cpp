@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "../res/resource.h"
 
 namespace Common{
 	bool sendcmd_try_load_xml(HWND hOwner, LPCTSTR xml_file, CComm* comm)
@@ -169,6 +170,13 @@ namespace Common{
 		::SendMessage(escape, BM_SETCHECK, useescape ? BST_CHECKED : BST_UNCHECKED, 0);
 	}
 
+	void c_send_cmd_item::collapse()
+	{
+		if (_b_expanded == false)
+			return;
+		do_expand();
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
@@ -335,6 +343,20 @@ namespace Common{
 
 				return _comm->put_packet(packet);
 			}
+	LRESULT c_send_cmd_dialog::on_menu(int id)
+	{
+		switch (id)
+		{
+		case MENU_SENDCMD_COLLAPSEALL:
+		{
+			auto client = _layout.FindControl("main")->ToContainerUI();
+			for (int i = 0; i < client->GetCount(); i++){
+				auto c = client->GetAt(i);
+				auto item = static_cast<c_send_cmd_item*>(c->GetUserData());
+				item->collapse();
+			}
+			return 0;
+		}
 		}
 		return 0;
 	}
