@@ -56,6 +56,7 @@ namespace Common{
 		}
 		case WM_NOTIFY:
 		{
+			if (!lParam) break;
 			auto hdr = reinterpret_cast<NMHDR*>(lParam);
 			auto ctrl = _layout.FindControl(hdr->hwndFrom);
 			if (!ctrl) break;
