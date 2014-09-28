@@ -113,12 +113,12 @@ namespace Common{
 		fclose(fp);
 
 		if (sz2 != sz){
-			delete buf;
+			delete[] buf;
 			return false;
 		}
 
 		bool r = Load(buf);
-		delete buf;
+		delete[] buf;
 
 		return r;
 	}
