@@ -21,7 +21,7 @@ namespace Common{
 				}
 			}
 
-			auto dlg = new c_send_cmd_dialog(comm, doc);
+			auto dlg = new c_send_cmd_dialog(comm, doc, xml_file);
 			return dlg->do_modeless(hOwner);
 
 		}
@@ -194,6 +194,11 @@ namespace Common{
 			_init_cmds_from_doc();
 			return TRUE;
 		}
+		case WM_CLOSE:
+		{
+			_xml->SaveFile(_file.c_str());
+			break;
+		}
 		}
 		return __super::handle_message(uMsg, wParam, lParam, bHandled);
 	}
@@ -226,9 +231,10 @@ namespace Common{
 )feifei";
 	}
 
-	c_send_cmd_dialog::c_send_cmd_dialog(CComm* comm, tinyxml2::XMLDocument* pdoc)
+	c_send_cmd_dialog::c_send_cmd_dialog(CComm* comm, tinyxml2::XMLDocument* pdoc, const char* fn)
 		: _comm(comm)
 		, _xml(pdoc)
+		, _file(fn)
 	{
 
 	}

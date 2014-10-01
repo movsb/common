@@ -68,7 +68,7 @@ namespace Common{
 	class c_send_cmd_dialog : public c_dialog_builder
 	{
 	public:
-		c_send_cmd_dialog(CComm* comm,tinyxml2::XMLDocument* pdoc = nullptr);
+		c_send_cmd_dialog(CComm* comm,tinyxml2::XMLDocument* pdoc, const char* fn);
 		~c_send_cmd_dialog();
 
 	protected:
@@ -86,5 +86,6 @@ namespace Common{
 	private:
 		tinyxml2::XMLDocument*	_xml;
 		CComm*					_comm;
+		std::string				_file;
 	};
 }
