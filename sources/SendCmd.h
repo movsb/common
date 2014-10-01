@@ -52,7 +52,7 @@ namespace Common{
 		void	set_name(const char* name);
 		void	set_script(const char* script);
 		void	set_format(bool bhex, bool useescape);
-		void	collapse();
+		void	collapse(bool bcollapse=true);
 		void	set_cmd(const tinyxml2::XMLElement* cmd) { _cmd = cmd; }
 		const tinyxml2::XMLElement* get_cmd() const { return _cmd; }
 

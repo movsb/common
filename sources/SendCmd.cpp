@@ -180,11 +180,18 @@ namespace Common{
 		::SendMessage(escape, BM_SETCHECK, useescape ? BST_CHECKED : BST_UNCHECKED, 0);
 	}
 
-	void c_send_cmd_item::collapse()
+	void c_send_cmd_item::collapse(bool bcollapse)
 	{
-		if (_b_expanded == false)
-			return;
-		do_expand();
+		if (bcollapse){
+			if (_b_expanded){
+				do_expand();
+			}
+		}
+		else{
+			if (!_b_expanded){
+				do_expand();
+			}
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
