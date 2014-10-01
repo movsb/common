@@ -127,6 +127,7 @@ namespace Common{
 
 	c_send_cmd_item::c_send_cmd_item()
 		: _b_expanded(false)
+		, _cmd(nullptr)
 	{
 
 	}
@@ -277,13 +278,15 @@ namespace Common{
 		}
 	}
 
-	void c_send_cmd_dialog::_insert_new_cmd_to_ui(const tinyxml2::XMLElement* cmd)
+	void c_send_cmd_dialog::_insert_new_cmd_to_ui(const tinyxml2::XMLElement* cmd, bool bexpand)
 	{
 		auto type = cmd->Attribute("type");
 		if (!type) return;
 
 		auto item = new c_send_cmd_item;
 		item->do_modeless(*this);
+		if (bexpand) item->collapse(false);
+		item->set_cmd(cmd);
 
 		auto ctrl = new c_send_cmd_item_ui;
 		ctrl->SetHWND(*item);
@@ -389,6 +392,29 @@ namespace Common{
 				auto item = static_cast<c_send_cmd_item*>(c->GetUserData());
 				item->collapse();
 			}
+			return 0;
+		}
+		case MENU_SENDCMD_NEWCMD:
+		{
+			auto commands = _xml->FirstChildElement("common")->FirstChildElement("commands");
+			auto command = _xml->NewElement("command");
+			command->SetAttribute("type", "hex");
+			command->SetAttribute("escape", "false");
+			auto name = _xml->NewElement("name");
+			auto namet = _xml->NewText("");
+			name->LinkEndChild(namet);
+			auto script = _xml->NewElement("script");
+			auto scriptt = _xml->NewText("");
+			script->LinkEndChild(scriptt);
+			command->LinkEndChild(name);
+			command->LinkEndChild(script);
+			commands->LinkEndChild(command);
+
+			_insert_new_cmd_to_ui(command, true);
+
+			SendMessage(WM_VSCROLL, MAKEWPARAM(SB_BOTTOM, 0), 0);
+			_layout.ResizeLayout();
+			SendMessage(WM_VSCROLL, MAKEWPARAM(SB_BOTTOM, 0), 0);
 			return 0;
 		}
 		}

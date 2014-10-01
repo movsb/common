@@ -77,7 +77,7 @@ namespace Common{
 
 	protected:
 		void	_init_cmds_from_doc();
-		void	_insert_new_cmd_to_ui(const tinyxml2::XMLElement* cmd);
+		void	_insert_new_cmd_to_ui(const tinyxml2::XMLElement* cmd, bool bexpand=false);
 
 	protected:
 		virtual void		response_key_event(WPARAM vk) override;
