@@ -245,6 +245,12 @@ BEGIN
     END
 END
 
+IDR_MENU_SENDCMD MENU
+BEGIN
+    MENUITEM "新建命令",                        MENU_SENDCMD_NEWCMD
+    MENUITEM "全部折叠",                        MENU_SENDCMD_COLLAPSEALL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

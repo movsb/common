@@ -19,6 +19,7 @@
 #define MENU_RICHEDIT_CONTEXTMENU       138
 #define IDD_DIALOG2                     139
 #define IDD_TEMPLATE                    139
+#define IDR_MENU_SENDCMD                140
 #define IDC_BTN_SEND                    1000
 #define IDC_CBO_CP                      1002
 #define IDC_CBO_BR                      1005
@@ -81,7 +82,6 @@
 #define MAINSTATIC_AUTOSEND             1079
 #define IDC_CHECK_SIMPLE                1081
 #define IDC_CHECK2                      1085
-#define MAINSTATIC_PERIOD               1090
 #define MENU_OTHER_ASCII                40001
 #define MENU_OTHER_HELP                 40002
 #define MENU_OTHER_CALC                 40003
@@ -112,13 +112,17 @@
 #define ID_EDITCONTEXTMENU_DELETE       40042
 #define ID_EDITCONTEXTMENU_SELALL       40043
 #define ID_EDITCONTEXTMENU_FULLSCREEN   40044
+#define ID_40046                        40046
+#define ID_40047                        40047
+#define MENU_SENDCMD_NEWCMD             40048
+#define MENU_SENDCMD_COLLAPSEALL        40049
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        140
-#define _APS_NEXT_COMMAND_VALUE         40046
+#define _APS_NEXT_RESOURCE_VALUE        141
+#define _APS_NEXT_COMMAND_VALUE         40050
 #define _APS_NEXT_CONTROL_VALUE         1091
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

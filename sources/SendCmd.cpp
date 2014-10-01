@@ -191,6 +191,7 @@ namespace Common{
 		{
 		case WM_INITDIALOG:
 		{
+			::SetMenu(m_hWnd, ::LoadMenu(theApp, MAKEINTRESOURCE(IDR_MENU_SENDCMD)));
 			_init_cmds_from_doc();
 			return TRUE;
 		}
