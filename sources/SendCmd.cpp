@@ -92,12 +92,13 @@ namespace Common{
 			R"feifei(
 <Window size="0,0">
 	<Font name = "Î¢ÈíÑÅºÚ" size = "12" default = "true" />
+	<Font name = "Î¢ÈíÑÅºÚ" size = "16" />
 	<Vertical>
-		<Vertical inset="5,0,5,4">
+		<Vertical inset="3,3,3,3">
 			<Horizontal height="24">
 				<Vertical minwidth="100">
 					<Control />
-					<Static name="comment" text="&lt;ÃèÊö&gt;" height="20"/>
+					<Edit name="comment" text="" height="20" font="1"/>
 					<Control />
 				</Vertical>
 				<Control width="5" />
@@ -117,7 +118,9 @@ namespace Common{
 						<Edit name="script" exstyle="clientedge"/>
 					</Vertical>
 				</Container>
-				<Control width="55" />
+				<Vertical width="55" inset="5,5,5,5">
+					<Button name="delete" text="É¾³ý" height="25"/>
+				</Vertical>
 			</Horizontal>
 		</Vertical>
 	</Vertical>
@@ -240,7 +243,7 @@ namespace Common{
 	{
 		return
 			R"feifei(
-<Window size="300,100">
+<Window size="350,350">
 	<Font name = "Î¢ÈíÑÅºÚ" size = "12" default = "true" />
 	<Vertical>
 		<Vertical name="main" inset="5,0,5,4" height="0">
