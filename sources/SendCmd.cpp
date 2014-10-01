@@ -73,6 +73,16 @@ namespace Common{
 				return 0;
 			}
 		}
+		else if (name == "delete"){
+			if (code == BN_CLICKED){
+				NMHDR hdr;
+				hdr.hwndFrom = *this;
+				hdr.idFrom = 0;
+				hdr.code = (UINT)scimsg::del;
+				::SendMessage(::GetParent(*this), WM_NOTIFY, 0, LPARAM(&hdr));
+				return 0;
+			}
+		}
 		return 0;
 	}
 
@@ -350,6 +360,16 @@ namespace Common{
 
 				return _comm->put_packet(packet);
 			}
+			else if (code == c_send_cmd_item::scimsg::del){
+				ctrl->GetParent()->Remove(ctrl);
+				auto commands = _xml->FirstChildElement("common")->FirstChildElement("commands");
+				commands->DeleteChild(const_cast<tinyxml2::XMLElement*>(item->get_cmd()));
+				item->Close();
+			}
+		}
+		return 0;
+	}
+
 	LRESULT c_send_cmd_dialog::on_menu(int id)
 	{
 		switch (id)

@@ -25,6 +25,7 @@ namespace Common{
 			__start = WM_USER+0,
 			item_expand,		// only this message sent by wm_command 
 			send,
+			del,
 		};
 
 		// used by scimsg::send
@@ -52,6 +53,8 @@ namespace Common{
 		void	set_script(const char* script);
 		void	set_format(bool bhex, bool useescape);
 		void	collapse();
+		void	set_cmd(const tinyxml2::XMLElement* cmd) { _cmd = cmd; }
+		const tinyxml2::XMLElement* get_cmd() const { return _cmd; }
 
 	public:
 		c_send_cmd_item();
@@ -59,6 +62,7 @@ namespace Common{
 
 	private:
 		bool _b_expanded;
+		const tinyxml2::XMLElement* _cmd;
 	};
 
 	inline bool operator==(int l, c_send_cmd_item::scimsg r){
