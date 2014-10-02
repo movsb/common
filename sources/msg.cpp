@@ -1021,7 +1021,7 @@ namespace Common {
 		if (text != _send_buffer)
 			delete[] text;
 
-		return _comm.put_packet(packet);
+		return _comm.put_packet(packet, false, callfromautosend);
 	}
 
 	void CComWnd::com_openclose()

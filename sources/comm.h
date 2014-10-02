@@ -299,7 +299,7 @@ namespace Common {
 	private:
 		c_send_data_packet*		get_packet()	{ return _send_data.get(); }
 	public:
-		bool					put_packet(c_send_data_packet* psdp, bool bfront=false){
+		bool					put_packet(c_send_data_packet* psdp, bool bfront=false, bool bsilent = false){
 			if (is_opened()){
 				if (bfront)
 					_send_data.put_front(psdp);
@@ -317,7 +317,8 @@ namespace Common {
 				return true;
 			}
 			else{
-				_notifier->msgbox(MB_ICONERROR, NULL, "串口未打开!");
+				if (!bsilent)
+					_notifier->msgbox(MB_ICONERROR, NULL, "串口未打开!");
 				release_packet(psdp);
 				return false;
 			}
@@ -359,7 +360,8 @@ namespace Common {
 			{
 				Internal = 0;
 				InternalHigh = 0;
-				Pointer = 0;
+				Offset = 0;
+				OffsetHigh = 0;
 				hEvent = ::CreateEvent(nullptr, manual, sigaled ? TRUE : FALSE, nullptr);
 			}
 			~c_overlapped()
