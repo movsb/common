@@ -188,6 +188,80 @@ namespace Common {
 		int _granularity;
 	};
 
+	// 观察者模式
+	class i_observer
+	{
+	public:
+		virtual bool do_event() = 0;
+	};
+
+	class i_observable
+	{
+	public:
+		virtual operator i_observable*() = 0;
+		virtual void empty() = 0;
+		virtual int find(i_observer* ob) = 0;
+		virtual bool add(i_observer* ob) = 0;
+		virtual bool add(std::function<bool()> doevt) = 0;
+		virtual bool remove(i_observer* ob) = 0;
+		virtual int size() = 0;
+		virtual i_observer* getat(int i) const = 0;
+		virtual i_observer* operator[](int i) const = 0;
+	};
+
+	class c_observable : public i_observable
+	{
+	public:
+		virtual operator i_observable*(){
+			return static_cast<i_observable*>(this);
+		}
+		virtual void empty(){
+			_obs.empty();
+		}
+		virtual int find(i_observer* ob){
+			return _obs.find(ob);
+		}
+		virtual bool add(i_observer* ob){
+			return _obs.add(ob);
+		}
+		virtual bool add(std::function<bool()> doevt){
+			_fobs.push_back(doevt);
+			return true;
+		}
+		virtual bool remove(i_observer* ob){
+			return _obs.remove(ob);
+		}
+		virtual int size(){
+			return _obs.size();
+		}
+		virtual i_observer* getat(int i) const{
+			return _obs.getat(i);
+		}
+		virtual i_observer* operator[](int i) const{
+			return _obs[i];
+		}
+
+	public:
+		bool call_observers()
+		{
+			for (int i = 0; i < size(); i++){
+				if (getat(i)->do_event()){
+					return false;
+				}
+			}
+			for (auto& ob : _fobs){
+				if (ob()){
+					return false;
+				}
+			}
+			return true;
+		}
+
+	protected:
+		c_ptr_array<i_observer> _obs;
+		std::vector<std::function<bool()>> _fobs;
+	};
+
 	class c_critical_locker
 	{
 	public:
