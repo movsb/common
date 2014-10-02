@@ -1033,6 +1033,7 @@ namespace Common {
 				com_add_prompt_if_no_cp_presents();
 				com_update_open_btn_text();
 				_timer.stop();
+				switch_auto_send();
 			}
 		}
 		else{
