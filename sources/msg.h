@@ -186,5 +186,7 @@ namespace Common {
 
 		AThunk				_thunk_rich_edit;
 		WNDPROC				_thunk_rich_edit_old_proc;
+
+		c_observable		_window_close_handler;
 	};
 }

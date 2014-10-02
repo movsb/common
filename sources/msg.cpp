@@ -107,6 +107,29 @@ namespace Common {
 		switch_recv_data_format(true, false);
 		switch_auto_send(true, false, -1);
 
+		// 窗口关闭事件
+		_window_close_handler.add([&](){
+			if (_b_recv_char_edit_fullscreen){
+				_b_recv_char_edit_fullscreen = false;
+				switch_rich_edit_fullscreen(_b_recv_char_edit_fullscreen);
+				return true;
+			}
+			return false;
+		});
+
+		_window_close_handler.add([&](){
+			if (_comm.is_opened()){
+				com_try_close(true);
+				_timer.stop();
+			}
+			return false;
+		});
+
+		_window_close_handler.add([&](){
+			save_to_config_file();
+			return false;
+		});
+
 		// 相关接口
 		_comm.set_notifier(this);
 		_comm.counter()->set_updater(this);
@@ -149,18 +172,8 @@ namespace Common {
 
 	LRESULT CComWnd::on_close()
 	{
-		if (_b_recv_char_edit_fullscreen){
-			_b_recv_char_edit_fullscreen = false;
-			switch_rich_edit_fullscreen(_b_recv_char_edit_fullscreen);
+		if (!_window_close_handler.call_observers())
 			return 0;
-		}
-
-		if (_comm.is_opened()){
-			com_try_close(true);
-			_timer.stop();
-		}
-
-		save_to_config_file();
 
 		DestroyWindow();
 		return 0;
