@@ -2,6 +2,7 @@
 #ifndef __stdafx_120937012387901247_h__
 #define __stdafx_120937012387901247_h__
 
+#include <functional>
 #include <iostream>
 #include <vector>
 #include <map>

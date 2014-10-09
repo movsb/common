@@ -14,9 +14,10 @@ namespace Common{
 		case WM_SIZE:
 			_layout.ResizeLayout();
 			break;
+		case WM_MOUSEWHEEL:
 		case WM_HSCROLL:
 		case WM_VSCROLL:
-			//_layout.ProcessScrollMessage(uMsg, wParam, lParam);
+			_layout.ProcessScrollMessage(uMsg, wParam, lParam);
 			break;
 		case WM_INITDIALOG:
 		{
