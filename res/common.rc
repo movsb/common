@@ -172,7 +172,7 @@ BEGIN
     BEGIN
         BLOCK "080404b0"
         BEGIN
-            VALUE "CompanyName", "Å®º¢²»¿Þ<Email:anhbk@qq.com>"
+            VALUE "CompanyName", "twofei <Email:anhbk@qq.com>"
             VALUE "FileDescription", "Com Monitor"
             VALUE "FileVersion", "1.18.0.0"
             VALUE "InternalName", "common"
