@@ -29,6 +29,8 @@ namespace Common{
 
 			SetWindowLongPtr(m_hWnd, GWL_STYLE, get_window_style());
 			if (get_window_style() & WS_CHILD) ::SetParent(m_hWnd, hParent);
+
+			::SetWindowText(m_hWnd, get_window_name());
 			break;
 		}
 		case WM_COMMAND:
