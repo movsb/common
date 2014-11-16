@@ -146,9 +146,22 @@
     <ClCompile Include="sources\asctable.cpp" />
     <ClCompile Include="sources\comm.cpp" />
     <ClCompile Include="sources\common.cpp" />
+    <ClCompile Include="sources\cscripting.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="sources\DataProcessor.cpp" />
     <ClCompile Include="sources\debug.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="sources\libtccw32\src\libtcc.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="sources\msg.cpp" />
@@ -212,6 +225,7 @@
     <ClInclude Include="sources\asctable.h" />
     <ClInclude Include="sources\comm.h" />
     <ClInclude Include="sources\common.h" />
+    <ClInclude Include="sources\cscripting.h" />
     <ClInclude Include="sources\DataProcessor.h" />
     <ClInclude Include="sources\debug.h" />
     <ClInclude Include="sources\msg.h" />

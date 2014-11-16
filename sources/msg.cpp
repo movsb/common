@@ -449,6 +449,12 @@ namespace Common {
 		{
 		case IDC_BTN_SAVEFILE:
 		{
+			if (__this_cs_console){
+				msgbox(MB_ICONINFORMATION, "", "抱歉, 目前不支持创建多于 1 个脚本控制窗口!");
+			}
+			else{
+				(new c_cs_console())->do_modeless(*this);
+			}
 			return 0;
 		}
 		case IDC_BTN_SEND:

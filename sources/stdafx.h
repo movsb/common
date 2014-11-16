@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <memory>
 
 #include <cassert>
 #include <cstdlib>
@@ -53,6 +54,7 @@
 #include "comm.h"
 #include "about.h"
 #include "SendCmd.h"
+#include "cscripting.h"
 #include "msg.h"
 
 extern Common::CComConfig* comcfg;
