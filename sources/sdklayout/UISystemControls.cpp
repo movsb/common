@@ -97,7 +97,22 @@ namespace SdkLayout{
 	//////////////////////////////////////////////////////////////////////////
 	void CButtonUI::SetStyle(std::vector<std::string>& styles, bool bex /*= false*/)
 	{
-		return __super::SetStyle(styles, bex);
+		static style_map known_styles[] =
+		{
+			{ BS_MULTILINE, "multiline" },
+			{ 0, nullptr }
+		};
+
+		static style_map known_ex_styles[] =
+		{
+			{ 0, nullptr }
+		};
+
+		auto ks = bex ? &known_ex_styles[0] : &known_styles[0];
+		auto& thestyle = bex ? m_dwExStyle : m_dwStyle;
+		if (!map_style(&thestyle, ks, styles)){
+			return __super::SetStyle(styles, bex);
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
