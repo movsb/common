@@ -19,10 +19,11 @@ namespace Common{
 	{
 		HDEVINFO hDevInfo = INVALID_HANDLE_VALUE;
 		SP_DEVINFO_DATA spdata = {0};
+		GUID guid = GUID_DEVINTERFACE_COMPORT;
 
 		empty();
 
-		hDevInfo = SetupDiGetClassDevs(&GUID_DEVCLASS_PORTS, 0, 0, DIGCF_PRESENT);
+		hDevInfo = SetupDiGetClassDevs(&guid, 0, 0, DIGCF_PRESENT|DIGCF_DEVICEINTERFACE);
 		if(hDevInfo == INVALID_HANDLE_VALUE){
 			return this;
 		}
@@ -543,8 +544,7 @@ namespace Common{
 			| EV_CTS | EV_DSR | EV_RLSD
 			| EV_BREAK | EV_ERR
 			| EV_RING
-			| EV_PERR | EV_RX80FULL
-			| EV_EVENT1 | EV_EVENT2))
+			| EV_PERR | EV_RX80FULL))
 		{
 			_notifier->msgerr("SetCommMask()´íÎó");
 			return false;
