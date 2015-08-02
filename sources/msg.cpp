@@ -145,6 +145,8 @@ namespace Common {
 		_text_data_receiver.set_editor(&_recv_char_edit);
 		_comm.add_data_receiver(&_hex_data_receiver);
 		_comm.add_data_receiver(&_text_data_receiver);
+		_comm.add_data_receiver(&_file_data_receiver);
+
 
 		com_update_item_list();
 		com_add_prompt_if_no_cp_presents();
@@ -451,12 +453,36 @@ namespace Common {
 		{
 		case IDC_BTN_SAVEFILE:
 		{
-			if (__this_cs_console){
-				msgbox(MB_ICONINFORMATION, "", "抱歉, 目前不支持创建多于 1 个脚本控制窗口!");
+			if(_file_data_receiver.size() == 0) {
+				msgbox(MB_ICONINFORMATION, "提示", "缓冲区没有数据。");
+				return -1;
 			}
-			else{
-				(new c_cs_console())->do_modeless(*this);
+
+			_file_data_receiver.receive((unsigned char*)"1234", 4);
+
+			c_file_save_dlg dlg;
+			dlg.set_title("选择保存文件名");
+			dlg.set_filter("所有文件(*.*), 请手写文件名+扩展名\0*.*\0");
+			if(!dlg.do_modal(*this)) return 0;
+
+			c_binary_file file;
+			if(!file.open(dlg.get_buffer(), "wb")) {
+				msgerr("文件打开失败");
+				return -1;
 			}
+
+			auto data = _file_data_receiver.data();
+			auto size = _file_data_receiver.size();
+
+			if(!file.write(data, (int)size)) {
+				msgerr("文件写入失败。");
+				return -1;
+			}
+
+			file.flush();
+			file.close();
+
+			msgbox(MB_ICONINFORMATION, dlg.get_buffer(), "文件已成功保存。\n文件大小: %d", size);
 			return 0;
 		}
 		case IDC_BTN_SEND:
@@ -633,6 +659,7 @@ namespace Common {
 					editor_recv_hex()->clear();
 					editor_recv_char()->clear();
 					_hex_data_receiver.set_count(0);
+					_file_data_receiver.reset_buffer();
 				}
 				return 0;
 			}
@@ -1066,6 +1093,7 @@ namespace Common {
 				com_lock_ui_panel(true);
 				_text_data_receiver.reset_buffer();
 				_hex_data_receiver.reset_buffer();
+				_file_data_receiver.reset_buffer();
 				_comm.begin_threads();
 				com_update_open_btn_text();
 				update_status("串口已打开!");

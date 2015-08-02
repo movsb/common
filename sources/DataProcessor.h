@@ -214,4 +214,27 @@ namespace Common{
 		i_data_processor*		_pre_proc;
 		c_hex_data_processor	_proc_hex;
 	};
+
+	//////////////////////////////////////////////////////////////////////////
+	class c_file_data_receiver : public i_data_receiver {
+	public:
+		c_file_data_receiver()
+		{}
+
+		virtual void receive(const unsigned char* ba, int cb) {
+			_data.append(ba, cb);
+		}
+		virtual void reset_buffer() {
+			_data.empty();
+		}
+
+		size_t size() { 
+			return _data.get_size(); 
+		}
+		unsigned char* data() {
+			return reinterpret_cast<unsigned char*>(_data.get_data());
+		}
+	protected:
+		c_byte_array<1 << 20, 1 << 20> _data;
+	};
 }

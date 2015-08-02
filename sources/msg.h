@@ -183,6 +183,7 @@ namespace Common {
 
 		c_hex_data_receiver		_hex_data_receiver;
 		c_text_data_receiver	_text_data_receiver;
+		c_file_data_receiver	_file_data_receiver;
 
 		AThunk				_thunk_rich_edit;
 		WNDPROC				_thunk_rich_edit_old_proc;
