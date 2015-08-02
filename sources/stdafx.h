@@ -49,12 +49,10 @@
 #include "Windows/InputBox.h"
 
 #include "DataProcessor.h"
-#include "str2hex.h"
 #include "asctable.h"
 #include "comm.h"
 #include "about.h"
 #include "SendCmd.h"
-#include "cscripting.h"
 #include "msg.h"
 
 extern Common::CComConfig* comcfg;

@@ -31,12 +31,6 @@
     <ClCompile Include="sources\msg.cpp">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="sources\pinctrl.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\str2hex.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
     <ClCompile Include="sources\utils.cpp">
       <Filter>sources</Filter>
     </ClCompile>
@@ -108,12 +102,6 @@
     </ClCompile>
     <ClCompile Include="sources\tinyxml2\tinyxml2.cpp">
       <Filter>sources\tinyxml2</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\libtccw32\src\libtcc.c">
-      <Filter>sources\libtcc</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\cscripting.cpp">
-      <Filter>sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -213,12 +201,6 @@
     <ClInclude Include="sources\msg.h">
       <Filter>sources</Filter>
     </ClInclude>
-    <ClInclude Include="sources\pinctrl.h">
-      <Filter>sources</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\str2hex.h">
-      <Filter>sources</Filter>
-    </ClInclude>
     <ClInclude Include="sources\utils.h">
       <Filter>sources</Filter>
     </ClInclude>
@@ -227,9 +209,6 @@
     </ClInclude>
     <ClInclude Include="sources\tinyxml2\tinyxml2.h">
       <Filter>sources\tinyxml2</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\cscripting.h">
-      <Filter>sources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -250,9 +229,6 @@
     </Filter>
     <Filter Include="sources\tinyxml2">
       <UniqueIdentifier>{8ba952e1-cc25-488a-a41c-30399ca0a488}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="sources\libtcc">
-      <UniqueIdentifier>{f7514864-c785-4156-a9c3-6c4636246f6d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -146,29 +146,12 @@
     <ClCompile Include="sources\asctable.cpp" />
     <ClCompile Include="sources\comm.cpp" />
     <ClCompile Include="sources\common.cpp" />
-    <ClCompile Include="sources\cscripting.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">
-      </PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="sources\DataProcessor.cpp" />
     <ClCompile Include="sources\debug.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="sources\libtccw32\src\libtcc.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="sources\msg.cpp" />
-    <ClCompile Include="sources\pinctrl.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="sources\sdklayout\SdkLayout.cpp" />
     <ClCompile Include="sources\sdklayout\UIContainer.cpp" />
     <ClCompile Include="sources\sdklayout\UIControl.cpp" />
@@ -183,9 +166,6 @@
     <ClCompile Include="sources\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="sources\str2hex.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="sources\struct\Config.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
@@ -225,11 +205,9 @@
     <ClInclude Include="sources\asctable.h" />
     <ClInclude Include="sources\comm.h" />
     <ClInclude Include="sources\common.h" />
-    <ClInclude Include="sources\cscripting.h" />
     <ClInclude Include="sources\DataProcessor.h" />
     <ClInclude Include="sources\debug.h" />
     <ClInclude Include="sources\msg.h" />
-    <ClInclude Include="sources\pinctrl.h" />
     <ClInclude Include="sources\sdklayout\SdkLayout.h" />
     <ClInclude Include="sources\sdklayout\UIContainer.h" />
     <ClInclude Include="sources\sdklayout\UIControl.h" />
@@ -242,7 +220,6 @@
     <ClInclude Include="sources\sdklayout\uiUtils.h" />
     <ClInclude Include="sources\SendCmd.h" />
     <ClInclude Include="sources\stdafx.h" />
-    <ClInclude Include="sources\str2hex.h" />
     <ClInclude Include="sources\struct\Config.h" />
     <ClInclude Include="sources\struct\list.h" />
     <ClInclude Include="sources\struct\memory.h" />
