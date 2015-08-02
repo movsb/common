@@ -3,7 +3,7 @@
 namespace Common{
 
 #define COMMON_NAME			"Com Monitor"
-#define COMMON_VERSION		"1.18 Beta"
+#define COMMON_VERSION		"1.19"
 
 #ifdef _DEBUG 
 	#define COMMON_NAME_AND_VERSION COMMON_NAME " " COMMON_VERSION " - Debug Mode"
