@@ -116,13 +116,17 @@
 #define ID_40047                        40047
 #define MENU_SENDCMD_NEWCMD             40048
 #define MENU_SENDCMD_COLLAPSEALL        40049
+#define ID_Menu                         40050
+#define ID_EDITCONTEXTMENU_CLRSCR       40051
+#define ID_Menu40052                    40052
+#define ID_EDITCONTEXTMENU_CALC         40053
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        141
-#define _APS_NEXT_COMMAND_VALUE         40050
+#define _APS_NEXT_COMMAND_VALUE         40054
 #define _APS_NEXT_CONTROL_VALUE         1091
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

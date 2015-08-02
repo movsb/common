@@ -421,11 +421,13 @@ namespace Common {
 		case ID_EDITCONTEXTMENU_CUT:		_recv_char_edit.do_cut(); break;
 		case ID_EDITCONTEXTMENU_PASTE:		_recv_char_edit.do_paste(); break;
 		case ID_EDITCONTEXTMENU_DELETE:		_recv_char_edit.do_delete(); break;
+		case ID_EDITCONTEXTMENU_CLRSCR:		_recv_char_edit.clear(); break;
 		case ID_EDITCONTEXTMENU_SELALL:		_recv_char_edit.do_sel_all(); break;
 		case ID_EDITCONTEXTMENU_FULLSCREEN:	
 			_b_recv_char_edit_fullscreen = !_b_recv_char_edit_fullscreen;
 			switch_rich_edit_fullscreen(_b_recv_char_edit_fullscreen); 
 			break;
+		case ID_EDITCONTEXTMENU_CALC:		::ShellExecute(m_hWnd, "open", "calc", NULL, NULL, SW_SHOWNORMAL);	break;
 
 		}
 		return 0;
@@ -1109,6 +1111,10 @@ namespace Common {
 				switch_rich_edit_fullscreen(_b_recv_char_edit_fullscreen);
 				return 0;
 			}
+		}
+		else if(uMsg == WM_MBUTTONDOWN){
+			editor_recv_char()->clear();
+			return 0;
 		}
 		return CallWindowProc(_thunk_rich_edit_old_proc, hWnd, uMsg, wParam, lParam);
 	}

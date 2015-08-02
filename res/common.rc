@@ -7,7 +7,8 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include <windows.h>
+#include <winres.h>
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -241,7 +242,11 @@ BEGIN
         MENUITEM "删除(&D)",                      ID_EDITCONTEXTMENU_DELETE
         MENUITEM "全选(&A)",                      ID_EDITCONTEXTMENU_SELALL
         MENUITEM SEPARATOR
-        MENUITEM "全屏(&F)",                      ID_EDITCONTEXTMENU_FULLSCREEN, CHECKED
+        MENUITEM "清屏(&R)\t鼠标中键",                ID_EDITCONTEXTMENU_CLRSCR
+        MENUITEM SEPARATOR
+        MENUITEM "全屏(&F)\tF11",                 ID_EDITCONTEXTMENU_FULLSCREEN, CHECKED
+        MENUITEM SEPARATOR
+        MENUITEM "计算器",                         ID_EDITCONTEXTMENU_CALC
     END
 END
 
