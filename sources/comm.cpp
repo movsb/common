@@ -535,7 +535,7 @@ namespace Common{
 		_dcb.StopBits = pssc->stopbit;
 
 		if (!::SetCommState(_hComPort, &_dcb)){
-			_notifier->msgerr("SetCommMask()´íÎó");
+			_notifier->msgerr("SetCommState()´íÎó");
 			return false;
 		}
 

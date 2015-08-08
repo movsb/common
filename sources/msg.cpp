@@ -458,8 +458,6 @@ namespace Common {
 				return -1;
 			}
 
-			_file_data_receiver.receive((unsigned char*)"1234", 4);
-
 			c_file_save_dlg dlg;
 			dlg.set_title("选择保存文件名");
 			dlg.set_filter("所有文件(*.*), 请手写文件名+扩展名\0*.*\0");
