@@ -176,6 +176,8 @@ const char* Common::c_about_dlg::about_str =
 		"    解决无法识别虚拟串口的问题 && 解决某些不支持的事件导致 SetCommMask 失败问题\r\n"
 		"    编辑框增加常用功能：鼠标中键删除，计算器\r\n"
 		"    去掉了一些不需要的功能 libtccw32, str2hex, pinctrl\r\n"
+        "2015-09-13: 1.20 没有什么修改，只是整理了文档\r\n"
+        "    没做什么实质性的修改，增加了文档，集成了idxml和tinyxml工具库\r\n"
 		""
 		;
 
@@ -244,7 +246,7 @@ R"feifei(
 		auto& name = ctrl->GetName();
 		if (name == "btn_website"){
 			if (code == BN_CLICKED){
-				char* web = "http://www.cnblogs.com/nbsofer/archive/2012/12/24/2831700.html";
+				char* web = "http://blog.twofei.com/566/";
 				ShellExecute(NULL, "open", web, NULL, NULL, SW_SHOWNORMAL);
 				return 0;
 			}
