@@ -188,8 +188,8 @@ namespace Common{
 		{
 		case WM_INITDIALOG:
 		{
-			SetWindowText(m_hWnd, "关于 "COMMON_NAME_AND_VERSION);
-			SetWindowText(*_layout.FindControl("stk_name"), COMMON_NAME_AND_VERSION"  编译时间:"__DATE__" - "__TIME__);
+			SetWindowText(m_hWnd, "关于 " COMMON_NAME_AND_VERSION);
+			SetWindowText(*_layout.FindControl("stk_name"), COMMON_NAME_AND_VERSION "  编译时间:" __DATE__ " - " __TIME__);
 			SetWindowText(*_layout.FindControl("edit_help"), about_str);
 			SetFocus(*_layout.FindControl("btn_ok"));
 			CenterWindow();
