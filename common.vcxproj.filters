@@ -103,6 +103,9 @@
     <ClCompile Include="sources\tinyxml2\tinyxml2.cpp">
       <Filter>sources\tinyxml2</Filter>
     </ClCompile>
+    <ClCompile Include="sources\pinctrl.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\struct\list.h">
@@ -209,6 +212,9 @@
     </ClInclude>
     <ClInclude Include="sources\tinyxml2\tinyxml2.h">
       <Filter>sources\tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\pinctrl.h">
+      <Filter>sources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

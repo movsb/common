@@ -152,6 +152,14 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="sources\msg.cpp" />
+    <ClCompile Include="sources\pinctrl.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="sources\sdklayout\SdkLayout.cpp" />
     <ClCompile Include="sources\sdklayout\UIContainer.cpp" />
     <ClCompile Include="sources\sdklayout\UIControl.cpp" />
@@ -208,6 +216,7 @@
     <ClInclude Include="sources\DataProcessor.h" />
     <ClInclude Include="sources\debug.h" />
     <ClInclude Include="sources\msg.h" />
+    <ClInclude Include="sources\pinctrl.h" />
     <ClInclude Include="sources\sdklayout\SdkLayout.h" />
     <ClInclude Include="sources\sdklayout\UIContainer.h" />
     <ClInclude Include="sources\sdklayout\UIControl.h" />

@@ -442,6 +442,13 @@ namespace Common {
 			break;
 		case ID_EDITCONTEXTMENU_CALC:		::ShellExecute(m_hWnd, "open", "calc", NULL, NULL, SW_SHOWNORMAL);	break;
 
+        case MENU_MORE_PINCTRL:
+        {
+            #include "pinctrl.h"
+            show_pinctrl(m_hWnd, [&]() {return _comm.get_handle(); });
+            return 0;
+        }
+
 		}
 		return 0;
 	}

@@ -447,6 +447,7 @@ namespace Common {
 	};
 }
 
+// 注：这里的东西很多是无效的，未来得及删除
 #define COMMON_MAX_LOAD_SIZE			((unsigned long)1<<20)
 #define COMMON_LINE_CCH_SEND			16
 #define COMMON_LINE_CCH_RECV			16
