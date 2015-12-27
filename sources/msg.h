@@ -189,5 +189,8 @@ namespace Common {
 		WNDPROC				_thunk_rich_edit_old_proc;
 
 		c_observable		_window_close_handler;
+
+        // 是否需要在关闭后刷新串口列表，因为串口打开时无法修改列表，所以~
+        bool                _b_refresh_comport;
 	};
 }

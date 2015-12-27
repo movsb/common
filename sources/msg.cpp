@@ -16,6 +16,7 @@ namespace Common {
 		_send_data_format_hex   = SendDataFormatHex::sdfh_kNone;
 		_send_data_format_char  = SendDataFormatChar::sdfc_kNone;
 		_recv_cur_edit          = NULL;
+        _b_refresh_comport      = false;
 	}
 
 	CComWnd::~CComWnd()
@@ -212,6 +213,9 @@ namespace Common {
 						if (!_comm.is_opened()){
 							com_update_comport_list_and_select_current();
 						}
+                        else {
+                            _b_refresh_comport = true;
+                        }
 					}
 					else{
 						update_status("串口设备 %s 已移除!", name);
@@ -226,6 +230,9 @@ namespace Common {
 							if (comid == comidcur){
 								com_openclose();
 							}
+                            else {
+                                _b_refresh_comport = true;
+                            }
 						}
 					}
 
@@ -237,8 +244,12 @@ namespace Common {
 
 	LRESULT CComWnd::on_setting_change(WPARAM wParam, LPCTSTR area)
 	{
-		if (area && strcmp(area, "Ports")==0 && !_comm.is_opened()){
-			com_update_comport_list_and_select_current();
+		if (area && strcmp(area, "Ports")==0) {
+            if(!_comm.is_opened())
+                com_update_comport_list_and_select_current();
+            else
+                _b_refresh_comport = true;
+
 		}
 		return 0;
 	}
@@ -1075,8 +1086,10 @@ namespace Common {
 		if (_comm.is_opened()){
 			if (com_try_close(true)){
 				com_lock_ui_panel(false);
-				com_update_comport_list();
-				com_add_prompt_if_no_cp_presents();
+                if(_b_refresh_comport) {
+                    com_update_comport_list_and_select_current();
+                    _b_refresh_comport = false;
+                }
 				com_update_open_btn_text();
 				_timer.stop();
 				switch_auto_send();
