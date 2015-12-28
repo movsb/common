@@ -49,16 +49,8 @@ INT_PTR __stdcall DlgProc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
                 MessageBox(hwnd, "…Ë÷√DTR/RTS ±¥ÌŒÛ!", nullptr, MB_ICONERROR);
                 return 0;
             }
-            EnableWindow(GetDlgItem(hwnd, IDC_PINCTRL_OK), FALSE);
             break;
         }
-        case IDC_CBO_PINCTRL_DTR:
-        case IDC_CBO_PINCTRL_RTS:
-            if(HIWORD(wp) == CBN_SELENDOK) {
-                EnableWindow(GetDlgItem(hwnd, IDC_PINCTRL_OK), TRUE);
-                return 0;
-            }
-            break;
         }
         return 0;
     }
