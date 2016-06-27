@@ -5,10 +5,6 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Dummy|Win32">
-      <Configuration>Dummy</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -21,12 +17,6 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120_xp</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120_xp</PlatformToolset>
@@ -45,9 +35,6 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -55,19 +42,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>$(ProjectName)_debug</TargetName>
-    <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>output\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <TargetName>$(ProjectName)_debug</TargetName>
-    <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>output\$(Configuration)\</IntDir>
+    <OutDir>..\bin\</OutDir>
+    <IntDir>..\tmp\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\</OutDir>
-    <IntDir>output\$(Configuration)\</IntDir>
+    <OutDir>..\bin\</OutDir>
+    <IntDir>..\tmp\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -75,7 +56,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./sources</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src</AdditionalIncludeDirectories>
       <TreatSpecificWarningsAsErrors>4701;4706;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <BrowseInformation>false</BrowseInformation>
@@ -84,10 +65,11 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>setupapi.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\YangTao\Desktop\SdkLayout\bin</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <AdditionalManifestFiles>res\xps.manifest</AdditionalManifestFiles>
+      <AdditionalManifestFiles>..\res\xps.manifest</AdditionalManifestFiles>
     </Manifest>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -97,24 +79,6 @@
       </PreserveSbr>
     </Bscmake>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <TreatSpecificWarningsAsErrors>4701;4706;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-    <Manifest>
-      <AdditionalManifestFiles>res\xps.manifest</AdditionalManifestFiles>
-    </Manifest>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -123,7 +87,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./sources;C:\Users\YangTao\Desktop\SdkLayout\SdkLayout</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src</AdditionalIncludeDirectories>
       <TreatSpecificWarningsAsErrors>4701;4706;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -135,129 +99,126 @@
       <AdditionalDependencies>setupapi.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <AdditionalLibraryDirectories>./sources/SdkLayout</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./..\src/SdkLayout</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <AdditionalManifestFiles>res\xps.manifest</AdditionalManifestFiles>
+      <AdditionalManifestFiles>..\res\xps.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="sources\about.cpp" />
-    <ClCompile Include="sources\asctable.cpp" />
-    <ClCompile Include="sources\comm.cpp" />
-    <ClCompile Include="sources\common.cpp" />
-    <ClCompile Include="sources\DataProcessor.cpp" />
-    <ClCompile Include="sources\debug.cpp">
+    <ClCompile Include="..\src\about.cpp" />
+    <ClCompile Include="..\src\asctable.cpp" />
+    <ClCompile Include="..\src\comm.cpp" />
+    <ClCompile Include="..\src\common.cpp" />
+    <ClCompile Include="..\src\DataProcessor.cpp" />
+    <ClCompile Include="..\src\debug.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="sources\msg.cpp" />
-    <ClCompile Include="sources\pinctrl.cpp">
+    <ClCompile Include="..\src\msg.cpp" />
+    <ClCompile Include="..\src\pinctrl.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">
       </PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="sources\sdklayout\SdkLayout.cpp" />
-    <ClCompile Include="sources\sdklayout\UIContainer.cpp" />
-    <ClCompile Include="sources\sdklayout\UIControl.cpp" />
-    <ClCompile Include="sources\sdklayout\UIDlgBuilder.cpp" />
-    <ClCompile Include="sources\sdklayout\UIHorizontalLayout.cpp" />
-    <ClCompile Include="sources\sdklayout\UIManager.cpp" />
-    <ClCompile Include="sources\sdklayout\UIMarkup.cpp" />
-    <ClCompile Include="sources\sdklayout\UISystemControls.cpp" />
-    <ClCompile Include="sources\sdklayout\UIVerticalLayout.cpp" />
-    <ClCompile Include="sources\sdklayout\uiUtils.cpp" />
-    <ClCompile Include="sources\SendCmd.cpp" />
-    <ClCompile Include="sources\stdafx.cpp">
+    <ClCompile Include="..\src\sdklayout\SdkLayout.cpp" />
+    <ClCompile Include="..\src\sdklayout\UIContainer.cpp" />
+    <ClCompile Include="..\src\sdklayout\UIControl.cpp" />
+    <ClCompile Include="..\src\sdklayout\UIDlgBuilder.cpp" />
+    <ClCompile Include="..\src\sdklayout\UIHorizontalLayout.cpp" />
+    <ClCompile Include="..\src\sdklayout\UIManager.cpp" />
+    <ClCompile Include="..\src\sdklayout\UIMarkup.cpp" />
+    <ClCompile Include="..\src\sdklayout\UISystemControls.cpp" />
+    <ClCompile Include="..\src\sdklayout\UIVerticalLayout.cpp" />
+    <ClCompile Include="..\src\sdklayout\uiUtils.cpp" />
+    <ClCompile Include="..\src\SendCmd.cpp" />
+    <ClCompile Include="..\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="sources\struct\Config.cpp">
+    <ClCompile Include="..\src\struct\Config.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="sources\struct\list.c">
+    <ClCompile Include="..\src\struct\list.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="sources\struct\memory.cpp" />
-    <ClCompile Include="sources\struct\Thunk.cpp">
+    <ClCompile Include="..\src\struct\memory.cpp" />
+    <ClCompile Include="..\src\struct\Thunk.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="sources\tinyxml2\tinyxml2.cpp">
+    <ClCompile Include="..\src\tinyxml2\tinyxml2.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="sources\utils.cpp" />
-    <ClCompile Include="sources\Windows\DialogBuilder.cpp" />
-    <ClCompile Include="sources\Windows\FileDialog.cpp">
+    <ClCompile Include="..\src\utils.cpp" />
+    <ClCompile Include="..\src\Windows\DialogBuilder.cpp" />
+    <ClCompile Include="..\src\Windows\FileDialog.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Dummy|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="sources\Windows\FileOperation.cpp" />
-    <ClCompile Include="sources\Windows\InputBox.cpp" />
-    <ClCompile Include="sources\Windows\TextEditor.cpp" />
-    <ClCompile Include="sources\Windows\theApp.cpp" />
-    <ClCompile Include="sources\Windows\Timer.cpp" />
-    <ClCompile Include="sources\Windows\WindowManager.cpp" />
-    <ClCompile Include="sources\Windows\Wnd.cpp" />
+    <ClCompile Include="..\src\Windows\FileOperation.cpp" />
+    <ClCompile Include="..\src\Windows\InputBox.cpp" />
+    <ClCompile Include="..\src\Windows\TextEditor.cpp" />
+    <ClCompile Include="..\src\Windows\theApp.cpp" />
+    <ClCompile Include="..\src\Windows\Timer.cpp" />
+    <ClCompile Include="..\src\Windows\WindowManager.cpp" />
+    <ClCompile Include="..\src\Windows\Wnd.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="res\resource.h" />
-    <ClInclude Include="sources\about.h" />
-    <ClInclude Include="sources\asctable.h" />
-    <ClInclude Include="sources\comm.h" />
-    <ClInclude Include="sources\common.h" />
-    <ClInclude Include="sources\DataProcessor.h" />
-    <ClInclude Include="sources\debug.h" />
-    <ClInclude Include="sources\msg.h" />
-    <ClInclude Include="sources\pinctrl.h" />
-    <ClInclude Include="sources\sdklayout\SdkLayout.h" />
-    <ClInclude Include="sources\sdklayout\UIContainer.h" />
-    <ClInclude Include="sources\sdklayout\UIControl.h" />
-    <ClInclude Include="sources\sdklayout\UIDlgBuilder.h" />
-    <ClInclude Include="sources\sdklayout\UIHorizontalLayout.h" />
-    <ClInclude Include="sources\sdklayout\UIManager.h" />
-    <ClInclude Include="sources\sdklayout\UIMarkup.h" />
-    <ClInclude Include="sources\sdklayout\UISystemControls.h" />
-    <ClInclude Include="sources\sdklayout\UIVerticalLayout.h" />
-    <ClInclude Include="sources\sdklayout\uiUtils.h" />
-    <ClInclude Include="sources\SendCmd.h" />
-    <ClInclude Include="sources\stdafx.h" />
-    <ClInclude Include="sources\struct\Config.h" />
-    <ClInclude Include="sources\struct\list.h" />
-    <ClInclude Include="sources\struct\memory.h" />
-    <ClInclude Include="sources\struct\Thunk.h" />
-    <ClInclude Include="sources\tinyxml2\tinyxml2.h" />
-    <ClInclude Include="sources\utils.h" />
-    <ClInclude Include="sources\Windows\DialogBuilder.h" />
-    <ClInclude Include="sources\Windows\FileDialog.h" />
-    <ClInclude Include="sources\Windows\FileOperation.h" />
-    <ClInclude Include="sources\Windows\InputBox.h" />
-    <ClInclude Include="sources\Windows\TextEditor.h" />
-    <ClInclude Include="sources\Windows\theApp.h" />
-    <ClInclude Include="sources\Windows\Timer.h" />
-    <ClInclude Include="sources\Windows\WindowManager.h" />
-    <ClInclude Include="sources\Windows\Wnd.h" />
+    <ClInclude Include="..\res\resource.h" />
+    <ClInclude Include="..\src\about.h" />
+    <ClInclude Include="..\src\asctable.h" />
+    <ClInclude Include="..\src\comm.h" />
+    <ClInclude Include="..\src\common.h" />
+    <ClInclude Include="..\src\DataProcessor.h" />
+    <ClInclude Include="..\src\debug.h" />
+    <ClInclude Include="..\src\msg.h" />
+    <ClInclude Include="..\src\pinctrl.h" />
+    <ClInclude Include="..\src\sdklayout\SdkLayout.h" />
+    <ClInclude Include="..\src\sdklayout\UIContainer.h" />
+    <ClInclude Include="..\src\sdklayout\UIControl.h" />
+    <ClInclude Include="..\src\sdklayout\UIDlgBuilder.h" />
+    <ClInclude Include="..\src\sdklayout\UIHorizontalLayout.h" />
+    <ClInclude Include="..\src\sdklayout\UIManager.h" />
+    <ClInclude Include="..\src\sdklayout\UIMarkup.h" />
+    <ClInclude Include="..\src\sdklayout\UISystemControls.h" />
+    <ClInclude Include="..\src\sdklayout\UIVerticalLayout.h" />
+    <ClInclude Include="..\src\sdklayout\uiUtils.h" />
+    <ClInclude Include="..\src\SendCmd.h" />
+    <ClInclude Include="..\src\stdafx.h" />
+    <ClInclude Include="..\src\struct\Config.h" />
+    <ClInclude Include="..\src\struct\list.h" />
+    <ClInclude Include="..\src\struct\memory.h" />
+    <ClInclude Include="..\src\struct\Thunk.h" />
+    <ClInclude Include="..\src\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="..\src\utils.h" />
+    <ClInclude Include="..\src\Windows\DialogBuilder.h" />
+    <ClInclude Include="..\src\Windows\FileDialog.h" />
+    <ClInclude Include="..\src\Windows\FileOperation.h" />
+    <ClInclude Include="..\src\Windows\InputBox.h" />
+    <ClInclude Include="..\src\Windows\TextEditor.h" />
+    <ClInclude Include="..\src\Windows\theApp.h" />
+    <ClInclude Include="..\src\Windows\Timer.h" />
+    <ClInclude Include="..\src\Windows\WindowManager.h" />
+    <ClInclude Include="..\src\Windows\Wnd.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="res\common.rc" />
+    <ResourceCompile Include="..\res\common.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\100.ico" />
+    <Image Include="..\res\100.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="res\xps.manifest">
+    <Manifest Include="..\res\xps.manifest">
       <SubType>Designer</SubType>
     </Manifest>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="res\main.xml" />
+    <Xml Include="..\res\main.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

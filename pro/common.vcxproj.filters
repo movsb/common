@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\src\struct\list.c">
+      <Filter>struct</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\struct\Thunk.cpp">
+      <Filter>struct</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\struct\Config.cpp">
+      <Filter>struct</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\struct\memory.cpp">
+      <Filter>struct</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\about.cpp" />
+    <ClCompile Include="..\src\asctable.cpp" />
+    <ClCompile Include="..\src\comm.cpp" />
+    <ClCompile Include="..\src\common.cpp" />
+    <ClCompile Include="..\src\DataProcessor.cpp" />
+    <ClCompile Include="..\src\debug.cpp" />
+    <ClCompile Include="..\src\msg.cpp" />
+    <ClCompile Include="..\src\pinctrl.cpp" />
+    <ClCompile Include="..\src\SendCmd.cpp" />
+    <ClCompile Include="..\src\stdafx.cpp" />
+    <ClCompile Include="..\src\utils.cpp" />
+    <ClCompile Include="..\src\Windows\FileDialog.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Windows\FileOperation.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Windows\InputBox.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdklayout\SdkLayout.cpp">
+      <Filter>sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Windows\TextEditor.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Windows\Timer.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tinyxml2\tinyxml2.cpp">
+      <Filter>tinyxml2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdklayout\UIMarkup.cpp">
+      <Filter>sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdklayout\UIContainer.cpp">
+      <Filter>sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdklayout\UIControl.cpp">
+      <Filter>sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdklayout\UIDlgBuilder.cpp">
+      <Filter>sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdklayout\UIHorizontalLayout.cpp">
+      <Filter>sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdklayout\UIManager.cpp">
+      <Filter>sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdklayout\UISystemControls.cpp">
+      <Filter>sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdklayout\uiUtils.cpp">
+      <Filter>sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdklayout\UIVerticalLayout.cpp">
+      <Filter>sdklayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Windows\WindowManager.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Windows\Wnd.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Windows\theApp.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Windows\DialogBuilder.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\struct\list.h">
+      <Filter>struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\struct\memory.h">
+      <Filter>struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\struct\Thunk.h">
+      <Filter>struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\struct\Config.h">
+      <Filter>struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\about.h" />
+    <ClInclude Include="..\src\asctable.h" />
+    <ClInclude Include="..\src\comm.h" />
+    <ClInclude Include="..\src\common.h" />
+    <ClInclude Include="..\src\DataProcessor.h" />
+    <ClInclude Include="..\src\debug.h" />
+    <ClInclude Include="..\src\msg.h" />
+    <ClInclude Include="..\src\pinctrl.h" />
+    <ClInclude Include="..\src\SendCmd.h" />
+    <ClInclude Include="..\src\stdafx.h" />
+    <ClInclude Include="..\src\utils.h" />
+    <ClInclude Include="..\res\resource.h">
+      <Filter>resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Windows\FileDialog.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Windows\FileOperation.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Windows\InputBox.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sdklayout\SdkLayout.h">
+      <Filter>sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Windows\TextEditor.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Windows\Timer.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tinyxml2\tinyxml2.h">
+      <Filter>tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sdklayout\UIManager.h">
+      <Filter>sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sdklayout\UIContainer.h">
+      <Filter>sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sdklayout\UIControl.h">
+      <Filter>sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sdklayout\UIDlgBuilder.h">
+      <Filter>sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sdklayout\UIHorizontalLayout.h">
+      <Filter>sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sdklayout\UIMarkup.h">
+      <Filter>sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sdklayout\UISystemControls.h">
+      <Filter>sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sdklayout\uiUtils.h">
+      <Filter>sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sdklayout\UIVerticalLayout.h">
+      <Filter>sdklayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Windows\Wnd.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Windows\WindowManager.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Windows\theApp.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Windows\DialogBuilder.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="resources">
+      <UniqueIdentifier>{950386c5-54bc-49b0-9916-d268fa20788d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="struct">
+      <UniqueIdentifier>{d9a76f60-29ba-406f-878d-5cb33039f150}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\src\Windows">
+      <UniqueIdentifier>{caabdc79-bee4-4ed1-9e11-90d00c367714}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\src\sdklayout">
+      <UniqueIdentifier>{cc66f5ef-0aeb-44a3-9ac0-1fdb8c77d0b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\src\tinyxml2">
+      <UniqueIdentifier>{8ba952e1-cc25-488a-a41c-30399ca0a488}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Windows">
+      <UniqueIdentifier>{15db0d98-9a56-4a42-a150-c5ad444cf07b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tinyxml2">
+      <UniqueIdentifier>{69b2e2cd-48bd-4c70-9227-1fb680c14a4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sdklayout">
+      <UniqueIdentifier>{be4a60a9-8b68-4cfe-a520-35707917f52b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\res\common.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\res\100.ico">
+      <Filter>resources</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\res\main.xml">
+      <Filter>resources</Filter>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="..\res\xps.manifest">
+      <Filter>resources</Filter>
+    </Manifest>
+  </ItemGroup>
+</Project>

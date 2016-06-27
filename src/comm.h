@@ -403,7 +403,6 @@ namespace Common {
 		//COMMCONFIG			_commconfig;
 		COMMTIMEOUTS		_timeouts;
 		DCB					_dcb;
-
 	// 串口设置(供外部调用)
 	public:
 		struct s_setting_comm{
@@ -413,6 +412,10 @@ namespace Common {
 			BYTE	databit;
 		};
 		bool setting_comm(s_setting_comm* pssc);
+        DCB& get_dcb() {
+            return _dcb;
+        }
+
 
 	// 串口对象列表
 	public:
