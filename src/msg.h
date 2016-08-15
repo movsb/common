@@ -4,6 +4,26 @@
 #include "comm.h"
 
 namespace Common {
+
+    class CommandNotifier : public ICommandNotifier
+    {
+    public:
+        virtual void OnCommand() {
+            assert(::IsWindow(_wnd));
+            ::PostMessage(_wnd, _msg, 0, 0);
+        }
+
+    public:
+        void init(HWND wnd, UINT msg) {
+            _wnd = wnd;
+            _msg = msg;
+        }
+
+    private:
+        HWND _wnd;
+        UINT _msg;
+    };
+
 	// 发送文件格式选择对话框
 	class c_send_file_format_dlg : public c_dialog_builder
 	{
@@ -44,7 +64,6 @@ namespace Common {
 
 	class CComWnd 
 		: public CWnd
-		, public i_data_counter
 		, public i_timer
 		, public i_timer_period
 		, public IAcceleratorTranslator
@@ -54,11 +73,14 @@ namespace Common {
 		CComWnd();
 		~CComWnd();
 
+    private:
+        CommandNotifier _command_notifier;
+        UINT            _command_message;
+
 	private:
 		enum PrivateMessage{
 			__kPrivateStart = WM_APP,
 			kMessageBox,
-			kUpdateCounter,
 			kUpdateStatus,
 			kUpdateTimer,
 			kAutoSend,
@@ -81,8 +103,7 @@ namespace Common {
 		};
 
 	protected:
-		// interface Deal::i_data_counter
-		virtual void update_counter(long rd, long wr, long uw) override;
+        LRESULT OnCommCommand();
 		// interface i_com_timer
 		virtual void update_timer(int h, int m, int s) override;
 		// interface 

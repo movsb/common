@@ -3,62 +3,106 @@
 #include "DataProcessor.h"
 
 namespace Common {
-	// 发送, 接收, 未发送数据计数器接口
-	class i_data_counter
-	{
-	public:
-		// 读, 写, 未写
-		virtual void update_counter(long rd, long wr, long uw) = 0;
-	};
 
-	// 数据计数器类
-	class c_data_counter
-	{
-	public:
-		c_data_counter()
-			: _updater(0)
-		{
-			reset_all();
-		}
+    struct ICommandNotifier
+    {
+        virtual void OnCommand() = 0;
+    };
 
-		~c_data_counter()
-		{
-			reset_all();
-		}
+    enum class CommandType
+    {
+        kNull,
+        kUpdateCounter,
+    };
 
-		void set_updater(i_data_counter* udt) { _updater = udt; }
-		void call_updater(){
-			SMART_ASSERT(_updater != NULL).Warning();
-			_lock.lock();
-			_updater->update_counter(_n_read, _n_write, _n_unwr);
-			_lock.unlock();
-		}
+    struct Command
+    {
+        Command(CommandType type_) 
+            : type(type_) 
+        {}
 
-		void reset_all(){
-			InterlockedExchange(&_n_read, 0);
-			InterlockedExchange(&_n_unwr, 0);
-			InterlockedExchange(&_n_write, 0);
-		}
+        CommandType type;
+    };
 
-		void reset_wr_rd(){
-			InterlockedExchange(&_n_read, 0);
-			InterlockedExchange(&_n_write, 0);
-		}
+    struct Command_UpdateCounter : Command
+    {
+        Command_UpdateCounter() : Command(CommandType::kUpdateCounter) {}
 
-		void reset_unsend()			{ InterlockedExchange(&_n_unwr, 0); }
-		void add_send(int n)		{ InterlockedExchangeAdd(&_n_write, n); }
-		void add_recv(int n)		{ InterlockedExchangeAdd(&_n_read, n); }
-		void add_unsend(int n)		{ InterlockedExchangeAdd(&_n_unwr, n); }
-		void sub_unsend(int n)		{ InterlockedExchangeAdd(&_n_unwr, -n); }
+        int nRead;
+        int nWritten;
+        int nQueued;
+    };
 
-	protected:
-		c_critical_locker	_lock;
-		i_data_counter*		_updater;
-		volatile long		_n_write;
-		volatile long		_n_read;
-		volatile long		_n_unwr;
-	};
+    class CommandQueue
+    {
+    public:
+        void set_notifier(ICommandNotifier* p) {
+            _notifier = p;
+        }
 
+        void notify() {
+            _notifier->OnCommand();
+        }
+
+        bool empty() {
+            c_lock_guard _guard(_lock);
+            return _commands.empty();
+        }
+
+        void clear() {
+            c_lock_guard _guard(_lock);
+
+            for(auto& p : _commands)
+                delete p;
+
+            _commands.clear();
+        }
+
+        void push_back(Command* cmd) {
+            c_lock_guard _guard(_lock);
+            _commands.push_back(cmd);
+            notify();
+        }
+
+        void push_front(Command* cmd) {
+            c_lock_guard _guard(_lock);
+            _commands.push_front(cmd);
+            notify();
+        }
+
+        Command* pop_back() {
+            c_lock_guard _guard(_lock);
+            auto p = _commands.back();
+            _commands.pop_back();
+            return p;
+        }
+
+        Command* pop_front() {
+            c_lock_guard _guard(_lock);
+            auto p = _commands.front();
+            _commands.pop_front();
+            return p;
+        }
+
+        Command* try_pop_front() {
+            c_lock_guard _guard(_lock);
+            Command* pCmd;
+            if(!_commands.empty()) {
+                pCmd = _commands.front();
+                _commands.pop_front();
+            }
+            else {
+                pCmd = nullptr;
+            }
+            return pCmd;
+        }
+
+    private:
+        c_critical_locker       _lock;
+        std::list<Command*>     _commands;
+        ICommandNotifier*       _notifier;
+    };
+    
 	//////////////////////////////////////////////////////////////////////////
 	// 以下定义 发送数据封装相关类和结构
 
@@ -291,11 +335,15 @@ namespace Common {
 	// 串口类
 	class CComm
 	{
-	// UI通知者
-	public:
-		void set_notifier(i_notifier* noti) { _notifier = noti;	}
-	private:
-		i_notifier*	_notifier;
+        CommandQueue _commands;
+    public:
+        void set_notifier(ICommandNotifier* notifier) {
+            _commands.set_notifier(notifier);
+        }
+
+        Command* get_command() {
+            return _commands.try_pop_front();
+        }
 
 	// 发送数据包管理
 	private:
@@ -312,15 +360,15 @@ namespace Common {
 				{
 				case csdp_type::csdp_alloc:
 				case csdp_type::csdp_local:
-					_data_counter.add_unsend(psdp->cb);
-					_data_counter.call_updater();
+                    update_counter(0, 0, psdp->cb);
 					break;
 				}
 				return true;
 			}
 			else{
-				if (!bsilent)
-					_notifier->msgbox(MB_ICONERROR, NULL, "串口未打开!");
+                // TODO
+				//if (!bsilent)
+				//	_notifier->msgbox(MB_ICONERROR, NULL, "串口未打开!");
 				release_packet(psdp);
 				return false;
 			}
@@ -333,9 +381,11 @@ namespace Common {
 
 	// 计数器
 	public:
-		c_data_counter*			counter() { return &_data_counter; }
-	private:
-		c_data_counter			_data_counter;
+        void get_counter(int* pRead, int* pWritten, int* pQueued);
+        void reset_counter(bool r = true, bool w = true, bool q = true);
+    private:
+        void update_counter(int nRead, int nWritten, int nQueued);
+        volatile long _nRead, _nWritten, _nQueued;
 
 	// 事件监听器
 	private:

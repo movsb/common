@@ -6,6 +6,7 @@
 #include "asctable.h"
 #include "SendCmd.h"
 #include "msg.h"
+#include "comm.h"
 
 static char* __THIS_FILE__  = __FILE__;
 
@@ -47,6 +48,9 @@ namespace Common {
 		}
 		if (uMsg >= WM_APP && uMsg <= 0xBFFF)
 			return on_app(uMsg, wParam, lParam);
+        else if(uMsg == _command_message) {
+            return OnCommCommand();
+        }
 
 		return __super::HandleMessage(uMsg, wParam, lParam, bHandled);
 	}
@@ -136,8 +140,10 @@ namespace Common {
 		});
 
 		// 相关接口
-		_comm.set_notifier(this);
-		_comm.counter()->set_updater(this);
+        _command_message = ::RegisterWindowMessage("Common:CommandNotifyMessage");
+        _command_notifier.init(*this, _command_message);
+        _comm.set_notifier(&_command_notifier);
+
 		_timer.set_period(1000);
 		_timer.set_timer(this);
 		_timer.set_notifier(this);
@@ -263,14 +269,6 @@ namespace Common {
 		PrivateMessage pm = (PrivateMessage)uMsg;
 		switch (pm)
 		{
-		case kUpdateCounter:
-		{
-			long* a = (long*)lParam;
-			char status[128] = { "状态: " };
-			sprintf(status + 6, "接收计数:%u,发送计数:%u,等待发送:%u", a[0],a[1],a[2]);
-			SetWindowText(_hStatus, status);
-			return 0;
-		}
 		case kUpdateStatus:
 		{
 			::SetWindowText(_hStatus, (LPCTSTR)lParam);
@@ -641,9 +639,7 @@ namespace Common {
 		case IDC_BTN_CLR_COUNTER:
 			if(code==BN_CLICKED){
 				//未发送计数不需要清零
-				c_data_counter* counter = _comm.counter();
-				counter->reset_wr_rd();
-				counter->call_updater();
+                _comm.reset_counter(true, true, false);
 				return 0;
 			}
 			break;
@@ -757,12 +753,6 @@ namespace Common {
 		else{
 			update_status("共找到 %d 个串口设备!", count);
 		}
-	}
-
-	void CComWnd::update_counter(long rd, long wr, long uw)
-	{
-		long a[3] = { rd, wr, uw };
-		SendMessage(kUpdateCounter, 0, LPARAM(&a[0]));
 	}
 
 	void CComWnd::update_status(const char* fmt, ...)
@@ -1448,6 +1438,20 @@ namespace Common {
 			return 0;
 		}
 	}
+
+    LRESULT CComWnd::OnCommCommand() {
+        while(Command* bpCmd = _comm.get_command()) {
+            if(bpCmd->type == CommandType::kUpdateCounter) {
+                //auto pCmd = static_cast<Command_UpdateCounter*>(bpCmd);
+                int nRead, nWritten, nQueued;
+                _comm.get_counter(&nRead, &nWritten, &nQueued);
+                update_status("状态：接收计数:%u,发送计数:%u,等待发送:%u", nRead, nWritten, nQueued);
+                delete bpCmd;
+            }
+        }
+
+        return 0;
+    }
 
 	//////////////////////////////////////////////////////////////////////////
 	LPCTSTR c_send_file_format_dlg::get_skin_xml() const

@@ -51,8 +51,8 @@ namespace Common{
 	}
 
 	CComm::CComm()
-		: _notifier(NULL)
-		, _hComPort(NULL)
+        : _hComPort(NULL)
+        , _nRead(0), _nWritten(0), _nQueued(0)
 	{
 		_begin_threads();
 		static char* aBaudRate[]={"110","300","600","1200","2400","4800","9600","14400","19200","38400","57600","115200","128000","256000", NULL};
@@ -101,7 +101,8 @@ namespace Common{
 		if (_hComPort == INVALID_HANDLE_VALUE){
 			_hComPort = NULL;
 			DWORD dwErr = ::GetLastError();
-			_notifier->msgerr();
+            // TODO
+			//_notifier->msgerr();
 			if (dwErr == ERROR_FILE_NOT_FOUND){
 				//TODO
 			}
@@ -116,7 +117,7 @@ namespace Common{
 	{
 		SMART_ENSURE(::CloseHandle(_hComPort), != 0).Fatal();
 		_hComPort = NULL;
-		_data_counter.reset_all();
+        reset_counter();
 		_send_data.empty();
 
 		return true;
@@ -215,7 +216,8 @@ namespace Common{
 				switch (::WaitForMultipleObjects(_countof(handles), handles, FALSE, INFINITE))
 				{
 				case WAIT_FAILED:
-					_notifier->msgerr("[事件线程::Wait失败]");
+                    // TODO
+					//_notifier->msgerr("[事件线程::Wait失败]");
 					goto _restart;
 					break;
 				case WAIT_OBJECT_0 + 0:
@@ -225,7 +227,8 @@ namespace Common{
 				case WAIT_OBJECT_0 + 1:
 					bRet = ::GetOverlappedResult(_hComPort, &o, &dw2, FALSE);
 					if (bRet == FALSE){
-						_notifier->msgerr("[事件线程::Wait失败]");
+                        // TODO
+						//_notifier->msgerr("[事件线程::Wait失败]");
 						goto _restart;
 					}
 					else{
@@ -236,7 +239,8 @@ namespace Common{
 				}
 			}
 			else{
-				_notifier->msgerr("[事件线程]::GetLastError() != ERROR_IO_PENDING\n\n");
+				//TODO
+				// _notifier->msgerr("[事件线程]::GetLastError() != ERROR_IO_PENDING\n\n");
 			}
 		}
 
@@ -291,7 +295,8 @@ namespace Common{
 						debug_out(("[写线程] I/O completed immediately, bytes : %d\n", nWritten));
 					}
 					else{
-						_notifier->msgerr("[写线程] GetOverlappedResult失败(I/O completed)!\n");
+                        //TODO
+						//_notifier->msgerr("[写线程] GetOverlappedResult失败(I/O completed)!\n");
 						goto _restart;
 					}
 				}
@@ -304,7 +309,8 @@ namespace Common{
 						switch (::WaitForMultipleObjects(_countof(handles), &handles[0], FALSE, INFINITE))
 						{
 						case WAIT_FAILED:
-							_notifier->msgerr("[写线程] Wait失败!\n");
+                            //TODO
+							//_notifier->msgerr("[写线程] Wait失败!\n");
 							goto _restart;
 							break;
 						case WAIT_OBJECT_0 + 0: // now we exit
@@ -317,22 +323,22 @@ namespace Common{
 								debug_out(("[写线程] 写入 %d 个字节!\n", nWritten));
 							}
 							else{
-								_notifier->msgerr("[写线程] GetOverlappedResult失败(I/O pending)!\n");
+                                //TODO
+								//_notifier->msgerr("[写线程] GetOverlappedResult失败(I/O pending)!\n");
 								goto _restart;
 							}
 							break;
 						}
 					}
 					else{
-						_notifier->msgerr("[写线程] ::GetLastError() != ERROR_IO_PENDING");
+                        //TODO
+						//_notifier->msgerr("[写线程] ::GetLastError() != ERROR_IO_PENDING");
 						goto _restart;
 					}
 				}
 
 				nWrittenData += nWritten;
-				_data_counter.add_send(nWritten);
-				_data_counter.sub_unsend(nWritten);
-				_data_counter.call_updater();
+                update_counter(0, nWritten, -(int)nWritten);
 			}
 			_send_data.release(psdp);
 			goto _get_packet;
@@ -395,7 +401,8 @@ namespace Common{
 		switch (::WaitForMultipleObjects(_countof(handles), handles, FALSE, INFINITE))
 		{
 		case WAIT_FAILED:
-			_notifier->msgerr("[读线程] Wait失败!\n");
+            //TODO
+			//_notifier->msgerr("[读线程] Wait失败!\n");
 			goto _restart;
 		case WAIT_OBJECT_0 + 0:
 			debug_out(("[读线程] 收到退出事件!\n"));
@@ -409,7 +416,8 @@ namespace Common{
 		COMSTAT	comsta;
 		// for some reasons, such as comport has been removed
 		if (!::ClearCommError(_hComPort, &comerr, &comsta)){
-			_notifier->msgerr("ClearCommError()");
+            //TODO
+			//_notifier->msgerr("ClearCommError()");
 			goto _restart;
 		}
 
@@ -428,7 +436,8 @@ namespace Common{
 					debug_out(("[读线程] 读取 %d 字节, bRet==TRUE, nBytesToRead: %d\n", nRead, nBytesToRead));
 				}
 				else{
-					_notifier->msgerr("[写线程] GetOverlappedResult失败!\n");
+                    //TODO
+					//_notifier->msgerr("[写线程] GetOverlappedResult失败!\n");
 					goto _restart;
 				}
 			}
@@ -452,22 +461,23 @@ namespace Common{
 							debug_out(("[读线程] 读取 %d 字节, bRet==FALSE\n", nRead));
 						}
 						else{
-							_notifier->msgerr("[读线程] GetOverlappedResult失败!\n");
+                            //TODO
+							//_notifier->msgerr("[读线程] GetOverlappedResult失败!\n");
 							goto _restart;
 						}
 						break;
 					}
 				}
 				else{
-					_notifier->msgerr("[读线程] ::GetLastError() != ERROR_IO_PENDING");
+                    //TODO
+					//_notifier->msgerr("[读线程] ::GetLastError() != ERROR_IO_PENDING");
 					goto _restart;
 				}
 			}
 
 			if (nRead > 0){
 				nTotalRead += nRead;
-				_data_counter.add_recv(nRead);
-				_data_counter.call_updater();
+                update_counter(nRead, 0, 0);
 			}
 			else{
 				nBytesToRead--;
@@ -525,7 +535,8 @@ namespace Common{
 		SMART_ASSERT(is_opened()).Fatal();
 
 		if (!::GetCommState(get_handle(), &_dcb)){
-			_notifier->msgerr("GetCommState()错误");
+            //TODO
+			//_notifier->msgerr("GetCommState()错误");
 			return false;
 		}
 
@@ -537,7 +548,8 @@ namespace Common{
 		_dcb.StopBits = pssc->stopbit;
 
 		if (!::SetCommState(_hComPort, &_dcb)){
-			_notifier->msgerr("SetCommState()错误");
+            //TODO
+			//_notifier->msgerr("SetCommState()错误");
 			return false;
 		}
 
@@ -548,11 +560,14 @@ namespace Common{
 			| EV_RING
 			| EV_PERR | EV_RX80FULL))
 		{
-			_notifier->msgerr("SetCommMask()错误");
+            //TODO
+			//_notifier->msgerr("SetCommMask()错误");
+
 			return false;
 		}
 		if (!::SetCommTimeouts(get_handle(), &_timeouts)){
-			_notifier->msgerr("设置串口超时错误");
+            //TODO
+			//_notifier->msgerr("设置串口超时错误");
 			return false;
 		}
 
@@ -643,6 +658,38 @@ namespace Common{
 
 		return false;
 	}
+
+    void CComm::update_counter(int nRead, int nWritten, int nQueued) {
+        if(nRead)       InterlockedExchangeAdd(&_nRead, nRead);
+        if(nWritten)    InterlockedExchangeAdd(&_nWritten, nWritten);
+        if(nQueued)     InterlockedExchangeAdd(&_nQueued, nQueued);
+
+        if(nRead || nWritten || nQueued) {
+            auto cmd = new Command_UpdateCounter;
+            cmd->nRead = nRead;
+            cmd->nWritten = nWritten;
+            cmd->nQueued = nQueued;
+            _commands.push_back(cmd);
+        }
+    }
+
+    void CComm::reset_counter(bool r, bool w, bool q) {
+        if(r) InterlockedExchange(&_nRead, 0);
+        if(w) InterlockedExchange(&_nWritten, 0);
+        if(q) InterlockedExchange(&_nQueued, 0);
+
+        auto cmd = new Command_UpdateCounter;
+        cmd->nRead = _nRead;
+        cmd->nWritten = _nWritten;
+        cmd->nQueued = _nQueued;
+        _commands.push_back(cmd);
+    }
+
+    void CComm::get_counter(int* pRead, int* pWritten, int* pQueued) {
+        *pRead = _nRead;
+        *pWritten = _nWritten;
+        *pQueued = _nQueued;
+    }
 
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////

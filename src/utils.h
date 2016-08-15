@@ -293,6 +293,23 @@ namespace Common {
 		CRITICAL_SECTION _cs;
 	};
 
+    class c_lock_guard
+    {
+    public:
+        c_lock_guard(c_critical_locker& lock_) 
+            : _lock(lock_)
+        {
+            _lock.lock();
+        }
+
+        ~c_lock_guard() {
+            _lock.unlock();
+        }
+
+    private:
+        c_critical_locker& _lock;
+    };
+
 	class c_text_formatting
 	{
 	public:
