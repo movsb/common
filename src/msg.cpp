@@ -84,9 +84,9 @@ namespace Common {
 		editor_recv_hex()->Attach(::GetDlgItem(hWnd, IDC_EDIT_RECV));
 		editor_send()->Attach(::GetDlgItem(hWnd, IDC_EDIT_SEND));
 
-		editor_recv_hex()->limit_text(COMMON_RECV_BUF_SIZE);
-		editor_recv_char()->limit_text(COMMON_RECV_BUF_SIZE);
-		editor_send()->limit_text(COMMON_SEND_BUF_SIZE);
+		editor_recv_hex()->limit_text(-1);
+		editor_recv_char()->limit_text(-1);
+		editor_send()->limit_text(-1);
 
 		SendMessage(WM_SETICON, ICON_SMALL, LPARAM(LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1))));
 
@@ -956,9 +956,10 @@ namespace Common {
 			switch_send_data_format(true, false);
 		}
 		else if (selected == "any"){
+            const int line_cch = 16;
 			int length = file_size;
 			char* hexstr = c_text_formatting::hex2str(
-				buffer, &length, COMMON_LINE_CCH_SEND, 0, NULL, 0, c_text_formatting::newline_type::NLT_CRLF);
+				buffer, &length, line_cch, 0, NULL, 0, c_text_formatting::newline_type::NLT_CRLF);
 			if (hexstr){
 				editor_send()->set_text(hexstr);
 				switch_send_data_format(true, true);

@@ -449,12 +449,3 @@ namespace Common {
 		~CComm();
 	};
 }
-
-// 注：这里的东西很多是无效的，未来得及删除
-#define COMMON_MAX_LOAD_SIZE			((unsigned long)1<<20)
-#define COMMON_LINE_CCH_SEND			16
-#define COMMON_LINE_CCH_RECV			16
-#define COMMON_SEND_BUF_SIZE			COMMON_MAX_LOAD_SIZE
-#define COMMON_RECV_BUF_SIZE			0 // un-limited //(((unsigned long)1<<20)*10)
-#define COMMON_INTERNAL_RECV_BUF_SIZE	((unsigned long)1<<20)
-#define COMMON_READ_BUFFER_SIZE			((unsigned long)1<<20)

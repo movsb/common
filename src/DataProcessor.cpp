@@ -7,10 +7,12 @@ namespace Common{
 		char buf[1024];
 		char* str;
 
-		int pos = _count % (COMMON_LINE_CCH_RECV);
+        const int line_cch = 16;
+
+		int pos = _count % (line_cch);
 
 		int outlen = cb;
-		str = c_text_formatting::hex2str(const_cast<unsigned char*>(ba), &outlen, COMMON_LINE_CCH_RECV, pos,
+		str = c_text_formatting::hex2str(const_cast<unsigned char*>(ba), &outlen, line_cch, pos,
 			buf, sizeof(buf), c_text_formatting::newline_type::NLT_CRLF);
 
 		_editor->append_text(str);

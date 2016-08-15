@@ -55,6 +55,7 @@ namespace Common {
 			virtual bool apply_linux_attribute_m(int attr);
 
 		public:
+            virtual void limit_text(int sz) override;
 			void set_default_text_fgcolor(COLORREF fg);
 			void set_default_text_bgcolor(COLORREF bg);
 			bool get_sel_range(int* start = nullptr, int* end = nullptr);
