@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "../res/resource.h"
 
+#include "msg.h"
+
 static char* __THIS_FILE__ = __FILE__;
 
 Common::CComConfig* comcfg;

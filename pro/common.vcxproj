@@ -109,7 +109,7 @@
     <ClCompile Include="..\src\about.cpp" />
     <ClCompile Include="..\src\asctable.cpp" />
     <ClCompile Include="..\src\comm.cpp" />
-    <ClCompile Include="..\src\common.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\DataProcessor.cpp" />
     <ClCompile Include="..\src\debug.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -173,7 +173,6 @@
     <ClInclude Include="..\src\about.h" />
     <ClInclude Include="..\src\asctable.h" />
     <ClInclude Include="..\src\comm.h" />
-    <ClInclude Include="..\src\common.h" />
     <ClInclude Include="..\src\DataProcessor.h" />
     <ClInclude Include="..\src\debug.h" />
     <ClInclude Include="..\src\msg.h" />

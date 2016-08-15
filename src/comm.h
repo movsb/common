@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DataProcessor.h"
+
 namespace Common {
 	// 发送, 接收, 未发送数据计数器接口
 	class i_data_counter

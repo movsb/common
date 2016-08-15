@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "../res/resource.h"
 
+#include "SendCmd.h"
+#include "comm.h"
+
 namespace Common{
 	bool sendcmd_try_load_xml(HWND hOwner, LPCTSTR xml_file, CComm* comm)
 	{

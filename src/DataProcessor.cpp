@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+#include "DataProcessor.h"
+
 namespace Common{
 	//////////////////////////////////////////////////////////////////////////
 	bool c_hex_data_processor::process_some(bool follow, const unsigned char* ba, int cb, int* pn)

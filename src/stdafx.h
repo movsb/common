@@ -48,13 +48,6 @@
 #include "Windows/FileOperation.h"
 #include "Windows/InputBox.h"
 
-#include "DataProcessor.h"
-#include "asctable.h"
-#include "comm.h"
-#include "about.h"
-#include "SendCmd.h"
-#include "msg.h"
-
 extern Common::CComConfig* comcfg;
 
 #endif//!__stdafx_h__

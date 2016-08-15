@@ -96,7 +96,7 @@ namespace Common{
 			}
 		}
 		__except(EXCEPTION_EXECUTE_HANDLER){
-			_notifier->msgbox(MB_ICONERROR,COMMON_NAME,
+			_notifier->msgbox(MB_ICONERROR,"",
 				"%s:指针被错误地释放,请报告异常!\n\n"
 				"文件:%s\n"
 				"行数:%d",prefix?prefix:"<null-function-name>",pc->file,pc->line);

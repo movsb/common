@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "../res/resource.h"
 
+#include "pinctrl.h"
+
 static int axisx = -1, axisy = -1;
 
 static int dtr[3] = {DTR_CONTROL_DISABLE, DTR_CONTROL_ENABLE, DTR_CONTROL_HANDSHAKE};
@@ -32,7 +34,7 @@ INT_PTR __stdcall DlgProc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
             if(HIWORD(wp) != BN_CLICKED)
                 return 0;
             if(!_get_handle()) {
-                MessageBox(hwnd, "没有串口设备被打开!", COMMON_NAME, MB_ICONINFORMATION);
+                MessageBox(hwnd, "没有串口设备被打开!", "", MB_ICONINFORMATION);
                 return 0;
             }
 
@@ -57,7 +59,7 @@ INT_PTR __stdcall DlgProc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
     case WM_INITDIALOG:
     {
         if(!_get_handle()) {
-            ::MessageBox(GetActiveWindow(), "请先打开一个串口设备!", COMMON_NAME, MB_ICONEXCLAMATION);
+            ::MessageBox(GetActiveWindow(), "请先打开一个串口设备!", "", MB_ICONEXCLAMATION);
             EndDialog(hwnd, 0);
             return 0;
         }

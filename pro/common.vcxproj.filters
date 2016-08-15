@@ -16,7 +16,6 @@
     <ClCompile Include="..\src\about.cpp" />
     <ClCompile Include="..\src\asctable.cpp" />
     <ClCompile Include="..\src\comm.cpp" />
-    <ClCompile Include="..\src\common.cpp" />
     <ClCompile Include="..\src\DataProcessor.cpp" />
     <ClCompile Include="..\src\debug.cpp" />
     <ClCompile Include="..\src\msg.cpp" />
@@ -84,6 +83,7 @@
     <ClCompile Include="..\src\Windows\DialogBuilder.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\struct\list.h">
@@ -101,7 +101,6 @@
     <ClInclude Include="..\src\about.h" />
     <ClInclude Include="..\src\asctable.h" />
     <ClInclude Include="..\src\comm.h" />
-    <ClInclude Include="..\src\common.h" />
     <ClInclude Include="..\src\DataProcessor.h" />
     <ClInclude Include="..\src\debug.h" />
     <ClInclude Include="..\src\msg.h" />
@@ -179,15 +178,6 @@
     </Filter>
     <Filter Include="struct">
       <UniqueIdentifier>{d9a76f60-29ba-406f-878d-5cb33039f150}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="..\src\Windows">
-      <UniqueIdentifier>{caabdc79-bee4-4ed1-9e11-90d00c367714}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="..\src\sdklayout">
-      <UniqueIdentifier>{cc66f5ef-0aeb-44a3-9ac0-1fdb8c77d0b5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="..\src\tinyxml2">
-      <UniqueIdentifier>{8ba952e1-cc25-488a-a41c-30399ca0a488}</UniqueIdentifier>
     </Filter>
     <Filter Include="Windows">
       <UniqueIdentifier>{15db0d98-9a56-4a42-a150-c5ad444cf07b}</UniqueIdentifier>

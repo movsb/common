@@ -2,6 +2,8 @@
 
 static char* __THIS_FILE__ = __FILE__;
 
+#include "comm.h"
+#include "DataProcessor.h"
 
 namespace Common{
 	//////////////////////////////////////////////////////////////////////////

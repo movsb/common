@@ -1,5 +1,8 @@
 #pragma once
 
+#include "DataProcessor.h"
+#include "comm.h"
+
 namespace Common {
 	// 发送文件格式选择对话框
 	class c_send_file_format_dlg : public c_dialog_builder

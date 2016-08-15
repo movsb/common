@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 
+#include "asctable.h"
+
 static char* __THIS_FILE__ = __FILE__;
 
 /**********************************************************

@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "../res/resource.h"
 
+#include "about.h"
+
 #pragma comment(lib,"WinInet")
 
 static char* __THIS_FILE__ = __FILE__;

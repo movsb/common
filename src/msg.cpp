@@ -2,6 +2,10 @@
 
 #include "../res/resource.h"
 
+#include "about.h"
+#include "asctable.h"
+#include "SendCmd.h"
+#include "msg.h"
 
 static char* __THIS_FILE__  = __FILE__;
 
