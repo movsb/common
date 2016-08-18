@@ -225,8 +225,6 @@ IDR_MENU_MORE MENU
 BEGIN
     POPUP "popupmenu"
     BEGIN
-        MENUITEM "超时设置(&T)",                    MENU_MORE_TIMEOUTS
-        MENUITEM "驱动提供的设置(&D)",                 MENU_MORE_DRIVER
         MENUITEM "DTR/RTS引脚电平控制(&P)",           MENU_MORE_PINCTRL
     END
 END

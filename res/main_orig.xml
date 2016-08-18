@@ -40,7 +40,7 @@
 							<!--GroupBox-->
 							<Control id="MAINSTATIC_RECV_FORMAT"/>
 							<!--Options-->
-							<Vertical inset="10,15,5,5">
+							<Vertical inset="10,18,5,5">
 								<Control id="IDC_RADIO_RECV_HEX" />
 								<Control id="IDC_RADIO_RECV_CHAR" />
 							</Vertical>
@@ -52,7 +52,7 @@
 							<Control id="MAINSTATIC_SEND_FORMAT"/>
 							<!--Options-->
 							<Horizontal>
-								<Vertical inset="10,15,5,5">
+								<Vertical inset="10,18,5,5">
 									<Control id="IDC_RADIO_SEND_HEX"/>
 									<Control id="IDC_RADIO_SEND_CHAR"/>
 								</Vertical>
