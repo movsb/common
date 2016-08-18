@@ -80,8 +80,6 @@ namespace Common {
 	private:
 		enum PrivateMessage{
 			__kPrivateStart = WM_APP,
-			kMessageBox,
-			kUpdateStatus,
 			kUpdateTimer,
 			kAutoSend,
 		};
@@ -113,9 +111,6 @@ namespace Common {
 
 		// IAcceleratorTranslator interface
 		virtual bool TranslateAccelerator(MSG* pmsg);
-
-		// 存在多线程操作, 所以重写
-		virtual int msgbox(UINT msgicon, char* caption, char* fmt, ...);
 
 	protected:
 		LRESULT CALLBACK RichEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

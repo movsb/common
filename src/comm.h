@@ -12,6 +12,7 @@ namespace Common {
     enum class CommandType
     {
         kNull,
+        kErrorMessage,
         kUpdateCounter,
     };
 
@@ -22,6 +23,14 @@ namespace Common {
         {}
 
         CommandType type;
+    };
+
+    struct Command_ErrorMessage : Command
+    {
+        Command_ErrorMessage() : Command(CommandType::kErrorMessage) {}
+
+        int code;
+        std::string what;
     };
 
     struct Command_UpdateCounter : Command
@@ -344,6 +353,9 @@ namespace Common {
         Command* get_command() {
             return _commands.try_pop_front();
         }
+
+        // 基于当前系统错误码产生错误消息到命令队列
+        void system_error(const std::string& prefix = "");
 
 	// 发送数据包管理
 	private:

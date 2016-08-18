@@ -271,33 +271,11 @@ namespace Common {
 		PrivateMessage pm = (PrivateMessage)uMsg;
 		switch (pm)
 		{
-		case kUpdateStatus:
-		{
-			::SetWindowText(_hStatus, (LPCTSTR)lParam);
-			return 0;
-		}
 		case kUpdateTimer:
 		{
 			const char* tstr = (const char*)lParam;
 			::SetDlgItemText(m_hWnd, IDC_STATIC_TIMER, tstr);
 			return 0;
-		}
-		case kMessageBox:
-		{
-			auto p = reinterpret_cast<void**>(lParam);
-			auto msg = reinterpret_cast<std::string*>(p[0]);
-			auto cap = reinterpret_cast<std::string*>(p[1]);
-			auto ico = reinterpret_cast<int*>(p[2]);
-
-			int x = ::MessageBox(m_hWnd, msg->c_str(), cap->c_str(), *ico);
-
-			delete msg;
-			delete cap;
-			delete ico;
-
-			delete[] p;
-
-			return x;
 		}
 		case kAutoSend:
 			debug_out(("自动发送中...\n"));
@@ -764,7 +742,8 @@ namespace Common {
 		va_start(va, fmt);
 		_vsnprintf(smsg, sizeof(smsg), fmt, va);
 		va_end(va);
-		SendMessage(kUpdateStatus, 0, LPARAM(smsg));
+
+        ::SetWindowText(_hStatus, smsg);
 	}
 
 	void CComWnd::com_update_open_btn_text()
@@ -1414,33 +1393,6 @@ namespace Common {
 		com_add_prompt_if_no_cp_presents();
 	}
 
-	int CComWnd::msgbox(UINT msgicon, char* caption, char* fmt, ...)
-	{
-		va_list va;
-		char smsg[1024] = { 0 };
-		va_start(va, fmt);
-		_vsnprintf(smsg, sizeof(smsg), fmt, va);
-		va_end(va);
-
-		if (GetCurrentThreadId() == GetWindowThreadProcessId(m_hWnd, nullptr)){
-			return ::MessageBox(m_hWnd, smsg, caption, msgicon);
-		}
-		else{
-			auto msg = new std::string(smsg);
-			auto cap = new std::string(caption?caption:"");
-			auto ico = new int(msgicon);
-
-			void** p = new void*[3];
-			p[0] = msg;
-			p[1] = cap;
-			p[2] = ico;
-
-			// 用SendMessage好不?
-			PostMessage(kMessageBox, 0, LPARAM(p));
-			return 0;
-		}
-	}
-
     LRESULT CComWnd::OnCommCommand() {
         while(Command* bpCmd = _comm.get_command()) {
             if(bpCmd->type == CommandType::kUpdateCounter) {
@@ -1448,6 +1400,11 @@ namespace Common {
                 int nRead, nWritten, nQueued;
                 _comm.get_counter(&nRead, &nWritten, &nQueued);
                 update_status("状态：接收计数:%u,发送计数:%u,等待发送:%u", nRead, nWritten, nQueued);
+                delete bpCmd;
+            }
+            else if (bpCmd->type == CommandType::kErrorMessage) {
+                auto pCmd = static_cast<Command_ErrorMessage*>(bpCmd);
+                msgbox(MB_ICONERROR, nullptr, "%s", pCmd->what.c_str());
                 delete bpCmd;
             }
         }

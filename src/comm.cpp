@@ -101,10 +101,9 @@ namespace Common{
 		if (_hComPort == INVALID_HANDLE_VALUE){
 			_hComPort = NULL;
 			DWORD dwErr = ::GetLastError();
-            // TODO
-			//_notifier->msgerr();
+            system_error();
 			if (dwErr == ERROR_FILE_NOT_FOUND){
-				//TODO
+
 			}
 			return false;
 		}
@@ -216,8 +215,7 @@ namespace Common{
 				switch (::WaitForMultipleObjects(_countof(handles), handles, FALSE, INFINITE))
 				{
 				case WAIT_FAILED:
-                    // TODO
-					//_notifier->msgerr("[事件线程::Wait失败]");
+                    system_error("[事件线程::Wait失败]");
 					goto _restart;
 					break;
 				case WAIT_OBJECT_0 + 0:
@@ -227,8 +225,7 @@ namespace Common{
 				case WAIT_OBJECT_0 + 1:
 					bRet = ::GetOverlappedResult(_hComPort, &o, &dw2, FALSE);
 					if (bRet == FALSE){
-                        // TODO
-						//_notifier->msgerr("[事件线程::Wait失败]");
+                        system_error("[事件线程::Wait失败]");
 						goto _restart;
 					}
 					else{
@@ -239,8 +236,7 @@ namespace Common{
 				}
 			}
 			else{
-				//TODO
-				// _notifier->msgerr("[事件线程]::GetLastError() != ERROR_IO_PENDING\n\n");
+                system_error("[事件线程]::GetLastError() != ERROR_IO_PENDING\n\n");
 			}
 		}
 
@@ -295,8 +291,7 @@ namespace Common{
 						debug_out(("[写线程] I/O completed immediately, bytes : %d\n", nWritten));
 					}
 					else{
-                        //TODO
-						//_notifier->msgerr("[写线程] GetOverlappedResult失败(I/O completed)!\n");
+                        system_error("[写线程] GetOverlappedResult失败(I/O completed)!\n");
 						goto _restart;
 					}
 				}
@@ -309,8 +304,7 @@ namespace Common{
 						switch (::WaitForMultipleObjects(_countof(handles), &handles[0], FALSE, INFINITE))
 						{
 						case WAIT_FAILED:
-                            //TODO
-							//_notifier->msgerr("[写线程] Wait失败!\n");
+                            system_error("[写线程] Wait失败!\n");
 							goto _restart;
 							break;
 						case WAIT_OBJECT_0 + 0: // now we exit
@@ -323,16 +317,14 @@ namespace Common{
 								debug_out(("[写线程] 写入 %d 个字节!\n", nWritten));
 							}
 							else{
-                                //TODO
-								//_notifier->msgerr("[写线程] GetOverlappedResult失败(I/O pending)!\n");
+                                system_error("[写线程] GetOverlappedResult失败(I/O pending)!\n");
 								goto _restart;
 							}
 							break;
 						}
 					}
 					else{
-                        //TODO
-						//_notifier->msgerr("[写线程] ::GetLastError() != ERROR_IO_PENDING");
+                        system_error("[写线程] ::GetLastError() != ERROR_IO_PENDING");
 						goto _restart;
 					}
 				}
@@ -401,8 +393,7 @@ namespace Common{
 		switch (::WaitForMultipleObjects(_countof(handles), handles, FALSE, INFINITE))
 		{
 		case WAIT_FAILED:
-            //TODO
-			//_notifier->msgerr("[读线程] Wait失败!\n");
+            system_error("[读线程] Wait失败!\n");
 			goto _restart;
 		case WAIT_OBJECT_0 + 0:
 			debug_out(("[读线程] 收到退出事件!\n"));
@@ -416,8 +407,7 @@ namespace Common{
 		COMSTAT	comsta;
 		// for some reasons, such as comport has been removed
 		if (!::ClearCommError(_hComPort, &comerr, &comsta)){
-            //TODO
-			//_notifier->msgerr("ClearCommError()");
+            system_error("ClearCommError()");
 			goto _restart;
 		}
 
@@ -436,8 +426,7 @@ namespace Common{
 					debug_out(("[读线程] 读取 %d 字节, bRet==TRUE, nBytesToRead: %d\n", nRead, nBytesToRead));
 				}
 				else{
-                    //TODO
-					//_notifier->msgerr("[写线程] GetOverlappedResult失败!\n");
+                    system_error("[写线程] GetOverlappedResult失败!\n");
 					goto _restart;
 				}
 			}
@@ -461,16 +450,14 @@ namespace Common{
 							debug_out(("[读线程] 读取 %d 字节, bRet==FALSE\n", nRead));
 						}
 						else{
-                            //TODO
-							//_notifier->msgerr("[读线程] GetOverlappedResult失败!\n");
+                            system_error("[读线程] GetOverlappedResult失败!\n");
 							goto _restart;
 						}
 						break;
 					}
 				}
 				else{
-                    //TODO
-					//_notifier->msgerr("[读线程] ::GetLastError() != ERROR_IO_PENDING");
+                    system_error("[读线程] ::GetLastError() != ERROR_IO_PENDING");
 					goto _restart;
 				}
 			}
@@ -491,13 +478,6 @@ namespace Common{
 
 		}
 
-		// Sometimes we got here not because of we've got a exit signal
-		// Maybe something wrong
-		// And if something wrong, the following handle is still non-signal.
-		// The main thread notify this thread to exit by signaling the event and then wait
-		// this thread Reset it, since the event is a Manual reset event handle.
-		// So, let's wait whatever the current signal-state the event is, just before the
-		// main thread  really want we do that.
 		::WaitForSingleObject(_thread_read.hEventToExit, INFINITE);
 		::ResetEvent(_thread_read.hEventToExit);
 
@@ -535,8 +515,7 @@ namespace Common{
 		SMART_ASSERT(is_opened()).Fatal();
 
 		if (!::GetCommState(get_handle(), &_dcb)){
-            //TODO
-			//_notifier->msgerr("GetCommState()错误");
+            system_error("GetCommState()错误");
 			return false;
 		}
 
@@ -548,8 +527,7 @@ namespace Common{
 		_dcb.StopBits = pssc->stopbit;
 
 		if (!::SetCommState(_hComPort, &_dcb)){
-            //TODO
-			//_notifier->msgerr("SetCommState()错误");
+            system_error("SetCommState()错误");
 			return false;
 		}
 
@@ -560,14 +538,11 @@ namespace Common{
 			| EV_RING
 			| EV_PERR | EV_RX80FULL))
 		{
-            //TODO
-			//_notifier->msgerr("SetCommMask()错误");
-
+            system_error("SetCommMask()错误");
 			return false;
 		}
 		if (!::SetCommTimeouts(get_handle(), &_timeouts)){
-            //TODO
-			//_notifier->msgerr("设置串口超时错误");
+            system_error("设置串口超时错误");
 			return false;
 		}
 
@@ -685,14 +660,34 @@ namespace Common{
         _commands.push_back(cmd);
     }
 
+    void CComm::system_error(const std::string& prefix) {
+        const char* msg = nullptr;
+        std::string s(prefix);
+        int code = GetLastError();
+
+        if (s.empty()) s = "错误";
+
+        if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_ALLOCATE_BUFFER,
+            NULL, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), (LPSTR)&msg, 1, NULL))
+        {
+            s += "：";
+            s += msg;
+            LocalFree((HLOCAL)msg);
+        }
+
+        auto cmd = new Command_ErrorMessage;
+        cmd->code = code;
+        cmd->what = std::move(s);
+
+        _commands.push_back(cmd);
+    }
+
     void CComm::get_counter(int* pRead, int* pWritten, int* pQueued) {
         *pRead = _nRead;
         *pWritten = _nWritten;
         *pQueued = _nQueued;
     }
 
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 	c_data_packet_manager::c_data_packet_manager()
 		: _hEvent(0)
