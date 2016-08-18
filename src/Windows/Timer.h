@@ -35,6 +35,7 @@ namespace Common{
 		void set_period(int period);
 		int get_period() const;
 		void set_period_timer(i_timer_period* tim);
+        bool is_running() const;
 
 	protected:
 		static void __stdcall _timer_proc(UINT, UINT, DWORD_PTR dwUser, DWORD_PTR, DWORD_PTR);

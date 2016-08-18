@@ -126,6 +126,8 @@ namespace Common {
 			if (_comm.is_opened()){
 				com_try_close(true);
 				_timer.stop();
+                if(_auto_send_timer.is_running())
+                    _auto_send_timer.stop();
 			}
 			return false;
 		});
@@ -777,7 +779,7 @@ namespace Common {
 
 	void CComWnd::com_update_open_btn_text()
 	{
-		::SetWindowText(_hOpen, _comm.is_opened() ? "关闭串口(&W)" : "打开串口(&W)");
+		::SetWindowText(_hOpen, _comm.is_opened() ? "关闭(&W)" : "打开(&W)");
 	}
 
 	void CComWnd::update_timer(int h, int m, int s)
