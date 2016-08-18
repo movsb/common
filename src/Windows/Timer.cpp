@@ -74,6 +74,10 @@ namespace Common{
 		_period_timer = tim;
 	}
 
+    bool c_timer::is_running() const {
+        return _tid != 0;
+    }
+
 	void c_timer::set_period(int period)
 	{
 		SMART_ASSERT(period > 0)(period).Fatal();
