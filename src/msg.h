@@ -135,6 +135,124 @@ namespace Common {
 		LRESULT on_command_ctrl(HWND hwnd, int id, int code);
 
 	private:
+		// 一些相关配置
+		void init_from_config_file();
+		void save_to_config_file();
+
+		void switch_rich_edit_fullscreen(bool full);
+		void switch_window_top_most(bool manual=false, bool topmost = true);
+		void switch_simple_ui(bool manual=false, bool bsimple=false);
+		void switch_send_data_format(bool manual=false, bool bhex=false, DWORD fmthex=0,DWORD fmtchar=0);
+		void switch_recv_data_format(bool manual = false, bool bhex = false, DWORD fmthex = 0, DWORD fmtchar = 0);
+		bool is_send_data_format_hex() { return _b_send_data_format_hex; }
+		bool is_send_data_format_char(){ return !is_send_data_format_hex(); }
+		bool is_recv_data_format_hex() { return _b_recv_data_format_hex; }
+		bool is_recv_data_format_char(){ return !is_recv_data_format_hex(); }
+		void switch_auto_send(bool manual=false, bool bauto=false, int interval=-1);
+		
+
+	public:
+		Window::c_edit*			editor_send()		{return &_send_edit;}
+		Window::c_edit*			editor_recv_hex()	{return &_recv_hex_edit;}
+		Window::c_rich_edit*	editor_recv_char()	{return &_recv_char_edit;}
+
+	//////////////////////////////////////////////////////////////////////////
+	// 以下管理串口相关的一些对象, 如: 波特率列表 ...
+
+	// 串口对象
+	class t_com_item
+	{
+	public:
+		t_com_item(int i,const char* s){_s = s; _i=i;}
+
+		// 返回字符串部分: 比如: 无校验位
+		std::string get_s() const {return _s;}
+		// 返回整数部分 : 比如: NOPARITY(宏)
+		int get_i() const {return _i;}
+
+	protected:
+		std::string _s;
+		int _i;
+	};
+
+	// 刷新串口对象列表时需要用到的回调函数类型
+	typedef void t_list_callback(void* ud, const t_com_item* t);
+
+	// 串口对象刷新时的回调类型接口
+	class i_com_list
+	{
+	public:
+		virtual void callback(t_list_callback* cb, void* ud) = 0;
+	};
+
+	// 串口对象容器: 比如 保存系统所有的串口列表
+	template<class T>
+	class t_com_list : public i_com_list
+	{
+	public:
+		void empty() {_list.clear();}
+		const T& add(T t) { _list.push_back(t); return _list[_list.size() - 1]; }
+		int size() {return _list.size();}
+		const T& operator[](int i) {return _list[i];}
+
+		// 更新对象列表, 比如更新系统串口列表
+		virtual i_com_list* update_list(){return this;}
+
+		virtual operator i_com_list*() {return static_cast<i_com_list*>(this);}
+		virtual void callback(t_list_callback* cb, void* ud)
+		{
+			for(int i=0,c=_list.size(); i<c; i++){
+				cb(ud, &_list[i]);
+			}
+		}
+
+	protected:
+		std::vector<T> _list;
+	};
+
+	// 串口端口列表, 继承的原因是: 端口有一个所谓的 "友好名"
+	// 比如常见的: Prolific USB-to-Serial Comm Port
+	// 更新到串口列表控件中时需要她们两者一起
+	class c_comport : public t_com_item
+	{
+	public:
+		c_comport(int id,const char* s)
+			: t_com_item(id, s)
+		{}
+
+		std::string get_id_and_name() const;
+	};
+
+	// 串口端口容器: 要向系统取得列表, 所以重写
+	class c_comport_list : public t_com_list<c_comport>
+	{
+	public:
+		virtual i_com_list* update_list();
+	};
+
+	// 由于波特率可由外部手动添加, 所以多加一个成员
+	class c_baudrate : public t_com_item
+	{
+	public:
+		c_baudrate(int id, const char* s, bool inner)
+			: t_com_item(id, s)
+			, _inner(inner)
+		{}
+
+		bool is_added_by_user() const { return !_inner; }
+	protected:
+		bool _inner;
+	};
+
+	// 串口对象列表
+	private:
+		c_comport_list			_comport_list;
+		t_com_list<c_baudrate>	_baudrate_list;
+		t_com_list<t_com_item>	_parity_list;
+		t_com_list<t_com_item>	_stopbit_list;
+		t_com_list<t_com_item>	_databit_list;
+
+	private:
 		struct list_callback_ud{
 			enum e_type{
 				cp,br,pa,sb,db
@@ -158,28 +276,6 @@ namespace Common {
 		bool _com_load_file_prompt_size(SdkLayout::CTinyString& selected, c_binary_file& bf);
 		bool com_do_send(bool callfromautosend);
 
-		// 一些相关配置
-		void init_from_config_file();
-		void save_to_config_file();
-
-		void switch_rich_edit_fullscreen(bool full);
-		void switch_window_top_most(bool manual=false, bool topmost = true);
-		void switch_simple_ui(bool manual=false, bool bsimple=false);
-		void switch_send_data_format(bool manual=false, bool bhex=false, DWORD fmthex=0,DWORD fmtchar=0);
-		void switch_recv_data_format(bool manual = false, bool bhex = false, DWORD fmthex = 0, DWORD fmtchar = 0);
-		bool is_send_data_format_hex() { return _b_send_data_format_hex; }
-		bool is_send_data_format_char(){ return !is_send_data_format_hex(); }
-		bool is_recv_data_format_hex() { return _b_recv_data_format_hex; }
-		bool is_recv_data_format_char(){ return !is_recv_data_format_hex(); }
-		void switch_auto_send(bool manual=false, bool bauto=false, int interval=-1);
-		
-
-	public:
-		Window::c_edit*			editor_send()		{return &_send_edit;}
-		Window::c_edit*			editor_recv_hex()	{return &_recv_hex_edit;}
-		Window::c_rich_edit*	editor_recv_char()	{return &_recv_char_edit;}
-
-	private:
 		HWND _hCP, _hBR, _hPA, _hSB, _hDB;
 		HWND _hStatus, _hOpen;
 		Window::c_rich_edit	_recv_char_edit;

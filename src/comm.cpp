@@ -6,72 +6,11 @@ static char* __THIS_FILE__ = __FILE__;
 #include "DataProcessor.h"
 
 namespace Common{
-	//////////////////////////////////////////////////////////////////////////
-	std::string c_comport::get_id_and_name() const
-	{
-		char idstr[17] = {0};
-		_snprintf(idstr, sizeof(idstr), "COM%-13d", _i);
-		std::stringstream ss;
-		ss << idstr << "\t\t" << _s;
-		return std::string(ss.str());
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-	i_com_list* c_comport_list::update_list()
-	{
-		HDEVINFO hDevInfo = INVALID_HANDLE_VALUE;
-		SP_DEVINFO_DATA spdata = {0};
-		GUID guid = GUID_DEVINTERFACE_COMPORT;
-
-		empty();
-
-		hDevInfo = SetupDiGetClassDevs(&guid, 0, 0, DIGCF_PRESENT|DIGCF_DEVICEINTERFACE);
-		if(hDevInfo == INVALID_HANDLE_VALUE){
-			return this;
-		}
-
-		spdata.cbSize = sizeof(spdata);
-		for(int i=0; SetupDiEnumDeviceInfo(hDevInfo, i, &spdata); i++){
-			char buff[1024] = {0};
-			if(SetupDiGetDeviceRegistryProperty(hDevInfo, &spdata, SPDRP_FRIENDLYNAME, NULL, 
-				PBYTE(buff), _countof(buff), NULL))
-			{
-				// Prolific com port (COMxx)
-				char* p = strstr(buff, "(COM");
-				if(p){
-					int id = atoi(p + 4);
-					if(p != buff) *(p-1) = '\0';
-					add(c_comport(id, buff));
-				}
-			}
-		}
-		SetupDiDestroyDeviceInfoList(hDevInfo);
-
-		return this;
-	}
-
 	CComm::CComm()
         : _hComPort(NULL)
         , _nRead(0), _nWritten(0), _nQueued(0)
 	{
 		_begin_threads();
-		static char* aBaudRate[]={"110","300","600","1200","2400","4800","9600","14400","19200","38400","57600","115200","128000","256000", NULL};
-		static DWORD iBaudRate[]={CBR_110,CBR_300,CBR_600,CBR_1200,CBR_2400,CBR_4800,CBR_9600,CBR_14400,CBR_19200,CBR_38400,CBR_57600,CBR_115200,CBR_128000,CBR_256000};
-		static char* aParity[] = {"无","奇校验","偶校验", "标记", "空格", NULL};
-		static BYTE iParity[] = { NOPARITY, ODDPARITY,EVENPARITY, MARKPARITY, SPACEPARITY };
-		static char* aStopBit[] = {"1位", "1.5位","2位", NULL};
-		static BYTE iStopBit[] = {ONESTOPBIT,ONE5STOPBITS,TWOSTOPBITS};
-		static char* aDataSize[] = {"8位","7位","6位","5位",NULL};
-		static BYTE iDataSize[] = {8,7,6,5};
-
-		for(int i=0; aBaudRate[i]; i++)
-			_baudrate_list.add(c_baudrate(iBaudRate[i],aBaudRate[i], true));
-		for(int i=0; aParity[i]; i++)
-			_parity_list.add(t_com_item(iParity[i],aParity[i]));
-		for(int i=0; aStopBit[i]; i++)
-			_stopbit_list.add(t_com_item(iStopBit[i], aStopBit[i]));
-		for(int i=0; aDataSize[i]; i++)
-			_databit_list.add(t_com_item(iDataSize[i], aDataSize[i]));
 
 		_timeouts.ReadIntervalTimeout = MAXDWORD;
 		_timeouts.ReadTotalTimeoutMultiplier = 0;
