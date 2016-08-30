@@ -1,7 +1,5 @@
 #pragma once
 
-#include "DataProcessor.h"
-
 namespace Common {
 
     struct ICommandNotifier
@@ -12,8 +10,10 @@ namespace Common {
     enum class CommandType
     {
         kNull,
+		kCommEvent,
         kErrorMessage,
         kUpdateCounter,
+		kReceiveData,
     };
 
     struct Command
@@ -24,6 +24,13 @@ namespace Common {
 
         CommandType type;
     };
+
+	struct Command_CommEvent : Command
+	{
+		Command_CommEvent() : Command(CommandType::kCommEvent) {}
+
+		DWORD event;
+	};
 
     struct Command_ErrorMessage : Command
     {
@@ -41,6 +48,13 @@ namespace Common {
         int nWritten;
         int nQueued;
     };
+
+	struct Command_ReceiveData : Command
+	{
+		Command_ReceiveData() : Command(CommandType::kReceiveData) {}
+
+		std::string data;
+	};
 
     class CommandQueue
     {
@@ -256,6 +270,12 @@ namespace Common {
 	// 串口类
 	class CComm
 	{
+	public:
+		CComm();
+		~CComm();
+
+	// 命令相关
+	private:
         CommandQueue _commands;
     public:
         void set_notifier(ICommandNotifier* notifier) {
@@ -266,6 +286,8 @@ namespace Common {
             return _commands.try_pop_front();
         }
 
+	// 杂项方法
+	private:
         // 基于当前系统错误码产生错误消息到命令队列
         void system_error(const std::string& prefix = "");
 
@@ -315,15 +337,6 @@ namespace Common {
 	private:
 		c_com_event_listener	_event_listener;
 
-	// 数据接收器
-	public:
-		void add_data_receiver(i_data_receiver* receiver);
-		void remove_data_receiver(i_data_receiver* receiver);
-		void call_data_receivers(const unsigned char* ba, int cb);
-	private:
-		c_ptr_array<i_data_receiver>	_data_receivers;
-		c_critical_locker				_data_receiver_lock;
-
 	// 内部工作线程
 	private:
 		bool _begin_threads();
@@ -370,16 +383,7 @@ namespace Common {
 		thread_state	_thread_write;
 		thread_state	_thread_event;
 
-	private:
 
-
-	// 串口配置结构体
-	private:
-		//COMMPROP			_commprop;
-		//COMMCONFIG			_commconfig;
-		COMMTIMEOUTS		_timeouts;
-		DCB					_dcb;
-	// 串口设置(供外部调用)
 	public:
 		struct s_setting_comm{
 			DWORD	baud_rate;
@@ -388,26 +392,21 @@ namespace Common {
 			BYTE	databit;
 		};
 		bool setting_comm(s_setting_comm* pssc);
-        DCB& get_dcb() {
-            return _dcb;
-        }
 
-
-	// 外部相关操作接口
-	private:
-		HANDLE		_hComPort;
 	public:
 		bool		open(int com_id);
 		bool		close();
 		HANDLE		get_handle() { return _hComPort; }
-		bool		is_opened() { 
-			return !!_hComPort; 
-		}
+		bool		is_opened() { return !!_hComPort; }
+
+	// 发送数据
+	public:
+		void		write(const void* data, unsigned int cb = ~0);
+		void		write(const std::string& data);
 		bool		begin_threads();
 		bool		end_threads();
 
-	public:
-		CComm();
-		~CComm();
+	private:
+		HANDLE		_hComPort;
 	};
 }

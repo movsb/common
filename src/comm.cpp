@@ -3,7 +3,6 @@
 static char* __THIS_FILE__ = __FILE__;
 
 #include "comm.h"
-#include "DataProcessor.h"
 
 namespace Common{
 	CComm::CComm()
@@ -12,11 +11,6 @@ namespace Common{
 	{
 		_begin_threads();
 
-		_timeouts.ReadIntervalTimeout = MAXDWORD;
-		_timeouts.ReadTotalTimeoutMultiplier = 0;
-		_timeouts.ReadTotalTimeoutConstant = 0;
-		_timeouts.WriteTotalTimeoutMultiplier = 0;
-		_timeouts.WriteTotalTimeoutConstant = 0;
 
 	}
 
@@ -59,6 +53,16 @@ namespace Common{
 		_send_data.empty();
 
 		return true;
+	}
+
+	void CComm::write(const void * data, unsigned int cb)
+	{
+		SMART_ASSERT(is_opened()).Stop();
+	}
+
+	void CComm::write(const std::string & data)
+	{
+		return write(data.c_str(), data.size());
 	}
 
 	bool CComm::begin_threads()
@@ -424,36 +428,14 @@ namespace Common{
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	void CComm::call_data_receivers(const unsigned char* ba, int cb)
-	{
-		_data_receiver_lock.lock();
-		for (int i = 0; i < _data_receivers.size(); i++){
-			_data_receivers[i]->receive(ba, cb);
-		}
-		_data_receiver_lock.unlock();
-	}
-
-	void CComm::remove_data_receiver(i_data_receiver* receiver)
-	{
-		_data_receiver_lock.lock();
-		_data_receivers.remove(receiver);
-		_data_receiver_lock.unlock();
-
-	}
-
-	void CComm::add_data_receiver(i_data_receiver* receiver)
-	{
-		_data_receiver_lock.lock();
-		_data_receivers.add(receiver);
-		_data_receiver_lock.unlock();
-	}
-	//////////////////////////////////////////////////////////////////////////
 
 	bool CComm::setting_comm(s_setting_comm* pssc)
 	{
 		SMART_ASSERT(is_opened()).Fatal();
 
-		if (!::GetCommState(get_handle(), &_dcb)){
+		DCB _dcb;
+
+		if (!::GetCommState(_hComPort, &_dcb)){
             system_error("GetCommState()错误");
 			return false;
 		}
@@ -470,7 +452,7 @@ namespace Common{
 			return false;
 		}
 
-		if (!::SetCommMask(get_handle(), 
+		if (!::SetCommMask(_hComPort, 
 			EV_RXCHAR|EV_RXFLAG|EV_TXEMPTY
 			| EV_CTS | EV_DSR | EV_RLSD
 			| EV_BREAK | EV_ERR
@@ -480,7 +462,14 @@ namespace Common{
             system_error("SetCommMask()错误");
 			return false;
 		}
-		if (!::SetCommTimeouts(get_handle(), &_timeouts)){
+
+		COMMTIMEOUTS _timeouts;
+		_timeouts.ReadIntervalTimeout = MAXDWORD;
+		_timeouts.ReadTotalTimeoutMultiplier = 0;
+		_timeouts.ReadTotalTimeoutConstant = 0;
+		_timeouts.WriteTotalTimeoutMultiplier = 0;
+		_timeouts.WriteTotalTimeoutConstant = 0;
+		if (!::SetCommTimeouts(_hComPort, &_timeouts)){
             system_error("设置串口超时错误");
 			return false;
 		}
@@ -504,9 +493,9 @@ namespace Common{
 		pctx->which = thread_helper_context::e_which::kRead;
 		_thread_read.hThread = (HANDLE)::_beginthreadex(nullptr, 0, thread_helper, pctx, 0, nullptr);
 
-		if (!_thread_read.hEventToBegin || !_thread_read.hEventToExit || !_thread_read.hThread){
-			::MessageBox(NULL, "应用程序初始化失败, 即将退出!", NULL, MB_ICONHAND);
-			::exit(1);
+		if (!(_thread_read.hEventToBegin && _thread_read.hEventToExit && _thread_read.hThread)) {
+			system_error("严重错误。");
+			return false;
 		}
 
 		// 开启写线程
@@ -518,9 +507,9 @@ namespace Common{
 		pctx->which = thread_helper_context::e_which::kWrite;
 		_thread_write.hThread = (HANDLE)::_beginthreadex(nullptr, 0, thread_helper, pctx, 0, nullptr);
 
-		if (!_thread_write.hEventToBegin || !_thread_write.hEventToExit || !_thread_write.hThread){
-			::MessageBox(NULL, "应用程序初始化失败, 即将退出!", NULL, MB_ICONHAND);
-			::exit(1);
+		if (!(_thread_write.hEventToBegin && _thread_write.hEventToExit && _thread_write.hThread)) {
+			system_error("严重错误。");
+			return false;
 		}
 
 		// 开启事件线程
@@ -532,9 +521,9 @@ namespace Common{
 		pctx->which = thread_helper_context::e_which::kEvent;
 		_thread_event.hThread = (HANDLE)::_beginthreadex(nullptr, 0, thread_helper, pctx, 0, nullptr);
 
-		if (!_thread_event.hEventToBegin || !_thread_event.hEventToExit || !_thread_event.hThread){
-			::MessageBox(NULL, "应用程序初始化失败, 即将退出!", NULL, MB_ICONHAND);
-			::exit(1);
+		if (!(_thread_event.hEventToBegin && _thread_event.hEventToExit && _thread_event.hThread)) {
+			system_error("严重错误。");
+			return false;
 		}
 
 		return true;
