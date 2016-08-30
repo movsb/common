@@ -27,9 +27,8 @@ namespace Common{
 			return false;
 		}
 
-		char str[64];
-		sprintf(str, "\\\\.\\COM%d", com_id);
-		_hComPort = ::CreateFile(str, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+		auto file = R"(\\.\COM)" + std::to_string(com_id);
+		_hComPort = ::CreateFile(file.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL,
 			OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 		if (_hComPort == INVALID_HANDLE_VALUE){
 			_hComPort = NULL;
@@ -58,6 +57,9 @@ namespace Common{
 	void CComm::write(const void * data, unsigned int cb)
 	{
 		SMART_ASSERT(is_opened()).Stop();
+		c_send_data_packet* psdp = _send_data.alloc((int)cb);
+		::memcpy(&psdp->data[0], data, cb);
+		_send_data.put(psdp);
 	}
 
 	void CComm::write(const std::string & data)
@@ -80,6 +82,10 @@ namespace Common{
 
 	bool CComm::end_threads()
 	{
+		auto psdp = _send_data.alloc(0);
+		psdp->type = csdp_type::csdp_exit;
+		_send_data.put_front(psdp);
+
 		::ResetEvent(_thread_read.hEventToBegin);
 		::ResetEvent(_thread_write.hEventToBegin);
 		::ResetEvent(_thread_event.hEventToBegin);
@@ -413,7 +419,11 @@ namespace Common{
 				nBytesToRead--;
 			}
 		}
-		call_data_receivers(block_data, nBytesToRead);
+
+		auto cmd = new Command_ReceiveData;
+		cmd->data.assign((char*)block_data, nBytesToRead);
+		_commands.push_back(cmd);
+
 		goto _get_packet;
 
 	_restart:
@@ -610,6 +620,27 @@ namespace Common{
         _commands.push_back(cmd);
     }
 
+	bool CComm::put_packet(c_send_data_packet * psdp, bool bfront, bool bsilent) {
+		if (is_opened()) {
+			if (bfront)
+				_send_data.put_front(psdp);
+			else
+				_send_data.put(psdp);
+
+			switch (psdp->type) {
+			case csdp_type::csdp_alloc:
+			case csdp_type::csdp_local:
+				update_counter(0, 0, psdp->cb);
+				break;
+			}
+			return true;
+		}
+		else {
+			_send_data.release(psdp);
+			return false;
+		}
+	}
+
     void CComm::get_counter(int* pRead, int* pWritten, int* pQueued) {
         *pRead = _nRead;
         *pWritten = _nWritten;
@@ -657,9 +688,7 @@ namespace Common{
 			// no left
 		}
 
-		while (psdp == NULL){
-			psdp = (c_send_data_packet*)GET_MEM(sizeof(c_send_data_packet) + size);
-		}
+		psdp = (c_send_data_packet*)new char[sizeof(c_send_data_packet) + size];
 		psdp->type = csdp_type::csdp_alloc;
 		psdp->used = true;
 		psdp->cb = size;
@@ -677,7 +706,7 @@ namespace Common{
 		switch (psdp->type)
 		{
 		case csdp_type::csdp_alloc:
-			memory.free((void**)&psdp, "");
+			delete[] psdp;
 			break;
 		case csdp_type::csdp_local:
 		case csdp_type::csdp_exit:

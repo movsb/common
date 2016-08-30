@@ -6,4 +6,4 @@
 #include "debug.h"
 
 
-std::fstream __debug_file;
+std::ofstream __debug_file;

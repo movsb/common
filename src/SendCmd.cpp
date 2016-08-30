@@ -368,13 +368,12 @@ namespace Common{
 					}
 				}
 
-				c_send_data_packet* packet = _comm->alloc_packet(len);
-				::memcpy(&packet->data[0], text, len);
+				_comm->write(text, len);
 
 				if (text != _send_buffer)
 					delete[] text;
 
-				return _comm->put_packet(packet);
+				return true;
 			}
 			else if (code == c_send_cmd_item::scimsg::del){
 				ctrl->GetParent()->Remove(ctrl);

@@ -268,6 +268,7 @@ namespace Common {
 		bool com_try_close(bool b_thread_started);
 		bool com_try_open();
 		void com_openclose();
+		void com_add_data_receiver(i_data_receiver* p);
 		void com_lock_ui_panel(bool lock);
 		void com_add_prompt_if_no_cp_presents();
 		void com_update_open_btn_text();
@@ -295,6 +296,8 @@ namespace Common {
 		bool				_b_recv_data_format_hex;
 		DWORD				_send_data_format_hex;
 		DWORD				_send_data_format_char;
+
+		std::vector<i_data_receiver*> _data_receivers;
 
 		c_hex_data_receiver		_hex_data_receiver;
 		c_text_data_receiver	_text_data_receiver;

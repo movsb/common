@@ -20,7 +20,7 @@
 
 #ifdef __SMART_DEBUG
 
-extern std::fstream __debug_file;
+extern std::ofstream __debug_file;
 
 class CSmartAssert
 {

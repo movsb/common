@@ -5,6 +5,7 @@
 #include "about.h"
 #include "asctable.h"
 #include "SendCmd.h"
+#include "pinctrl.h"
 #include "msg.h"
 #include "comm.h"
 
@@ -220,9 +221,9 @@ namespace Common {
 		// 接收器
 		_hex_data_receiver.set_editor(&_recv_hex_edit);
 		_text_data_receiver.set_editor(&_recv_char_edit);
-		_comm.add_data_receiver(&_hex_data_receiver);
-		_comm.add_data_receiver(&_text_data_receiver);
-		_comm.add_data_receiver(&_file_data_receiver);
+		_data_receivers.push_back(&_hex_data_receiver);
+		_data_receivers.push_back(&_text_data_receiver);
+		_data_receivers.push_back(&_file_data_receiver);
 
 
 		com_update_item_list();
@@ -490,7 +491,6 @@ namespace Common {
 
         case MENU_MORE_PINCTRL:
         {
-            #include "pinctrl.h"
             show_pinctrl(m_hWnd, [&]() {return _comm.get_handle(); });
             return 0;
         }
@@ -763,13 +763,10 @@ namespace Common {
 		if (!_comm.is_opened())
 			return true;
 
+		// TODO remove
 		if(b_thread_started){
-			c_send_data_packet* psdp = _comm.alloc_packet(0);
-			psdp->type = csdp_type::csdp_exit;
-			_comm.put_packet(psdp, true);
 			_comm.end_threads();
 		}
-		_comm.empty_packet_list();
 		_comm.close();
 		return true;
 	}
@@ -1119,13 +1116,12 @@ namespace Common {
 			}
 		}
 
-		c_send_data_packet* packet = _comm.alloc_packet(len);
-		::memcpy(&packet->data[0], text, len);
+		_comm.write(text, len);
 
 		if (text != _send_buffer)
 			delete[] text;
 
-		return _comm.put_packet(packet, false, callfromautosend);
+		return true;
 	}
 
 	void CComWnd::com_openclose()
@@ -1182,11 +1178,7 @@ namespace Common {
 		if (uMsg == WM_CHAR){
 			if (_comm.is_opened()){
 				char ch = char(wParam);
-				c_send_data_packet* psdp = _comm.alloc_packet(1);
-				::memcpy(psdp->data, &ch, 1);
-				if (!_comm.put_packet(psdp)){
-
-				}
+				_comm.write(&ch, 1);
 				return 0;
 			}
 			return 0;
@@ -1460,17 +1452,22 @@ namespace Common {
     LRESULT CComWnd::OnCommCommand() {
         while(Command* bpCmd = _comm.get_command()) {
             if(bpCmd->type == CommandType::kUpdateCounter) {
-                //auto pCmd = static_cast<Command_UpdateCounter*>(bpCmd);
                 int nRead, nWritten, nQueued;
                 _comm.get_counter(&nRead, &nWritten, &nQueued);
                 update_status("状态：接收计数:%u,发送计数:%u,等待发送:%u", nRead, nWritten, nQueued);
-                delete bpCmd;
             }
             else if (bpCmd->type == CommandType::kErrorMessage) {
                 auto pCmd = static_cast<Command_ErrorMessage*>(bpCmd);
                 msgbox(MB_ICONERROR, nullptr, "%s", pCmd->what.c_str());
-                delete bpCmd;
             }
+			else if (bpCmd->type == CommandType::kReceiveData) {
+				auto pCmd = static_cast<Command_ReceiveData*>(bpCmd);
+				for (auto p : _data_receivers) {
+					p->receive((const unsigned char*)pCmd->data.c_str(), pCmd->data.size());
+				}
+			}
+
+			delete bpCmd;
         }
 
         return 0;

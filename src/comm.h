@@ -293,36 +293,7 @@ namespace Common {
 
 	// 发送数据包管理
 	private:
-		c_send_data_packet*		get_packet()	{ return _send_data.get(); }
-	public:
-		bool					put_packet(c_send_data_packet* psdp, bool bfront=false, bool bsilent = false){
-			if (is_opened()){
-				if (bfront)
-					_send_data.put_front(psdp);
-				else
-					_send_data.put(psdp);
-				
-				switch (psdp->type)
-				{
-				case csdp_type::csdp_alloc:
-				case csdp_type::csdp_local:
-                    update_counter(0, 0, psdp->cb);
-					break;
-				}
-				return true;
-			}
-			else{
-                // TODO
-				//if (!bsilent)
-				//	_notifier->msgbox(MB_ICONERROR, NULL, "串口未打开!");
-				release_packet(psdp);
-				return false;
-			}
-		}
-		c_send_data_packet*		alloc_packet(int size) { return _send_data.alloc(size); }
-		void					release_packet(c_send_data_packet* psdp) { _send_data.release(psdp); }
-		void					empty_packet_list() { _send_data.empty(); }
-	private:	
+		bool					put_packet(c_send_data_packet* psdp, bool bfront = false, bool bsilent = false);
 		c_data_packet_manager	_send_data;
 
 	// 计数器
