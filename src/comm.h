@@ -293,7 +293,6 @@ namespace Common {
 
 	// 发送数据包管理
 	private:
-		bool					put_packet(c_send_data_packet* psdp, bool bfront = false, bool bsilent = false);
 		c_data_packet_manager	_send_data;
 
 	// 计数器

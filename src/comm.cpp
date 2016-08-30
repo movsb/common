@@ -59,6 +59,15 @@ namespace Common{
 		SMART_ASSERT(is_opened()).Stop();
 		c_send_data_packet* psdp = _send_data.alloc((int)cb);
 		::memcpy(&psdp->data[0], data, cb);
+
+        switch (psdp->type)
+        {
+        case csdp_type::csdp_alloc:
+        case csdp_type::csdp_local:
+            update_counter(0, 0, psdp->cb);
+            break;
+        }
+
 		_send_data.put(psdp);
 	}
 
@@ -619,27 +628,6 @@ namespace Common{
 
         _commands.push_back(cmd);
     }
-
-	bool CComm::put_packet(c_send_data_packet * psdp, bool bfront, bool bsilent) {
-		if (is_opened()) {
-			if (bfront)
-				_send_data.put_front(psdp);
-			else
-				_send_data.put(psdp);
-
-			switch (psdp->type) {
-			case csdp_type::csdp_alloc:
-			case csdp_type::csdp_local:
-				update_counter(0, 0, psdp->cb);
-				break;
-			}
-			return true;
-		}
-		else {
-			_send_data.release(psdp);
-			return false;
-		}
-	}
 
     void CComm::get_counter(int* pRead, int* pWritten, int* pQueued) {
         *pRead = _nRead;
