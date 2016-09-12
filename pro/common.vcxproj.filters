@@ -79,6 +79,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\struct\list.h">
+      <Filter>struct</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\struct\Thunk.h">
       <Filter>struct</Filter>
     </ClInclude>

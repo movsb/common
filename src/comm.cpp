@@ -1,7 +1,5 @@
 #include "StdAfx.h"
 
-static char* __THIS_FILE__ = __FILE__;
-
 #include "comm.h"
 #include "data.h"
 

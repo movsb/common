@@ -426,6 +426,3 @@ namespace Common {
 
 	void split_string(std::vector<std::string>* vec, const char* str, char delimiter);
 }
-
-
-#define __ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))

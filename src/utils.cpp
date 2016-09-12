@@ -6,8 +6,6 @@
 #include "comm.h"
 #include "../res/resource.h"
 
-static char* __THIS_FILE__ = __FILE__;
-
 namespace Common {
 	unsigned int c_text_formatting::remove_string_crlf( char* str )
 	{

@@ -87,7 +87,7 @@ namespace Common{
 		_data.append(ba, n);
 
 		str = c_text_formatting::hex2chs((unsigned char*)_data.get_data(), _data.get_size(),
-			inner_buf, __ARRAY_SIZE(inner_buf), c_text_formatting::NLT_CR);
+			inner_buf, _countof(inner_buf), c_text_formatting::NLT_CR);
 
 		do{
 			int newcrlen = strlen(str);
