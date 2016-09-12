@@ -2,8 +2,6 @@
 
 #include "asctable.h"
 
-static char* __THIS_FILE__ = __FILE__;
-
 /**********************************************************
 文件名称:asctable.c
 文件路径:../common/asctable.c
@@ -78,11 +76,11 @@ namespace Common{
 			return TRUE;
 
 		case WM_LBUTTONDOWN:
-			_fgcolor = (++_fgcolor) % __ARRAY_SIZE(cr_table);
+			_fgcolor = (++_fgcolor) % _countof(cr_table);
 			::InvalidateRect(m_hWnd, NULL, TRUE);
 			return 0;
 		case WM_RBUTTONDOWN:
-			_bgcolor = (++_bgcolor) % __ARRAY_SIZE(cr_table);
+			_bgcolor = (++_bgcolor) % _countof(cr_table);
 			::InvalidateRect(m_hWnd, NULL, TRUE);
 			return 0;
 		case WM_PAINT:

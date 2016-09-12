@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <new>
 #include <memory>
 
 #include <cassert>
@@ -35,7 +36,6 @@
 #include "utils.h"
 #include "struct/list.h"
 #include "struct/Config.h"
-#include "struct/memory.h"
 #include "struct/Thunk.h"
 
 #include "Windows/Timer.h"

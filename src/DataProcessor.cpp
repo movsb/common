@@ -19,7 +19,7 @@ namespace Common{
 
 		_editor->append_text(str);
 
-		if (str != buf) memory.free((void**)&str, "");
+        if (str != buf) delete[] str;
 
 		_count += cb;
 
@@ -85,7 +85,7 @@ namespace Common{
 		_data.append(ba, n);
 
 		str = c_text_formatting::hex2chs((unsigned char*)_data.get_data(), _data.get_size(),
-			inner_buf, __ARRAY_SIZE(inner_buf), c_text_formatting::NLT_CR);
+			inner_buf, _countof(inner_buf), c_text_formatting::NLT_CR);
 
 		do{
 			int newcrlen = strlen(str);
@@ -101,8 +101,8 @@ namespace Common{
 
 		_post_len = strlen(str);
 
-		if (str != inner_buf)
-			memory.free((void**)&str, "");
+        if (str != inner_buf)
+            delete[] str;
 
 		*pn = n;
 		return true;

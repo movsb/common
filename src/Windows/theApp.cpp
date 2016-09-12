@@ -7,7 +7,7 @@ namespace Common{
 		_hinst = ::GetModuleHandle(0);
 
 		char buf[MAX_PATH]={0};
-		::GetModuleFileName(_hinst, buf, __ARRAY_SIZE(buf));
+		::GetModuleFileName(_hinst, buf, _countof(buf));
 		
 		char* p = strrchr(buf, '\\');
 		if(!p) p = strrchr(buf, '/');

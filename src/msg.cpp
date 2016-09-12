@@ -9,8 +9,6 @@
 #include "msg.h"
 #include "comm.h"
 
-static char* __THIS_FILE__  = __FILE__;
-
 namespace Common {
 	//////////////////////////////////////////////////////////////////////////
 	std::string CComWnd::c_comport::get_id_and_name() const
@@ -109,8 +107,6 @@ namespace Common {
 	LRESULT CComWnd::on_create( HWND hWnd, HINSTANCE hInstance )
 	{
 		SetWindowText(hWnd, COMMON_NAME_AND_VERSION);
-
-		memory.set_notifier(this);
 
 		struct {HWND* phwnd; UINT  id;}hwndlist[] = {
 				{&_hCP,		IDC_CBO_CP},
@@ -994,14 +990,11 @@ namespace Common {
 		else if (selected == "any"){
             const int line_cch = 16;
 			int length = file_size;
-			char* hexstr = c_text_formatting::hex2str(
-				buffer, &length, line_cch, 0, NULL, 0, c_text_formatting::newline_type::NLT_CRLF);
-			if (hexstr){
-				editor_send()->set_text(hexstr);
-				switch_send_data_format(true, true);
-				memory.free((void**)&hexstr, "");
-				switch_send_data_format(true, true);
-			}
+			char* hexstr = c_text_formatting::hex2str(buffer, &length, line_cch, 0, NULL, 0, c_text_formatting::newline_type::NLT_CRLF);
+            editor_send()->set_text(hexstr);
+            switch_send_data_format(true, true);
+            delete[] hexstr;
+            switch_send_data_format(true, true);
 		}
 		else if (selected == "cmd"){
 			bf.close();

@@ -10,9 +10,6 @@
     <ClCompile Include="..\src\struct\Config.cpp">
       <Filter>struct</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\struct\memory.cpp">
-      <Filter>struct</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\about.cpp" />
     <ClCompile Include="..\src\asctable.cpp" />
     <ClCompile Include="..\src\comm.cpp" />
@@ -87,9 +84,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\struct\list.h">
-      <Filter>struct</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\struct\memory.h">
       <Filter>struct</Filter>
     </ClInclude>
     <ClInclude Include="..\src\struct\Thunk.h">
