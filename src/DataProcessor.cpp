@@ -610,7 +610,7 @@ namespace Common{
 			char buf[kPairs*2+1];
 
 			// 先把能处理的处理掉, 其它的交给下一次处理
-			while (npairs <= kPairs && (npairs + 1) * 2 <= cb){	// 处理第npairs对时要求的字节数, 从0开始, 比如3: 需要至少8个字节
+			while (npairs < kPairs && (npairs + 1) * 2 <= cb){	// 处理第npairs对时要求的字节数, 从0开始, 比如3: 需要至少8个字节
 				unsigned char b1 = ba[npairs * 2 + 0];
 				unsigned char b2 = ba[npairs * 2 + 1];
 				if ((0xA1 <= b1 && b1 <= 0xFE) && (0xA1 <= b2 && b2 <= 0xFE)){
