@@ -4,7 +4,6 @@
 
 #include "about.h"
 #include "asctable.h"
-#include "SendCmd.h"
 #include "msg.h"
 
 static char* __THIS_FILE__  = __FILE__;
@@ -60,8 +59,6 @@ namespace Common {
 	LRESULT CComWnd::on_create( HWND hWnd, HINSTANCE hInstance )
 	{
 		SetWindowText(hWnd, COMMON_NAME_AND_VERSION);
-
-		memory.set_notifier(this);
 
 		struct {HWND* phwnd; UINT  id;}hwndlist[] = {
 				{&_hCP,		IDC_CBO_CP},
@@ -969,7 +966,7 @@ namespace Common {
 			if (hexstr){
 				editor_send()->set_text(hexstr);
 				switch_send_data_format(true, true);
-				memory.free((void**)&hexstr, "");
+                delete[] hexstr;
 				switch_send_data_format(true, true);
 			}
 		}

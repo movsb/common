@@ -688,7 +688,7 @@ namespace Common{
 		}
 
 		while (psdp == NULL){
-			psdp = (c_send_data_packet*)GET_MEM(sizeof(c_send_data_packet) + size);
+			psdp = (c_send_data_packet*)new char[sizeof(c_send_data_packet) + size];
 		}
 		psdp->type = csdp_type::csdp_alloc;
 		psdp->used = true;
@@ -707,7 +707,7 @@ namespace Common{
 		switch (psdp->type)
 		{
 		case csdp_type::csdp_alloc:
-			memory.free((void**)&psdp, "");
+            delete[](char*)psdp;
 			break;
 		case csdp_type::csdp_local:
 		case csdp_type::csdp_exit:

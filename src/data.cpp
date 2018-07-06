@@ -19,7 +19,9 @@ namespace Common{
 
 		_editor->append_text(str);
 
-		if (str != buf) memory.free((void**)&str, "");
+        if(str != buf) {
+            delete[] str;
+        }
 
 		_count += cb;
 
@@ -101,8 +103,9 @@ namespace Common{
 
 		_post_len = strlen(str);
 
-		if (str != inner_buf)
-			memory.free((void**)&str, "");
+        if(str != inner_buf) {
+            delete[] str;
+        }
 
 		*pn = n;
 		return true;

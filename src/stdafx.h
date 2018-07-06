@@ -28,14 +28,11 @@
 #include <WinInet.h>
 
 #include "Sdklayout/SdkLayout.h"
-#include "tinyxml2/tinyxml2.h"
-
 
 #include "debug.h"
 #include "utils.h"
 #include "struct/list.h"
 #include "struct/Config.h"
-#include "struct/memory.h"
 #include "struct/Thunk.h"
 
 #include "Windows/Timer.h"
