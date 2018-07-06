@@ -976,7 +976,7 @@ namespace Common {
 		else if (selected == "cmd"){
 			bf.close();
 			delete[] buffer;
-			sendcmd_try_load_xml(*this, bf.get_fn().c_str(), &_comm);
+			// sendcmd_try_load_xml(*this, bf.get_fn().c_str(), &_comm);
 			return; // !!!
 		}
 
@@ -1470,7 +1470,7 @@ namespace Common {
 								<Static text="常说的二进制文件(直接打开有乱码), 将以16进制序列方式显示!" font="1" inset="20,0,0,0"/>
 								<Option name="hexseq" text="包含16进制序列的文本文件"/>
 								<Static text="两个字符一组的16进制序列文件, 比如: 12 AB FF" font="1" inset="20,0,0,0"/>
-								<Option name="cmd" text="命令列表文件"/>
+								<Option name="cmd" text="命令列表文件" style="disabled"/>
 								<Static text="包含在文本文件中的命令列表索引!" font="1" inset="20,0,0,0"/>
 								<Option name="nothing" text="取消" />
 							</Vertical>

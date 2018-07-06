@@ -20,7 +20,6 @@
     <ClCompile Include="..\src\debug.cpp" />
     <ClCompile Include="..\src\msg.cpp" />
     <ClCompile Include="..\src\pinctrl.cpp" />
-    <ClCompile Include="..\src\SendCmd.cpp" />
     <ClCompile Include="..\src\stdafx.cpp" />
     <ClCompile Include="..\src\utils.cpp" />
     <ClCompile Include="..\src\Windows\FileDialog.cpp">
@@ -40,9 +39,6 @@
     </ClCompile>
     <ClCompile Include="..\src\Windows\Timer.cpp">
       <Filter>Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\tinyxml2\tinyxml2.cpp">
-      <Filter>tinyxml2</Filter>
     </ClCompile>
     <ClCompile Include="..\src\sdklayout\UIMarkup.cpp">
       <Filter>sdklayout</Filter>
@@ -105,7 +101,6 @@
     <ClInclude Include="..\src\debug.h" />
     <ClInclude Include="..\src\msg.h" />
     <ClInclude Include="..\src\pinctrl.h" />
-    <ClInclude Include="..\src\SendCmd.h" />
     <ClInclude Include="..\src\stdafx.h" />
     <ClInclude Include="..\src\utils.h" />
     <ClInclude Include="..\res\resource.h">
@@ -128,9 +123,6 @@
     </ClInclude>
     <ClInclude Include="..\src\Windows\Timer.h">
       <Filter>Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tinyxml2\tinyxml2.h">
-      <Filter>tinyxml2</Filter>
     </ClInclude>
     <ClInclude Include="..\src\sdklayout\UIManager.h">
       <Filter>sdklayout</Filter>
@@ -181,9 +173,6 @@
     </Filter>
     <Filter Include="Windows">
       <UniqueIdentifier>{15db0d98-9a56-4a42-a150-c5ad444cf07b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tinyxml2">
-      <UniqueIdentifier>{69b2e2cd-48bd-4c70-9227-1fb680c14a4f}</UniqueIdentifier>
     </Filter>
     <Filter Include="sdklayout">
       <UniqueIdentifier>{be4a60a9-8b68-4cfe-a520-35707917f52b}</UniqueIdentifier>
