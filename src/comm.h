@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DataProcessor.h"
+#include "data.h"
 
 namespace Common {
 	// 发送, 接收, 未发送数据计数器接口
@@ -343,11 +343,11 @@ namespace Common {
 
 	// 数据接收器
 	public:
-		void add_data_receiver(i_data_receiver* receiver);
-		void remove_data_receiver(i_data_receiver* receiver);
+		void add_data_receiver(IDataReceiver* receiver);
+		void remove_data_receiver(IDataReceiver* receiver);
 		void call_data_receivers(const unsigned char* ba, int cb);
 	private:
-		c_ptr_array<i_data_receiver>	_data_receivers;
+		c_ptr_array<IDataReceiver>	_data_receivers;
 		c_critical_locker				_data_receiver_lock;
 
 	// 内部工作线程

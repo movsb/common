@@ -1,12 +1,9 @@
 #pragma once
 
 namespace Common{
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
 	// 数据处理器接口: 比如文本管理器 16进制管理器, 由下面的数据接收器调用
 	// 一般由需要有后续处理的数据处理继承此接口, 否则可以直接处理, 比如'\t'的处理就不需要
-	class i_data_processor
+	class IDataProcessor
 	{
 	public:
 		// 处理部分数据: 
@@ -20,12 +17,10 @@ namespace Common{
 
 		// 重置数据处理缓冲: 比如, 在关闭串口后, 或清空16进制数据后
 		virtual void reset_buffer() = 0;
-
-		virtual operator i_data_processor*() = 0;
 	};
 
 	// 数据接收器接口: 串口在接收到数据后调用所有的接收器
-	class i_data_receiver
+	class IDataReceiver
 	{
 	public:
 		// 数据接收函数, 读线程接收到数据时调用此函数
@@ -34,7 +29,7 @@ namespace Common{
 		virtual void reset_buffer() = 0;
 	protected:
 		// 一个调用处理器并设置剩余数据与后续调用标志的辅助函数
-		virtual bool process(i_data_processor* proc, bool follow, const unsigned char** pba, int* pcb, i_data_processor** ppre)
+		virtual bool process(IDataProcessor* proc, bool follow, const unsigned char** pba, int* pcb, IDataProcessor** ppre)
 		{
 			int n;
 			bool c = proc->process_some(follow, *pba, *pcb, &n);
@@ -46,13 +41,9 @@ namespace Common{
 		}
 	};
 
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
-	class c_single_byte_processor : public i_data_processor
+	class SingleByteProcessor : public IDataProcessor
 	{
 	public:
-		virtual operator i_data_processor*() { return static_cast<i_data_processor*>(this); }
 		virtual bool process_some(bool follow, const unsigned char* ba, int cb, int* pn);
 		virtual void reset_buffer() {}
 
@@ -60,14 +51,13 @@ namespace Common{
 		Window::c_rich_edit*	_richedit;
 	};
 
-	class c_crlf_data_processor : public i_data_processor
+	class NewlineProcessor : public IDataProcessor
 	{
 	public:
-		virtual operator i_data_processor*() { return static_cast<i_data_processor*>(this); }
 		virtual bool process_some(bool follow, const unsigned char* ba, int cb, int* pn);
 		virtual void reset_buffer();
 
-		c_crlf_data_processor()
+		NewlineProcessor()
 			: _post_len(0)
 		{}
 
@@ -81,10 +71,9 @@ namespace Common{
 	// Linux控制字符处理
 	// http://www.cnblogs.com/memset/p/linux_printf_with_color.html
 	// http://ascii-table.com/ansi-escape-sequences.php
-	class c_escape_data_processor : public i_data_processor
+	class EscapeProcessor : public IDataProcessor
 	{
 	public:
-		virtual operator i_data_processor*() { return static_cast<i_data_processor*>(this); }
 		virtual bool process_some(bool follow, const unsigned char* ba, int cb, int* pn);
 		virtual void reset_buffer();
 
@@ -103,10 +92,9 @@ namespace Common{
 		Window::c_rich_edit* _richedit;
 	};
 
-	class c_ascii_data_processor : public i_data_processor
+	class AsciiProcessor : public IDataProcessor
 	{
 	public:
-		virtual operator i_data_processor*() { return static_cast<i_data_processor*>(this); }
 		virtual bool process_some(bool follow, const unsigned char* ba, int cb, int* pn);
 		virtual void reset_buffer();
 
@@ -118,13 +106,12 @@ namespace Common{
 	// http://en.wikipedia.org/wiki/GB_2312
 	// http://zh.wikipedia.org/wiki/GB_2312
 	// http://www.knowsky.com/resource/gb2312tbl.htm
-	class c_gb2312_data_processor : public i_data_processor
+	class Gb2312Processor : public IDataProcessor
 	{
 	public:
-		c_gb2312_data_processor()
+		Gb2312Processor()
 			: _lead_byte(0)
 		{}
-		virtual operator i_data_processor*() { return static_cast<i_data_processor*>(this); }
 		virtual bool process_some(bool follow, const unsigned char* ba, int cb, int* pn);
 		virtual void reset_buffer();
 
@@ -134,15 +121,15 @@ namespace Common{
 	};
 
 	//////////////////////////////////////////////////////////////////////////
-	class c_text_data_receiver : public i_data_receiver
+	class TextReceiver : public IDataReceiver
 	{
 	public:
-		c_text_data_receiver()
+		TextReceiver()
 			: _pre_proc(0)
 			, _rich_editor(0)
 		{}
 
-		// interface i_data_receiver
+		// interface IDataReceiver
 		virtual void receive(const unsigned char* ba, int cb);
 		virtual void reset_buffer(){
 			_pre_proc = 0;
@@ -161,25 +148,24 @@ namespace Common{
 		}
 
 	protected:
-		Window::c_rich_edit*		_rich_editor;
-		i_data_processor*			_pre_proc;
-		c_single_byte_processor		_proc_byte;
-		c_crlf_data_processor		_proc_crlf;
-		c_escape_data_processor		_proc_escape;
-		c_ascii_data_processor		_proc_ascii;
-		c_gb2312_data_processor		_proc_gb2312;
+		Window::c_rich_edit*	_rich_editor;
+		IDataProcessor*			_pre_proc;
+		SingleByteProcessor		_proc_byte;
+		NewlineProcessor		_proc_crlf;
+		EscapeProcessor		    _proc_escape;
+		AsciiProcessor		    _proc_ascii;
+		Gb2312Processor		    _proc_gb2312;
 	};
 
 	//////////////////////////////////////////////////////////////////////////
-	class c_hex_data_processor : public i_data_processor
+	class HexProcessor : public IDataProcessor
 	{
 	public:
-		c_hex_data_processor()
+		HexProcessor()
 			: _editor(0)
 			, _count(0)
 		{}
 
-		virtual operator i_data_processor*() { return static_cast<i_data_processor*>(this); }
 		virtual bool process_some(bool follow, const unsigned char* ba, int cb, int* pn);
 		virtual void reset_buffer();
 		void set_count(int n) { _count = n; }
@@ -190,10 +176,10 @@ namespace Common{
 		int _count;
 	};
 
-	class c_hex_data_receiver : public i_data_receiver
+	class HexReceiver : public IDataReceiver
 	{
 	public:
-		c_hex_data_receiver()
+		HexReceiver()
 			: _pre_proc(0)
 			, _editor(0)
 		{}
@@ -210,15 +196,15 @@ namespace Common{
 
 		void set_count(int n){ _proc_hex.set_count(n); }
 	protected:
-		Window::c_edit*			_editor;
-		i_data_processor*		_pre_proc;
-		c_hex_data_processor	_proc_hex;
+		Window::c_edit*		_editor;
+		IDataProcessor*		_pre_proc;
+		HexProcessor	    _proc_hex;
 	};
 
 	//////////////////////////////////////////////////////////////////////////
-	class c_file_data_receiver : public i_data_receiver {
+	class FileReceiver : public IDataReceiver {
 	public:
-		c_file_data_receiver()
+		FileReceiver()
 		{}
 
 		virtual void receive(const unsigned char* ba, int cb) {

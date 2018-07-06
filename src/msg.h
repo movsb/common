@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DataProcessor.h"
+#include "data.h"
 #include "comm.h"
 
 namespace Common {
@@ -184,9 +184,9 @@ namespace Common {
 		DWORD				_send_data_format_hex;
 		DWORD				_send_data_format_char;
 
-		c_hex_data_receiver		_hex_data_receiver;
-		c_text_data_receiver	_text_data_receiver;
-		c_file_data_receiver	_file_data_receiver;
+		HexReceiver		_hex_data_receiver;
+		TextReceiver	_text_data_receiver;
+		FileReceiver	_file_data_receiver;
 
 		AThunk				_thunk_rich_edit;
 		WNDPROC				_thunk_rich_edit_old_proc;

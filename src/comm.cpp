@@ -3,7 +3,7 @@
 static char* __THIS_FILE__ = __FILE__;
 
 #include "comm.h"
-#include "DataProcessor.h"
+#include "data.h"
 
 namespace Common{
 	//////////////////////////////////////////////////////////////////////////
@@ -504,7 +504,7 @@ namespace Common{
 		_data_receiver_lock.unlock();
 	}
 
-	void CComm::remove_data_receiver(i_data_receiver* receiver)
+	void CComm::remove_data_receiver(IDataReceiver* receiver)
 	{
 		_data_receiver_lock.lock();
 		_data_receivers.remove(receiver);
@@ -512,7 +512,7 @@ namespace Common{
 
 	}
 
-	void CComm::add_data_receiver(i_data_receiver* receiver)
+	void CComm::add_data_receiver(IDataReceiver* receiver)
 	{
 		_data_receiver_lock.lock();
 		_data_receivers.add(receiver);
