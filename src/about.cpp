@@ -5,8 +5,6 @@
 
 #pragma comment(lib,"WinInet")
 
-static char* __THIS_FILE__ = __FILE__;
-
 const char* Common::c_about_dlg::about_str = 
 		"软件说明:\r\n"
 		"    *. 软件用C语言/C++/SDK方式完成, 绿色小巧, 不会给系统带来任何的垃圾文件\r\n"

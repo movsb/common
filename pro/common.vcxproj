@@ -110,7 +110,7 @@
     <ClCompile Include="..\src\asctable.cpp" />
     <ClCompile Include="..\src\comm.cpp" />
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\DataProcessor.cpp" />
+    <ClCompile Include="..\src\data.cpp" />
     <ClCompile Include="..\src\debug.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -132,7 +132,6 @@
     <ClCompile Include="..\src\sdklayout\UISystemControls.cpp" />
     <ClCompile Include="..\src\sdklayout\UIVerticalLayout.cpp" />
     <ClCompile Include="..\src\sdklayout\uiUtils.cpp" />
-    <ClCompile Include="..\src\SendCmd.cpp" />
     <ClCompile Include="..\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -145,12 +144,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\src\struct\memory.cpp" />
     <ClCompile Include="..\src\struct\Thunk.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\src\tinyxml2\tinyxml2.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -173,7 +167,7 @@
     <ClInclude Include="..\src\about.h" />
     <ClInclude Include="..\src\asctable.h" />
     <ClInclude Include="..\src\comm.h" />
-    <ClInclude Include="..\src\DataProcessor.h" />
+    <ClInclude Include="..\src\data.h" />
     <ClInclude Include="..\src\debug.h" />
     <ClInclude Include="..\src\msg.h" />
     <ClInclude Include="..\src\pinctrl.h" />
@@ -187,13 +181,10 @@
     <ClInclude Include="..\src\sdklayout\UISystemControls.h" />
     <ClInclude Include="..\src\sdklayout\UIVerticalLayout.h" />
     <ClInclude Include="..\src\sdklayout\uiUtils.h" />
-    <ClInclude Include="..\src\SendCmd.h" />
     <ClInclude Include="..\src\stdafx.h" />
     <ClInclude Include="..\src\struct\Config.h" />
     <ClInclude Include="..\src\struct\list.h" />
-    <ClInclude Include="..\src\struct\memory.h" />
     <ClInclude Include="..\src\struct\Thunk.h" />
-    <ClInclude Include="..\src\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\src\utils.h" />
     <ClInclude Include="..\src\Windows\DialogBuilder.h" />
     <ClInclude Include="..\src\Windows\FileDialog.h" />

@@ -3,11 +3,8 @@
 #include "msg.h"
 #include "about.h"
 #include "debug.h"
-#include "struct/memory.h"
 #include "comm.h"
 #include "../res/resource.h"
-
-static char* __THIS_FILE__ = __FILE__;
 
 namespace Common {
 	unsigned int c_text_formatting::remove_string_crlf( char* str )
@@ -174,14 +171,7 @@ _error:
 		if(*ppBuffer && buf_size>=strlen(str)/2){
 			hexarray = *ppBuffer;
 		}else{
-			hexarray = (unsigned char*)GET_MEM(strlen(str)/2);
-			if(hexarray == NULL){
-				*ppBuffer = NULL;
-				return 0;
-			}else{
-				//放到最后,判断是否需要释放
-				//*ppBuffer = hexarray;
-			}
+			hexarray = new unsigned char[strlen(str)/2];
 		}
 		pba = hexarray;
 
@@ -250,7 +240,7 @@ _error:
 		}
 	_parse_error:
 		if(hexarray != *ppBuffer){
-			memory.free((void**)&hexarray,"<utils.str2hex>");
+            delete[](unsigned char*)hexarray;
 		}
 		return 0|((unsigned int)pp-(unsigned int)str);
 	_exit_for:
@@ -305,12 +295,7 @@ _error:
 		if(total_length<=buf_size && buf){
 			buffer = buf;
 		}else{
-			buffer = (char*)GET_MEM(total_length);
-			if(!buffer){
-				if(buf)
-					*buf = '\0';
-				return buf;
-			}
+			buffer = new char[total_length];
 		}
 
 		p = (unsigned char*)buffer;
@@ -368,8 +353,7 @@ _error:
 			buffer = buf;
 		}
 		else{
-			buffer = (char*)GET_MEM(total_length);
-			if (buffer == NULL) return NULL;
+			buffer = new char[total_length];
 		}
 		for (k = 0, pb = buffer; k < *length; k++){
 			sprintf(pb, "%02X ", hexarray[k]);
